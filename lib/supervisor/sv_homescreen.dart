@@ -37,30 +37,15 @@ class _SupervisorHomeScreenState extends State<SupervisorHomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFEF7FF), // Change background color to #FEF7FF
+      backgroundColor: Colors.white, // Change background color to #FEF7FF
       appBar: PreferredSize(
         preferredSize: Size.fromHeight(kToolbarHeight),
         child: Container(
-          decoration: BoxDecoration(
-            color: const Color(0xFFFEF7FF), // Change app bar background color to #FEF7FF
-            boxShadow: [
-              BoxShadow(
-                color: Colors.grey.withOpacity(0.5), // Shadow color
-                spreadRadius: 2, // Spread radius of the shadow
-                blurRadius: 5, // Blur radius of the shadow for smooth effect
-                offset: const Offset(0, 3), // Offset the shadow to create depth
-              ),
-            ],
-            border: Border(
-              bottom: BorderSide(
-                color: Colors.grey.shade300, // Light grey border color
-                width: 1.0, // Thickness of the border
-              ),
-            ),
-          ),
+          decoration: BoxDecoration(),
           child: AppBar(
             elevation: 0, // No internal elevation
-            backgroundColor: Colors.transparent, // Transparent to show the container's background
+            backgroundColor: Colors
+                .transparent, // Transparent to show the container's background
             automaticallyImplyLeading: false, // Remove the back button
             title: Text(
               'Home',
@@ -127,7 +112,7 @@ class _SupervisorHomeScreenState extends State<SupervisorHomeScreen> {
               Text(
                 'Complaint',
                 style: TextStyle(
-                  fontSize: 18,
+                  fontSize: 20,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -137,7 +122,8 @@ class _SupervisorHomeScreenState extends State<SupervisorHomeScreen> {
                 child: Container(
                   padding: const EdgeInsets.all(16.0),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF92AEB9), // Color for the complaint card
+                    color:
+                        const Color(0xFF92AEB9), // Color for the complaint card
                     borderRadius: BorderRadius.circular(12),
                     boxShadow: [
                       BoxShadow(
@@ -152,7 +138,8 @@ class _SupervisorHomeScreenState extends State<SupervisorHomeScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Stack(
-                        alignment: Alignment.topRight, // Align the time to the top right
+                        alignment: Alignment
+                            .topRight, // Align the time to the top right
                         children: [
                           Row(
                             children: [
@@ -167,7 +154,8 @@ class _SupervisorHomeScreenState extends State<SupervisorHomeScreen> {
                                 style: TextStyle(
                                   fontSize: 18,
                                   fontWeight: FontWeight.w500,
-                                  color: Colors.white, // Matching the white text color
+                                  color: Colors
+                                      .white, // Matching the white text color
                                 ),
                               ),
                             ],
@@ -189,7 +177,8 @@ class _SupervisorHomeScreenState extends State<SupervisorHomeScreen> {
                         'Room Cleaning',
                         style: TextStyle(
                           fontSize: 16,
-                          fontWeight: FontWeight.bold, // Bold text for Room Cleaning
+                          fontWeight:
+                              FontWeight.bold, // Bold text for Room Cleaning
                         ),
                       ),
                       const SizedBox(height: 5),
@@ -200,7 +189,8 @@ class _SupervisorHomeScreenState extends State<SupervisorHomeScreen> {
                             height: 24, // Adjust icon size as needed
                             color: Colors.black, // Makes the icon black
                           ),
-                          const SizedBox(width: 8), // Space between icon and text
+                          const SizedBox(
+                              width: 8), // Space between icon and text
                           const Text(
                             'Today',
                             style: TextStyle(

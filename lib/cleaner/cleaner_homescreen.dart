@@ -6,7 +6,7 @@ import 'cleaner_navbar.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../bell_profile_widget.dart';
 
-const Color appBarColor = Color(0xFFFEF7FF); // Updated color for AppBar
+const Color appBarColor = Color(0xFFFFFFFF); // White color for AppBar
 
 class CleanerHomeScreen extends StatelessWidget {
   const CleanerHomeScreen({super.key});
@@ -37,24 +37,11 @@ class CleanerHomeScreen extends StatelessWidget {
         child: Container(
           decoration: BoxDecoration(
             color: appBarColor, // Set AppBar color
-            boxShadow: [
-              BoxShadow(
-                color: Colors.grey.withOpacity(0.5), // Shadow color
-                spreadRadius: 2, // Spread radius of the shadow
-                blurRadius: 5, // Blur radius of the shadow for smooth effect
-                offset: const Offset(0, 3), // Offset the shadow to create depth
-              ),
-            ],
-            border: Border(
-              bottom: BorderSide(
-                color: Colors.grey.shade300, // Light grey border color
-                width: 1.0, // Thickness of the border
-              ),
-            ),
           ),
           child: AppBar(
             elevation: 0, // No internal elevation
-            backgroundColor: Colors.transparent, // Transparent to show the container's background
+            backgroundColor: Colors
+                .transparent, // Transparent to show the container's background
             automaticallyImplyLeading: false, // Remove the back button
             title: const Text(
               'Home',
@@ -80,7 +67,7 @@ class CleanerHomeScreen extends StatelessWidget {
                 const Text(
                   'Welcome, Cleaner!',
                   style: TextStyle(
-                    fontSize: 18,
+                    fontSize: 20,
                     fontWeight: FontWeight.bold,
                     color: Colors.black87,
                   ),
@@ -94,7 +81,8 @@ class CleanerHomeScreen extends StatelessWidget {
                     GestureDetector(
                       onTap: () => _handleProfileTap(context),
                       child: const CircleAvatar(
-                        backgroundImage: AssetImage('assets/images/profile.png'), // Profile image asset
+                        backgroundImage: AssetImage(
+                            'assets/images/profile.png'), // Profile image asset
                         radius: 15,
                       ),
                     ),
@@ -138,7 +126,7 @@ class CleanerHomeScreen extends StatelessWidget {
                   const Text(
                     'Attendance',
                     style: TextStyle(
-                      fontSize: 18,
+                      fontSize: 20,
                       fontWeight: FontWeight.bold,
                       color: Colors.black87,
                     ),
@@ -148,7 +136,8 @@ class CleanerHomeScreen extends StatelessWidget {
                     children: [
                       const Text(
                         'Name',
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                        style: TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.w500),
                       ),
                       const Spacer(),
                       Container(
@@ -192,7 +181,7 @@ class CleanerHomeScreen extends StatelessWidget {
                 Text(
                   'Task',
                   style: TextStyle(
-                    fontSize: 18,
+                    fontSize: 20,
                     fontWeight: FontWeight.bold,
                     color: Colors.black87,
                   ),
@@ -237,14 +226,15 @@ class CleanerHomeScreen extends StatelessWidget {
                       children: [
                         Row(
                           children: [
-                            const Icon(Icons.location_on, size: 24, color: Colors.black),
+                            const Icon(Icons.location_on,
+                                size: 24, color: Colors.black),
                             const SizedBox(width: 5),
                             const Text(
                               'Floor 2',
                               style: TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.w500,
-                                color: Colors.white,
+                                color: Colors.black,
                               ),
                             ),
                           ],
@@ -264,7 +254,8 @@ class CleanerHomeScreen extends StatelessWidget {
                     const SizedBox(height: 5),
                     const Text(
                       'Room Cleaning',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      style:
+                          TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 5),
                     Row(
@@ -279,7 +270,7 @@ class CleanerHomeScreen extends StatelessWidget {
                           'Today',
                           style: TextStyle(
                             fontSize: 14,
-                            color: Colors.white,
+                            color: Colors.black,
                           ),
                         ),
                       ],

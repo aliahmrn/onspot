@@ -27,14 +27,14 @@ class OfficerHomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor: Colors.white,
       appBar: PreferredSize(
         preferredSize: Size.fromHeight(56.0), // Set preferred height for AppBar
         child: Material(
-          elevation: 4.0, // Add shadow to AppBar
+          elevation: 0,
           child: AppBar(
             elevation: 0, // Remove default elevation
-            backgroundColor: const Color(0xFFFEF7FF), // Change AppBar color to #FEF7FF
+            backgroundColor: Colors.white,
             title: const Center(
               child: Text(
                 'Home',
@@ -61,7 +61,7 @@ class OfficerHomeScreen extends StatelessWidget {
                 const Text(
                   'Welcome, Officer',
                   style: TextStyle(
-                    fontSize: 16,
+                    fontSize: 20,
                     fontWeight: FontWeight.bold,
                   ),
                 ),

@@ -22,8 +22,7 @@ class _HistoryPageState extends State<HistoryPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: const Color(0xFFFEF7FF), // Change AppBar color to #FEF7FF
-        elevation: 0,
+        backgroundColor: Colors.white,
         automaticallyImplyLeading: false, // This removes the back button
         title: const Center(
           // Center the title text

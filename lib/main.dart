@@ -15,13 +15,22 @@ class OnSpotFacilityApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      theme: ThemeData(
+        scaffoldBackgroundColor:
+            Colors.white, // Set the scaffold background color to white
+        // You can also customize other theme properties here
+      ),
       debugShowCheckedModeBanner: false,
       initialRoute: '/',
       routes: {
-        '/': (context) => LoginScreen(), // Set the initial route to the login screen
-        '/cleaner-home': (context) => ProtectedRoute(child: CleanerHomeScreen()), // Protect the Cleaner home route
-        '/officer-home': (context) => ProtectedRoute(child: OfficerHomeScreen()), // Protect the Officer home route
-        '/supervisor-home': (context) => ProtectedRoute(child: SupervisorHomeScreen()), // Protect the Supervisor home route
+        '/': (context) =>
+            LoginScreen(), // Set the initial route to the login screen
+        '/cleaner-home': (context) => ProtectedRoute(
+            child: CleanerHomeScreen()), // Protect the Cleaner home route
+        '/officer-home': (context) => ProtectedRoute(
+            child: OfficerHomeScreen()), // Protect the Officer home route
+        '/supervisor-home': (context) => ProtectedRoute(
+            child: SupervisorHomeScreen()), // Protect the Supervisor home route
       },
     );
   }
