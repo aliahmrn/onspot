@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:onspot_facility/officer/officer_homescreen.dart';
+import 'package:onspot_facility/cleaner/homescreen.dart';
 import 'dart:convert';
-import 'package:onspot_facility/common/auth_service.dart';
+import 'service/auth_service.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -30,7 +30,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
     try {
       final response = await http.post(
-        Uri.parse('http://127.0.0.1:8000/api/login'),
+        Uri.parse('http://127.0.0.1:8000/api/login'), // Your API endpoint
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
         },
@@ -43,17 +43,18 @@ class _LoginScreenState extends State<LoginScreen> {
       // Check the response status
       if (response.statusCode == 200) {
         final Map<String, dynamic> data = json.decode(response.body);
-        final String token = data['access_token']; // Get the access token
+        final String token = data['token']; // Adjust this line based on your API response
+        final String userRole = data['role']; // Get the user role from the response
 
         print('Login successful, token: $token'); // Log the token for debugging
 
         // Save token securely
-        await _authService.saveToken(token);
+        await _authService.saveToken(token, userRole); // Updated to save both token and role
 
-        // Navigate to the home screen (You can specify the common home screen here)
+        // Navigate to the home screen
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => OfficerHomeScreen()), // Replace with your common home screen
+          MaterialPageRoute(builder: (context) => const CleanerHomeScreen()), // Navigate to the home screen
         );
       } else {
         // Handle error response

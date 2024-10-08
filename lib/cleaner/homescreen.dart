@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'cleaner_task.dart';
-import 'cleaner_notifications.dart';
-import 'cleaner_profile.dart';
-import 'cleaner_navbar.dart';
+import 'task.dart';
+import 'notifications.dart';
+import 'profile.dart';
+import 'navbar.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import '../widget/bell_profile_widget.dart';
+import '../widget/bell.dart';
 
 const Color appBarColor = Color(0xFFFEF7FF); // Updated color for AppBar
 

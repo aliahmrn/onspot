@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'cleaner_task.dart';
-import 'cleaner_notifications.dart';
-import 'cleaner_profile.dart';
-import 'cleaner_homescreen.dart'; // Import your home screen
+import 'task.dart';
+import 'notifications.dart';
+import 'profile.dart';
+import 'homescreen.dart'; // Import your home screen
 
 class CleanerBottomNavBar extends StatelessWidget {
   final int currentIndex;

@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import 'login.dart'; // Import the login screen
-import 'cleaner/cleaner_homescreen.dart'; // Import the cleaner home screen
-import 'officer/officer_homescreen.dart'; // Import the officer home screen
-import 'supervisor/sv_homescreen.dart'; // Import the supervisor home screen
+import 'login.dart';
+import 'cleaner/homescreen.dart'; // Import the cleaner home screen
+
 
 void main() {
   runApp(OnSpotFacilityApp());
@@ -19,8 +18,6 @@ class OnSpotFacilityApp extends StatelessWidget {
       routes: {
         '/': (context) => LoginScreen(), // Set the initial route to the login screen
         '/cleaner-home': (context) =>  CleanerHomeScreen(), // Protect the Cleaner home route
-        '/officer-home': (context) =>  OfficerHomeScreen(), // Protect the Officer home route
-        '/supervisor-home': (context) => SupervisorHomeScreen(), // Protect the Supervisor home route
       },
     );
   }

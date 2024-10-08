@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'cleaner_navbar.dart'; // Import reusable CleanerBottomNavBar
+import 'navbar.dart'; // Import reusable CleanerBottomNavBar
 
 const Color appBarColor = Color(0xFFFEF7FF); // Set AppBar color to #fef7ff
 

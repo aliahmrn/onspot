@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'cleaner_navbar.dart'; // Import the reusable navbar
-import 'cleaner_taskdetails.dart'; // Import TaskDetailsPage for navigation
+import 'navbar.dart'; // Import the reusable navbar
+import 'task_details.dart'; // Import TaskDetailsPage for navigation
 
 class CleanerTasksScreen extends StatelessWidget {
   const CleanerTasksScreen({super.key});
