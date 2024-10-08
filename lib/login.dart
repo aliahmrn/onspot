@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:onspot_officer/service/auth_service.dart';
+import 'officer/homescreen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -52,22 +53,12 @@ class _LoginScreenState extends State<LoginScreen> {
         await _authService.saveToken(token);
 
         // Determine user role
-        if (role == 'cleaner') {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => CleanerHomeScreen()),
-          );
-        } else if (role == 'officer') {
+        if  (role == 'officer') {
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (context) => OfficerHomeScreen()),
           );
-        } else if (role == 'supervisor') {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => SupervisorHomeScreen()),
-          );
-        }
+        } 
       } else {
         // Handle error response
         setState(() {

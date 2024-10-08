@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-// Import reusable ProfileEditPage
+import '../profileedit.dart';  // Import reusable ProfileEditPage
 import 'profile.dart'; // Import OfficerProfilePage for navigation
 
 class OfficerProfileEdit extends StatelessWidget {
