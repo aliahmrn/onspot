@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'sv_profileedit.dart';
 import '../login.dart';
 import 'sv_navbar.dart';
-import '../profile.dart'; // Import the reusable ProfilePage
+import '../common/profile.dart'; // Import the reusable ProfilePage
 
 class SVProfilePage extends StatelessWidget {
   const SVProfilePage({super.key});

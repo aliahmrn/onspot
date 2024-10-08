@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'sv_history.dart';
 import 'sv_profile.dart';
 import 'sv_navbar.dart'; // Import the SupervisorBottomNavBar widget
-import '../bell_profile_widget.dart'; // Import the BellProfileWidget
+import '../widget/bell_profile_widget.dart'; // Import the BellProfileWidget
 import 'package:flutter_svg/flutter_svg.dart';
 
 class SupervisorHomeScreen extends StatefulWidget {

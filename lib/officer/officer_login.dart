@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'dart:convert';
-import 'package:onspot_facility/cleaner/cleaner_homescreen.dart';
 import 'package:onspot_facility/officer/officer_homescreen.dart';
-import 'package:onspot_facility/supervisor/sv_homescreen.dart'; // Import SupervisorHomeScreen
-import 'package:onspot_facility/service/auth_service.dart';
+import 'dart:convert';
+import 'package:onspot_facility/common/auth_service.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -14,7 +12,6 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  String userType = 'Cleaner'; // Default to Cleaner
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final AuthService _authService = AuthService();
@@ -47,30 +44,17 @@ class _LoginScreenState extends State<LoginScreen> {
       if (response.statusCode == 200) {
         final Map<String, dynamic> data = json.decode(response.body);
         final String token = data['access_token']; // Get the access token
-        final String role = data['user']['role']; // Get the user role
 
-        print('Role: $role'); // Log the role for debugging
-        
+        print('Login successful, token: $token'); // Log the token for debugging
+
         // Save token securely
         await _authService.saveToken(token);
 
-        // Determine user role
-        if (role == 'cleaner') {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => CleanerHomeScreen()),
-          );
-        } else if (role == 'officer') {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => OfficerHomeScreen()),
-          );
-        } else if (role == 'supervisor') {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => SupervisorHomeScreen()),
-          );
-        }
+        // Navigate to the home screen (You can specify the common home screen here)
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => OfficerHomeScreen()), // Replace with your common home screen
+        );
       } else {
         // Handle error response
         setState(() {
@@ -127,15 +111,6 @@ class _LoginScreenState extends State<LoginScreen> {
                       color: Colors.black,
                     ),
                   ),
-                ),
-                const SizedBox(height: 20),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    _buildUserTypeOption('Cleaner'),
-                    _buildUserTypeOption('Supervisor'),
-                    _buildUserTypeOption('Officer'),
-                  ],
                 ),
                 const SizedBox(height: 20),
                 Card(
@@ -219,27 +194,6 @@ class _LoginScreenState extends State<LoginScreen> {
               border: OutlineInputBorder(),
             ),
           ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildUserTypeOption(String type) {
-    return Row(
-      children: [
-        Radio<String>(
-          value: type,
-          groupValue: userType,
-          onChanged: (value) {
-            setState(() {
-              userType = value!;
-            });
-          },
-          activeColor: Colors.black,
-        ),
-        Text(
-          type,
-          style: const TextStyle(color: Colors.black),
         ),
       ],
     );

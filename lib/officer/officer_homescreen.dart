@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'officer_navbar.dart'; // Import the new navigation bar widget
 import 'officer_history.dart';
 import 'officer_profile.dart';
-import '../bell_profile_widget.dart';
+import '../widget/bell_profile_widget.dart';
 import 'officer_complaint.dart';
 
 class OfficerHomeScreen extends StatelessWidget {

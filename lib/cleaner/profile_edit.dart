@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'profile.dart'; // Import CleanerProfileScreen for navigation
 
-class ProfileEditPage extends StatelessWidget {
-  const ProfileEditPage({super.key});
+class CleanerProfileEditScreen extends StatelessWidget {
+  const CleanerProfileEditScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -47,7 +48,7 @@ class ProfileEditPage extends StatelessWidget {
                 ),
                 Expanded(
                   child: Container(
-                    color: Color(0xFFFEF7FF),
+                    color: const Color(0xFFFEF7FF),
                   ),
                 ),
               ],
@@ -85,6 +86,8 @@ class ProfileEditPage extends StatelessWidget {
                 _buildTextField('Email', 'Enter your email'),
                 const SizedBox(height: 20),
                 _buildTextField('Phone Number', 'Enter your phone number'),
+                const SizedBox(height: 20),
+                _buildSaveButton(context), // Add the Save button at the bottom
               ],
             ),
           ),
@@ -122,6 +125,36 @@ class ProfileEditPage extends StatelessWidget {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  // Save button widget
+  Widget _buildSaveButton(BuildContext context) {
+    return Center(
+      child: ElevatedButton(
+        onPressed: () {
+          // After saving, navigate back to the CleanerProfileScreen
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => CleanerProfileScreen(),
+            ),
+          );
+        },
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.white,
+          side: const BorderSide(color: Colors.black),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(5.0),
+          ),
+          minimumSize: const Size(250, 50),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+        ),
+        child: const Text(
+          'Save',
+          style: TextStyle(color: Colors.black),
         ),
       ),
     );

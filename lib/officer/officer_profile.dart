@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'officer_navbar.dart';
 import 'officer_profileedit.dart';
-import '../profile.dart'; // Import your reusable ProfilePage
+import '../common/profile.dart'; // Import your reusable ProfilePage
 import '../login.dart'; // Assuming this is where the LoginScreen is located
 
 class OfficerProfileScreen extends StatelessWidget {

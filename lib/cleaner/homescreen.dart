@@ -4,7 +4,7 @@ import 'cleaner_notifications.dart';
 import 'cleaner_profile.dart';
 import 'cleaner_navbar.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import '../bell_profile_widget.dart';
+import '../widget/bell_profile_widget.dart';
 
 const Color appBarColor = Color(0xFFFEF7FF); // Updated color for AppBar
 
