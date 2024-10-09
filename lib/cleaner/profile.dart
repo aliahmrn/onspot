@@ -3,7 +3,6 @@ import '../service/auth_service.dart'; // Import your AuthService
 import 'profile_edit.dart'; // Import CleanerProfileEditPage
 import 'navbar.dart'; // Import CleanerBottomNavBar
 
-
 class CleanerProfileScreen extends StatelessWidget {
   const CleanerProfileScreen({super.key});
 

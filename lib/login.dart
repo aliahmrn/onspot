@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:onspot_facility/cleaner/homescreen.dart';
+import 'package:onspot_facility/cleaner/homescreen.dart'; // Adjust the import based on your file structure
 import 'dart:convert';
 import 'service/auth_service.dart';
 
@@ -12,54 +12,57 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final AuthService _authService = AuthService();
   String _errorMessage = '';
 
   Future<void> _login() async {
-    final String email = _emailController.text;
+    final String usernameOrEmail = _usernameController.text;
     final String password = _passwordController.text;
 
-    if (email.isEmpty || password.isEmpty) {
+    if (usernameOrEmail.isEmpty || password.isEmpty) {
       setState(() {
-        _errorMessage = 'Please enter both email and password';
+        _errorMessage = 'Please enter all required fields';
       });
       return;
     }
 
     try {
+      // Prepare the body for login
+      final Map<String, dynamic> body = {
+        'user_type': 'cleaner', // Fixed user type for cleaner login
+        'password': password,
+        'username': usernameOrEmail, // Always use username for cleaner
+      };
+
       final response = await http.post(
-        Uri.parse('http://127.0.0.1:8000/api/login'), // Your API endpoint
+        Uri.parse('http://127.0.0.1:8000/api/login-cleaner'), // Your API endpoint
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
         },
-        body: jsonEncode(<String, String>{
-          'email': email,
-          'password': password,
-        }),
+        body: jsonEncode(body),
       );
 
       // Check the response status
       if (response.statusCode == 200) {
         final Map<String, dynamic> data = json.decode(response.body);
         final String token = data['token']; // Adjust this line based on your API response
-        final String userRole = data['role']; // Get the user role from the response
 
         print('Login successful, token: $token'); // Log the token for debugging
 
         // Save token securely
-        await _authService.saveToken(token, userRole); // Updated to save both token and role
+        await _authService.saveToken(token, data['role']); // Updated to save token
 
-        // Navigate to the home screen
+        // Navigate to the cleaner home screen
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => const CleanerHomeScreen()), // Navigate to the home screen
+          MaterialPageRoute(builder: (context) => const CleanerHomeScreen()), // Navigate to cleaner home screen
         );
       } else {
         // Handle error response
         setState(() {
-          _errorMessage = 'Invalid email or password';
+          _errorMessage = 'Invalid credentials';
         });
       }
     } catch (e) {
@@ -102,17 +105,6 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 5),
-                const Center(
-                  child: Text(
-                    'Sign in as:',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.black,
-                    ),
-                  ),
-                ),
                 const SizedBox(height: 20),
                 Card(
                   elevation: 5,
@@ -123,7 +115,8 @@ class _LoginScreenState extends State<LoginScreen> {
                     padding: const EdgeInsets.all(20.0),
                     child: Column(
                       children: <Widget>[
-                        _buildInputField('Email', _emailController),
+                        // Input fields for username and password
+                        _buildInputField('Username', _usernameController), // Only username input
                         const SizedBox(height: 40),
                         _buildInputField('Password', _passwordController, obscureText: true),
                         const SizedBox(height: 20),
@@ -151,7 +144,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           const SizedBox(height: 10),
                         ],
                         TextButton(
-                          onPressed: () {},
+                          onPressed: () {}, // Add your forgot password logic here
                           child: const Text(
                             'Forgot password?',
                             style: TextStyle(color: Colors.black),

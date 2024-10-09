@@ -10,7 +10,7 @@ class CleanerTasksScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: const Color(0xFFFEF7FF), // Change AppBar color to #FEF7FF
+        backgroundColor: Colors.white, // Change AppBar color to #FEF7FF
         elevation: 0, // Remove shadow
         automaticallyImplyLeading: false,
         title: const Text(
@@ -24,7 +24,7 @@ class CleanerTasksScreen extends StatelessWidget {
         centerTitle: true, // Center the title
       ),
       body: Container(
-        color: const Color(0xFFFEF7FF), // Keep the body background color
+        color: Colors.white, // Keep the body background color
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -36,9 +36,11 @@ class CleanerTasksScreen extends StatelessWidget {
                 // Two icons (ear, thumbs up)
                 Row(
                   children: [
-                    _buildSvgIconButton('assets/images/ear.svg'), // Use SVG for ear icon
+                    _buildSvgIconButton(
+                        'assets/images/ear.svg'), // Use SVG for ear icon
                     const SizedBox(width: 8),
-                    _buildSvgIconButton('assets/images/thumbs_up.svg'), // Use SVG for thumbs-up
+                    _buildSvgIconButton(
+                        'assets/images/thumbs_up.svg'), // Use SVG for thumbs-up
                   ],
                 ),
                 const SizedBox(width: 16), // Space between icons and task card
@@ -56,9 +58,11 @@ class CleanerTasksScreen extends StatelessWidget {
                 // Two icons (ear, thumbs up)
                 Row(
                   children: [
-                    _buildSvgIconButton('assets/images/ear.svg'), // Use SVG for ear icon
+                    _buildSvgIconButton(
+                        'assets/images/ear.svg'), // Use SVG for ear icon
                     const SizedBox(width: 8),
-                    _buildSvgIconButton('assets/images/thumbs_up.svg'), // Use SVG for thumbs-up
+                    _buildSvgIconButton(
+                        'assets/images/thumbs_up.svg'), // Use SVG for thumbs-up
                   ],
                 ),
                 const SizedBox(width: 16), // Space between icons and task card
