@@ -4,11 +4,11 @@ import 'cleaner/homescreen.dart'; // Import the cleaner home screen
 
 
 void main() {
-  runApp(OnSpotFacilityApp());
+  runApp(OnSpotFacilityCleanerApp());
 }
 
-class OnSpotFacilityApp extends StatelessWidget {
-  const OnSpotFacilityApp({super.key});
+class OnSpotFacilityCleanerApp extends StatelessWidget {
+  const OnSpotFacilityCleanerApp({super.key});
 
   @override
   Widget build(BuildContext context) {

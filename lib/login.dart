@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:onspot_facility/cleaner/homescreen.dart'; // Adjust the import based on your file structure
 import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'service/auth_service.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -16,6 +17,11 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _passwordController = TextEditingController();
   final AuthService _authService = AuthService();
   String _errorMessage = '';
+
+  Future<void> _saveUserName(String name) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setString('userName', name); // Save cleaner's name locally
+  }
 
   Future<void> _login() async {
     final String usernameOrEmail = _usernameController.text;
@@ -48,11 +54,15 @@ class _LoginScreenState extends State<LoginScreen> {
       if (response.statusCode == 200) {
         final Map<String, dynamic> data = json.decode(response.body);
         final String token = data['token']; // Adjust this line based on your API response
+        final String userName = data['user']['name']; // Cleaner’s name
 
         print('Login successful, token: $token'); // Log the token for debugging
 
         // Save token securely
         await _authService.saveToken(token, data['role']); // Updated to save token
+
+        // Save the cleaner's name locally
+        await _saveUserName(userName);
 
         // Navigate to the cleaner home screen
         Navigator.pushReplacement(
