@@ -8,14 +8,16 @@ class AttendanceService {
 
   Future<void> markAttendance(String status, String cleanerId) async {
     try {
+      print('Sending request with status: $status and cleanerId: $cleanerId');
+      
       final response = await http.post(
-        Uri.parse('http://127.0.0.1:8000/api/attendance'), // Use baseUrl for flexibility
+        Uri.parse('http://127.0.0.1:8000/api/attendance'), 
         headers: {
           'Content-Type': 'application/json',
         },
         body: jsonEncode({
           'status': status,
-          'cleaner_id': cleanerId,
+          'id': cleanerId,
         }),
       );
 

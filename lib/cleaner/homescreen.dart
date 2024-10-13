@@ -5,8 +5,8 @@ import 'profile.dart';
 import 'navbar.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../widget/bell.dart';
-import 'package:shared_preferences/shared_preferences.dart';  // Import shared_preferences package
-import '../service/attendance_service.dart';  // Import the AttendanceService
+import 'package:shared_preferences/shared_preferences.dart'; // Import shared_preferences package
+import '../service/attendance_service.dart'; // Import the AttendanceService
 
 const Color appBarColor = Color(0xFFFFFFFF); // White color for AppBar
 
@@ -18,24 +18,31 @@ class CleanerHomeScreen extends StatefulWidget {
 }
 
 class _CleanerHomeScreenState extends State<CleanerHomeScreen> {
-  String userName = '';  // This will hold the cleaner's name
-  final String baseUrl = 'http://127.0.0.1:8000/api'; // Define your base URL
-  late AttendanceService attendanceService; // Declare AttendanceService
-
-  final String cleanerId = '1'; // Replace with dynamic cleaner ID if available
+  String userName = ''; // This will hold the cleaner's name
+  late AttendanceService attendanceService;
+  String cleanerId = ''; // Make it mutable so you can set it dynamically
 
   @override
   void initState() {
     super.initState();
-    _loadUserName();  // Load the user's name when the screen initializes
-    attendanceService = AttendanceService(baseUrl); // Initialize AttendanceService
+    _loadUserName(); // Load the user's name
+    _loadCleanerId(); // Load the dynamic cleaner ID
+    attendanceService = AttendanceService('http://127.0.0.1:8000'); // Initialize AttendanceService
   }
 
-  // Function to load user's name from SharedPreferences
+  // Define the _loadUserName method to fetch the user's name
   Future<void> _loadUserName() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
-      userName = prefs.getString('userName') ?? 'Cleaner';  // Default to 'Cleaner' if no name is found
+      userName = prefs.getString('userName') ?? 'Cleaner'; // Default to 'Cleaner' if no name is found
+    });
+  }
+
+  // Define the _loadCleanerId method to fetch the cleaner ID
+  Future<void> _loadCleanerId() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      cleanerId = prefs.getString('cleanerId') ?? ''; // Use the stored cleaner ID, or set a default
     });
   }
 
@@ -96,7 +103,7 @@ class _CleanerHomeScreenState extends State<CleanerHomeScreen> {
           ),
         ),
       ),
-      body: SingleChildScrollView(  // Make content scrollable
+      body: SingleChildScrollView( // Make content scrollable
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
@@ -107,7 +114,7 @@ class _CleanerHomeScreenState extends State<CleanerHomeScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'Welcome, $userName!',  // Display the cleaner's name dynamically
+                    'Welcome, $userName!', // Display the cleaner's name dynamically
                     style: const TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
@@ -217,10 +224,10 @@ class _CleanerHomeScreenState extends State<CleanerHomeScreen> {
                 ),
               ),
               const SizedBox(height: 16),
-              const Row(
+              Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
+                  const Text(
                     'Task',
                     style: TextStyle(
                       fontSize: 20,
@@ -228,12 +235,20 @@ class _CleanerHomeScreenState extends State<CleanerHomeScreen> {
                       color: Colors.black87,
                     ),
                   ),
-                  Text(
-                    'see all',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w400,
-                      color: Colors.grey,
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => CleanerTasksScreen()),
+                      );
+                    },
+                    child: const Text(
+                      'see all',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w400,
+                        color: Colors.grey,
+                      ),
                     ),
                   ),
                 ],
@@ -305,16 +320,12 @@ class _CleanerHomeScreenState extends State<CleanerHomeScreen> {
                           SvgPicture.asset(
                             'assets/images/calendar.svg',
                             height: 24,
-                            color: Colors.black,
+                            width: 24,
                           ),
-                          const SizedBox(width: 8),
+                          const SizedBox(width: 5),
                           const Text(
-                            'Today',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w400,
-                              color: Color(0xFF3c6576),
-                            ),
+                            'Oct 13, 2024',
+                            style: TextStyle(color: Colors.black54),
                           ),
                         ],
                       ),
@@ -326,7 +337,7 @@ class _CleanerHomeScreenState extends State<CleanerHomeScreen> {
           ),
         ),
       ),
-      bottomNavigationBar: const CleanerBottomNavBar(currentIndex: 0), // Your bottom navigation bar
+      bottomNavigationBar: const CleanerBottomNavBar(currentIndex: 0),
     );
   }
 }

@@ -43,7 +43,7 @@ class _LoginScreenState extends State<LoginScreen> {
       };
 
       final response = await http.post(
-        Uri.parse('http://127.0.0.1:8000/api/login-cleaner'), // Your API endpoint
+        Uri.parse('http://127.0.0.1:8000/api/flutterlogin'), // Your API endpoint
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
         },
