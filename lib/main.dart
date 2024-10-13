@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'login.dart'; // Import the login screen
-import 'protected_route.dart'; // Import your ProtectedRoute
 import 'officer/homescreen.dart'; // Import the officer home screen
 
 void main() {
@@ -14,10 +13,10 @@ class OnspotOfficerApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      initialRoute: '/',
+      initialRoute: '/', // Set the initial route to the login screen
       routes: {
-        '/': (context) => const LoginScreen(), // Set the initial route to the login screen
-        '/officer-home': (context) => ProtectedRoute(child: OfficerHomeScreen()), // Protect the Officer home route
+        '/': (context) => const LoginScreen(), // Set the login screen as the initial route
+        '/officer-home': (context) => OfficerHomeScreen(), // Set the Officer home screen route
       },
     );
   }

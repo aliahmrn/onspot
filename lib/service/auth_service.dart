@@ -3,52 +3,98 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthService {
-  final String baseUrl = 'http://localhost/onspot_facility/public/api'; // Use your API URL
+  final String baseUrl = 'http://10.0.2.2/onspot_facility/public/api'; // Update as needed for emulator
 
-  Future<void> saveToken(String token) async {
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.setString('auth_token', token);
-  }
-
-  Future<String?> getToken() async {
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
-    return prefs.getString('auth_token');
-  }
-
-  Future<void> clearToken() async {
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.remove('auth_token');
-  }
-
-  Future<void> login(String email, String password) async {
+  // Login function for officers
+  Future<void> login(String input, String password) async {
     final response = await http.post(
-      Uri.parse('http://localhost/onspot_facility/public/api/login'),
+      Uri.parse('$baseUrl/flutterlogin'), // Endpoint for officer login
       headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({'email': email, 'password': password}),
+      body: jsonEncode({
+        'input': input, // The input can be either username or email
+        'password': password, // Password for login
+      }),
     );
 
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
-      await saveToken(data['access_token']); // Save the token
+      final String token = data['token']; // Ensure your API returns a token
+
+      // Save token and role (officer in this case)
+      await saveToken(token, 'officer');
     } else {
-      throw Exception('Failed to login: ${response.body}'); // More informative error
+      throw Exception('Failed to login: ${response.body}');
     }
   }
 
-  Future<void> logout() async {
-    final token = await getToken();
+  // Register function (if needed)
+  Future<void> register(String name, String email, String password, String role) async {
     final response = await http.post(
-      Uri.parse('$baseUrl/logout'),
+      Uri.parse('$baseUrl/register'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        'name': name,
+        'email': email,
+        'password': password,
+        'role': role,
+      }),
+    );
+
+    if (response.statusCode != 201) {
+      throw Exception('Failed to register user: ${response.body}');
+    }
+  }
+
+  // Save token and role to shared preferences
+  Future<void> saveToken(String token, String userRole) async { 
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('token', token);
+    await prefs.setString('userRole', userRole); // Store user role
+  }
+
+  // Clear token and role from shared preferences
+  Future<void> clearToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('token');
+    await prefs.remove('userRole');
+  }
+
+  // Logout function
+  Future<void> logout() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('token');
+
+    final response = await http.post(
+      Uri.parse('$baseUrl/logout'), // Use the logout endpoint
       headers: {
-        'Authorization': 'Bearer $token', // Use the stored token
         'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token', // Pass the token in the header
       },
     );
 
-    if (response.statusCode == 200) {
-      await clearToken(); // Clear the token after logout
-    } else {
-      throw Exception('Failed to logout: ${response.body}'); // More informative error
+    if (response.statusCode != 200) {
+      throw Exception('Failed to logout: ${response.body}');
     }
+
+    await clearToken(); // Clear the token upon successful logout
+  }
+
+  // Get current user details
+  Future<Map<String, dynamic>> getUser() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('token');
+
+    final response = await http.get(
+      Uri.parse('$baseUrl/flutterprofile'), // Endpoint to get user details
+      headers: {
+        'Authorization': 'Bearer $token', // Pass the token in the header
+      },
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Failed to load user: ${response.body}');
+    }
+
+    return jsonDecode(response.body); // Return user data as a map
   }
 }

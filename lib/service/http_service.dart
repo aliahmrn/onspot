@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http; // Import the HTTP package
 
 // A function to handle the logout request
 Future<void> logoutUser(String token) async {
-  final url = Uri.parse('https://your-laravel-app.com/api/logout'); // Replace with your actual Laravel logout endpoint
+  final url = Uri.parse('http://10.0.2.2/onspot_facility/public/api/flutterlogout'); // Replace with your actual Laravel logout endpoint
 
   try {
     final response = await http.post(
@@ -26,7 +26,7 @@ Future<void> logoutUser(String token) async {
 
 // A function to fetch user data
 Future<void> fetchUserData(String token) async {
-  final url = Uri.parse('https://your-laravel-app.com/api/user'); // Replace with your actual Laravel user endpoint
+  final url = Uri.parse('http://10.0.2.2/onspot_facility/public/api/flutterprofile'); // Replace with your actual Laravel user endpoint
 
   try {
     final response = await http.get(

@@ -4,7 +4,7 @@ import 'navbar.dart';
 import 'profileedit.dart';
 import '../profile.dart'; // Import your reusable ProfilePage
 import '../login.dart'; // Assuming this is where the LoginScreen is located
-import 'http_service.dart'; // Import your HTTP service file
+import '../service/http_service.dart'; // Import your HTTP service file
 
 class OfficerProfileScreen extends StatefulWidget { // Change to StatefulWidget
   const OfficerProfileScreen({super.key});
