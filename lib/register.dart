@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'login.dart'; 
+import 'login.dart';
+import 'service/auth_service.dart'; // Import AuthService
 
 class RegistrationScreen extends StatefulWidget {
   const RegistrationScreen({super.key});
@@ -10,65 +11,84 @@ class RegistrationScreen extends StatefulWidget {
 
 class _RegistrationScreenState extends State<RegistrationScreen> {
   final TextEditingController _fullNameController = TextEditingController();
-  final TextEditingController _emailController = TextEditingController(); // New email controller
-  final TextEditingController _usernameController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _usernameController = TextEditingController(); // Username controller
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController = TextEditingController();
   final TextEditingController _phoneNumberController = TextEditingController();
   String _errorMessage = '';
   bool _isLoading = false;
 
+  final AuthService _authService = AuthService(); // Instantiate AuthService
+  bool _isDisposed = false; // Track if the widget is disposed
+
+  // Define setStateIfMounted method to avoid errors after async tasks
+  void setStateIfMounted(f) {
+    if (!_isDisposed && mounted) {
+      setState(f);
+    }
+  }
+
   Future<void> _register() async {
     final String fullName = _fullNameController.text;
-    final String email = _emailController.text; // New email field
-    final String username = _usernameController.text;
+    final String email = _emailController.text;
+    final String username = _usernameController.text; // Use username
     final String password = _passwordController.text;
     final String confirmPassword = _confirmPasswordController.text;
     final String phoneNumber = _phoneNumberController.text;
 
     // Input validation
-    if (fullName.isEmpty ||
-        email.isEmpty ||  // Check if email is empty
-        username.isEmpty ||
-        password.isEmpty ||
-        confirmPassword.isEmpty ||
-        phoneNumber.isEmpty) {
-      setState(() {
+    if (fullName.isEmpty || email.isEmpty || username.isEmpty || password.isEmpty || confirmPassword.isEmpty || phoneNumber.isEmpty) {
+      setStateIfMounted(() {
         _errorMessage = 'Please fill out all the fields';
       });
       return;
     }
 
     if (password != confirmPassword) {
-      setState(() {
+      setStateIfMounted(() {
         _errorMessage = 'Passwords do not match';
       });
       return;
     }
 
-    setState(() {
+    setStateIfMounted(() {
       _isLoading = true;
     });
 
     try {
-      // Call your registration function here
-      // await _authService.register(fullName, email, username, password, phoneNumber);
+      // Call the register method from AuthService with username
+      await _authService.register(fullName, username, email, password, phoneNumber);
 
-      // Navigate to Login Screen upon successful registration
+      if (!mounted || _isDisposed) return; // Prevents continuing if disposed
+
+      // Navigate to the Login Screen upon successful registration
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => const LoginScreen()), // Navigate to LoginScreen
+        MaterialPageRoute(builder: (context) => const LoginScreen()),
       );
     } catch (e) {
-      setState(() {
+      setStateIfMounted(() {
         _errorMessage = 'Failed to register: ${e.toString()}';
       });
       print('Error: $e');
     } finally {
-      setState(() {
+      setStateIfMounted(() {
         _isLoading = false;
       });
     }
+  }
+
+  @override
+  void dispose() {
+    _isDisposed = true; // Mark the widget as disposed
+    _fullNameController.dispose();
+    _emailController.dispose();
+    _usernameController.dispose();
+    _passwordController.dispose();
+    _confirmPasswordController.dispose();
+    _phoneNumberController.dispose();
+    super.dispose();
   }
 
   @override
@@ -102,9 +122,9 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                       children: <Widget>[
                         _buildInputField('Full Name', _fullNameController),
                         const SizedBox(height: 20),
-                        _buildInputField('Email', _emailController), // New email field
+                        _buildInputField('Email', _emailController),
                         const SizedBox(height: 20),
-                        _buildInputField('Username', _usernameController),
+                        _buildInputField('Username', _usernameController), // Username field
                         const SizedBox(height: 20),
                         _buildInputField('Password', _passwordController, obscureText: true),
                         const SizedBox(height: 20),
@@ -113,7 +133,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                         _buildInputField('Phone Number', _phoneNumberController),
                         const SizedBox(height: 20),
                         ElevatedButton(
-                          onPressed: _isLoading ? null : _register, // Disable button while loading
+                          onPressed: _isLoading ? null : _register,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.black,
                             padding: const EdgeInsets.symmetric(horizontal: 100, vertical: 15),
@@ -127,6 +147,25 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                               : const Text('Register', style: TextStyle(color: Colors.white)),
                         ),
                         const SizedBox(height: 10),
+
+                        // Button to redirect to the Login page
+                        TextButton(
+                          onPressed: () {
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(builder: (context) => const LoginScreen()),
+                            );
+                          },
+                          child: const Text(
+                            'Already have an account? Log in',
+                            style: TextStyle(
+                              color: Colors.black,
+                              fontSize: 16,
+                              decoration: TextDecoration.underline,
+                            ),
+                          ),
+                        ),
+
                         if (_errorMessage.isNotEmpty) ...[
                           Text(
                             _errorMessage,

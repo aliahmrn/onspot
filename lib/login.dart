@@ -42,11 +42,12 @@ class _LoginScreenState extends State<LoginScreen> {
         MaterialPageRoute(builder: (context) => OfficerHomeScreen()),
       );
     } catch (e) {
-      // Handle exceptions, such as invalid credentials
+      // Handle exceptions with a specific message for invalid credentials
       setState(() {
-        _errorMessage = 'Failed to login: ${e.toString()}'; // Update error message
+        _errorMessage = e.toString() == 'Exception: Invalid login credentials.'
+            ? 'Invalid login credentials.'
+            : 'Failed to login: ${e.toString()}';
       });
-      print('Error: $e'); // Log the error for debugging
     } finally {
       setState(() {
         _isLoading = false; // Hide loading indicator
