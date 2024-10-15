@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthService {
-  final String baseUrl = 'http://10.0.2.2:8000/public/api'; // Android Emulator
+  final String baseUrl = 'http://10.0.2.2:8000/api'; // Android Emulator
 
   // Login function for officers
   Future<void> login(String input, String password) async {
