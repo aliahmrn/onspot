@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'package:onspot_facility/cleaner/homescreen.dart'; // Adjust the import based on your file structure
-import 'dart:convert';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'service/auth_service.dart';
+import 'package:onspot_facility/service/auth_service.dart';
+import 'cleaner/homescreen.dart';
+import 'register.dart'; 
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -13,74 +11,46 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final TextEditingController _usernameController = TextEditingController();
+  final TextEditingController _inputController = TextEditingController(); // Changed to be more generic for input (username/email)
   final TextEditingController _passwordController = TextEditingController();
   final AuthService _authService = AuthService();
   String _errorMessage = '';
-
-  Future<void> _saveUserName(String name) async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.setString('userName', name); // Save cleaner's name locally
-  }
+  bool _isLoading = false;
 
   Future<void> _login() async {
-    final String usernameOrEmail = _usernameController.text;
+    final String input = _inputController.text; // Use 'input' to accept both username and email
     final String password = _passwordController.text;
 
-    if (usernameOrEmail.isEmpty || password.isEmpty) {
+    // Input validation
+    if (input.isEmpty || password.isEmpty) {
       setState(() {
-        _errorMessage = 'Please enter all required fields';
+        _errorMessage = 'Please enter both username/email and password';
       });
       return;
     }
 
+    setState(() {
+      _isLoading = true; // Show loading indicator
+    });
+
     try {
-      // Prepare the body for login
-      final Map<String, dynamic> body = {
-        'user_type': 'cleaner', // Fixed user type for cleaner login
-        'password': password,
-        'username': usernameOrEmail, // Always use username for cleaner
-      };
+      await _authService.login(input, password); // Pass 'input' instead of just 'email'
 
-      final response = await http.post(
-        Uri.parse('http://127.0.0.1:8000/api/flutterlogin'), // Your API endpoint
-        headers: <String, String>{
-          'Content-Type': 'application/json; charset=UTF-8',
-        },
-        body: jsonEncode(body),
+      // Navigate to Cleaner Home Screen upon successful login
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const CleanerHomeScreen()),
       );
-
-      // Check the response status
-      if (response.statusCode == 200) {
-        final Map<String, dynamic> data = json.decode(response.body);
-        final String token = data['token']; // Adjust this line based on your API response
-        final String userName = data['user']['name']; // Cleaner’s name
-
-        print('Login successful, token: $token'); // Log the token for debugging
-
-        // Save token securely
-        await _authService.saveToken(token, data['role']); // Updated to save token
-
-        // Save the cleaner's name locally
-        await _saveUserName(userName);
-
-        // Navigate to the cleaner home screen
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const CleanerHomeScreen()), // Navigate to cleaner home screen
-        );
-      } else {
-        // Handle error response
-        setState(() {
-          _errorMessage = 'Invalid credentials';
-        });
-      }
     } catch (e) {
-      // Handle exceptions, such as network issues
+      // Handle exceptions, such as invalid credentials
       setState(() {
-        _errorMessage = 'Failed to login: $e';
+        _errorMessage = 'Failed to login: ${e.toString()}'; // Update error message
       });
       print('Error: $e'); // Log the error for debugging
+    } finally {
+      setState(() {
+        _isLoading = false; // Hide loading indicator
+      });
     }
   }
 
@@ -125,13 +95,13 @@ class _LoginScreenState extends State<LoginScreen> {
                     padding: const EdgeInsets.all(20.0),
                     child: Column(
                       children: <Widget>[
-                        // Input fields for username and password
-                        _buildInputField('Username', _usernameController), // Only username input
+                        // Input fields for username/email and password
+                        _buildInputField('Username or Email', _inputController), // Updated to be generic
                         const SizedBox(height: 40),
                         _buildInputField('Password', _passwordController, obscureText: true),
                         const SizedBox(height: 20),
                         ElevatedButton(
-                          onPressed: _login,
+                          onPressed: _isLoading ? null : _login, // Disable button while loading
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.black,
                             padding: const EdgeInsets.symmetric(horizontal: 100, vertical: 15),
@@ -140,10 +110,9 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                             textStyle: const TextStyle(fontSize: 16),
                           ),
-                          child: const Text(
-                            'Sign In',
-                            style: TextStyle(color: Colors.white),
-                          ),
+                          child: _isLoading
+                              ? const CircularProgressIndicator(color: Colors.white) // Show loading indicator
+                              : const Text('Sign In', style: TextStyle(color: Colors.white)),
                         ),
                         const SizedBox(height: 10),
                         if (_errorMessage.isNotEmpty) ...[
@@ -154,9 +123,22 @@ class _LoginScreenState extends State<LoginScreen> {
                           const SizedBox(height: 10),
                         ],
                         TextButton(
-                          onPressed: () {}, // Add your forgot password logic here
+                          onPressed: () {}, // Add forgot password functionality if needed
                           child: const Text(
                             'Forgot password?',
+                            style: TextStyle(color: Colors.black),
+                          ),
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            // Navigate to RegistrationScreen when clicked
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => const RegistrationScreen()), // Navigate to RegistrationScreen
+                            );
+                          },
+                          child: const Text(
+                            "Don't have an account? Register",
                             style: TextStyle(color: Colors.black),
                           ),
                         ),

@@ -3,7 +3,6 @@ import 'task.dart';
 import 'notifications.dart';
 import 'profile.dart';
 import 'navbar.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import '../widget/bell.dart';
 import 'package:shared_preferences/shared_preferences.dart'; // Import shared_preferences package
 import '../service/attendance_service.dart'; // Import the AttendanceService
@@ -20,17 +19,17 @@ class CleanerHomeScreen extends StatefulWidget {
 class _CleanerHomeScreenState extends State<CleanerHomeScreen> {
   String userName = ''; // This will hold the cleaner's name
   late AttendanceService attendanceService;
-  String cleanerId = ''; // Make it mutable so you can set it dynamically
+  String cleanerId = ''; // Cleaner ID will be stored here
 
   @override
   void initState() {
     super.initState();
     _loadUserName(); // Load the user's name
     _loadCleanerId(); // Load the dynamic cleaner ID
-    attendanceService = AttendanceService('http://127.0.0.1:8000'); // Initialize AttendanceService
+    _initializeAttendanceService(); // Initialize AttendanceService with token
   }
 
-  // Define the _loadUserName method to fetch the user's name
+  // Method to load the user's name from SharedPreferences
   Future<void> _loadUserName() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
@@ -38,14 +37,30 @@ class _CleanerHomeScreenState extends State<CleanerHomeScreen> {
     });
   }
 
-  // Define the _loadCleanerId method to fetch the cleaner ID
+  // Method to load the cleaner ID from SharedPreferences
   Future<void> _loadCleanerId() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
-      cleanerId = prefs.getString('cleanerId') ?? ''; // Use the stored cleaner ID, or set a default
+      cleanerId = prefs.getString('cleanerId') ?? '';
+      print('Loaded Cleaner ID: $cleanerId'); // Debug line
     });
   }
 
+  // Method to initialize AttendanceService with token
+  Future<void> _initializeAttendanceService() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('token'); // Get the token from shared preferences
+
+    if (token != null) {
+      attendanceService = AttendanceService(token); // Initialize AttendanceService with token
+    } else {
+      // Handle the case where the token is null (e.g., navigate to login)
+      print('No token found, navigating to login...');
+      // You can navigate to the login screen or handle accordingly
+    }
+  }
+
+  // Navigate to the notifications screen
   void _handleBellTap(BuildContext context) {
     Navigator.push(
       context,
@@ -55,6 +70,7 @@ class _CleanerHomeScreenState extends State<CleanerHomeScreen> {
     );
   }
 
+  // Navigate to the profile screen
   void _handleProfileTap(BuildContext context) {
     Navigator.push(
       context,
@@ -64,16 +80,27 @@ class _CleanerHomeScreenState extends State<CleanerHomeScreen> {
     );
   }
 
-  // Function to mark attendance
-  Future<void> _markAttendance(String status) async {
+  // Function to mark attendance and call the API
+  Future<void> _submitAttendance(String status) async {
+    if (cleanerId.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Cleaner ID is missing')),
+      );
+      return;
+    }
+
     try {
-      await attendanceService.markAttendance(status, cleanerId);
+      // Call the AttendanceService API
+      await attendanceService.submitAttendance(
+        cleanerId: int.parse(cleanerId), 
+        status: status
+      );
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Attendance marked as $status')),
       );
     } catch (error) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to mark attendance')),
+        SnackBar(content: Text('Failed to mark attendance: $error')),
       );
     }
   }
@@ -103,7 +130,7 @@ class _CleanerHomeScreenState extends State<CleanerHomeScreen> {
           ),
         ),
       ),
-      body: SingleChildScrollView( // Make content scrollable
+      body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
@@ -130,8 +157,7 @@ class _CleanerHomeScreenState extends State<CleanerHomeScreen> {
                       GestureDetector(
                         onTap: () => _handleProfileTap(context),
                         child: const CircleAvatar(
-                          backgroundImage: AssetImage(
-                              'assets/images/profile.png'), // Profile image asset
+                          backgroundImage: AssetImage('assets/images/profile.png'), // Profile image asset
                           radius: 15,
                         ),
                       ),
@@ -184,9 +210,8 @@ class _CleanerHomeScreenState extends State<CleanerHomeScreen> {
                     Row(
                       children: [
                         Text(
-                          userName,
-                          style: const TextStyle(
-                              fontSize: 16, fontWeight: FontWeight.w500),
+                          userName, // Display cleaner's name instead of 'Cleaner'
+                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
                         ),
                         const Spacer(),
                         Container(
@@ -199,7 +224,7 @@ class _CleanerHomeScreenState extends State<CleanerHomeScreen> {
                           child: IconButton(
                             icon: const Icon(Icons.check, color: Colors.green),
                             onPressed: () {
-                              _markAttendance('present'); // Call markAttendance with 'present'
+                              _submitAttendance('present'); // Call submitAttendance with 'present'
                             },
                           ),
                         ),
@@ -214,7 +239,7 @@ class _CleanerHomeScreenState extends State<CleanerHomeScreen> {
                           child: IconButton(
                             icon: const Icon(Icons.close, color: Colors.red),
                             onPressed: () {
-                              _markAttendance('absent'); // Call markAttendance with 'absent'
+                              _submitAttendance('absent'); // Call submitAttendance with 'absent'
                             },
                           ),
                         ),
@@ -283,8 +308,7 @@ class _CleanerHomeScreenState extends State<CleanerHomeScreen> {
                         children: [
                           Row(
                             children: [
-                              const Icon(Icons.location_on,
-                                  size: 24, color: Colors.black),
+                              const Icon(Icons.location_on, size: 24, color: Colors.black),
                               const SizedBox(width: 5),
                               const Text(
                                 'Floor 2',
@@ -302,32 +326,20 @@ class _CleanerHomeScreenState extends State<CleanerHomeScreen> {
                               '9:41 AM',
                               style: TextStyle(
                                 fontSize: 14,
-                                color: Color(0xFF3c6576),
+                                color: Color(0xFF4D4D4D),
                               ),
                             ),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 5),
+                      const SizedBox(height: 10),
                       const Text(
-                        'Room Cleaning',
-                        style:
-                            TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 5),
-                      Row(
-                        children: [
-                          SvgPicture.asset(
-                            'assets/images/calendar.svg',
-                            height: 24,
-                            width: 24,
-                          ),
-                          const SizedBox(width: 5),
-                          const Text(
-                            'Oct 13, 2024',
-                            style: TextStyle(color: Colors.black54),
-                          ),
-                        ],
+                        'Empty bins, clean tables, clean windows',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w400,
+                          color: Colors.black,
+                        ),
                       ),
                     ],
                   ),
@@ -337,7 +349,7 @@ class _CleanerHomeScreenState extends State<CleanerHomeScreen> {
           ),
         ),
       ),
-      bottomNavigationBar: const CleanerBottomNavBar(currentIndex: 0),
+      bottomNavigationBar: CleanerBottomNavBar(currentIndex: 0), // Add your BottomNavigationBarWidget
     );
   }
 }
