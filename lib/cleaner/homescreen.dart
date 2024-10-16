@@ -4,8 +4,8 @@ import 'notifications.dart';
 import 'profile.dart';
 import 'navbar.dart';
 import '../widget/bell.dart';
-import 'package:shared_preferences/shared_preferences.dart'; // Import shared_preferences package
-import '../service/attendance_service.dart'; // Import the AttendanceService
+import 'package:shared_preferences/shared_preferences.dart';
+import '../service/attendance_service.dart';
 
 const Color appBarColor = Color(0xFFFFFFFF); // White color for AppBar
 
@@ -20,6 +20,7 @@ class _CleanerHomeScreenState extends State<CleanerHomeScreen> {
   String userName = ''; // This will hold the cleaner's name
   late AttendanceService attendanceService;
   String cleanerId = ''; // Cleaner ID will be stored here
+  bool isAttendanceSubmitted = false; // State variable to control visibility of attendance card
 
   @override
   void initState() {
@@ -27,6 +28,7 @@ class _CleanerHomeScreenState extends State<CleanerHomeScreen> {
     _loadUserName(); // Load the user's name
     _loadCleanerId(); // Load the dynamic cleaner ID
     _initializeAttendanceService(); // Initialize AttendanceService with token
+    _checkAttendanceStatus(); // Check if attendance has been submitted today
   }
 
   // Method to load the user's name from SharedPreferences
@@ -41,7 +43,7 @@ class _CleanerHomeScreenState extends State<CleanerHomeScreen> {
   Future<void> _loadCleanerId() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
-      cleanerId = prefs.getString('cleanerId') ?? '';
+      cleanerId = prefs.getString('cleanerId') ?? ''; // Use 'cleanerId' to match auth_service
       print('Loaded Cleaner ID: $cleanerId'); // Debug line
     });
   }
@@ -58,6 +60,17 @@ class _CleanerHomeScreenState extends State<CleanerHomeScreen> {
       print('No token found, navigating to login...');
       // You can navigate to the login screen or handle accordingly
     }
+  }
+
+  // Method to check if the attendance has been submitted today
+  Future<void> _checkAttendanceStatus() async {
+    // Directly call the AttendanceService method to check attendance status
+    bool submittedToday = await attendanceService.isAttendanceSubmittedToday();
+    
+    // Update the state based on the result
+    setState(() {
+      isAttendanceSubmitted = submittedToday; 
+    });
   }
 
   // Navigate to the notifications screen
@@ -82,19 +95,17 @@ class _CleanerHomeScreenState extends State<CleanerHomeScreen> {
 
   // Function to mark attendance and call the API
   Future<void> _submitAttendance(String status) async {
-    if (cleanerId.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Cleaner ID is missing')),
-      );
-      return;
-    }
-
     try {
-      // Call the AttendanceService API
+      // Call the AttendanceService API without passing cleanerId
       await attendanceService.submitAttendance(
-        cleanerId: int.parse(cleanerId), 
-        status: status
+        status: status // Pass only the status parameter
       );
+
+      // Hide the attendance card after successful submission
+      setState(() {
+        isAttendanceSubmitted = true; // Update state to hide the card
+      });
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Attendance marked as $status')),
       );
@@ -181,73 +192,77 @@ class _CleanerHomeScreenState extends State<CleanerHomeScreen> {
                 ),
               ),
               const SizedBox(height: 16),
-              Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.grey.withOpacity(0.3),
-                      spreadRadius: 2,
-                      blurRadius: 5,
-                      offset: const Offset(0, 3),
-                    ),
-                  ],
-                ),
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Attendance',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black87,
+
+              // Attendance section with visibility control
+              if (!isAttendanceSubmitted) // Only show if attendance not submitted
+                Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.grey.withOpacity(0.3),
+                        spreadRadius: 2,
+                        blurRadius: 5,
+                        offset: const Offset(0, 3),
                       ),
-                    ),
-                    const SizedBox(height: 8),
-                    Row(
-                      children: [
-                        Text(
-                          userName, // Display cleaner's name instead of 'Cleaner'
-                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                    ],
+                  ),
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Attendance',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black87,
                         ),
-                        const Spacer(),
-                        Container(
-                          width: 50,
-                          height: 50,
-                          decoration: BoxDecoration(
-                            color: Colors.green.withOpacity(0.2),
-                            borderRadius: BorderRadius.circular(10),
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Text(
+                            userName, // Display cleaner's name instead of 'Cleaner'
+                            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
                           ),
-                          child: IconButton(
-                            icon: const Icon(Icons.check, color: Colors.green),
-                            onPressed: () {
-                              _submitAttendance('present'); // Call submitAttendance with 'present'
-                            },
+                          const Spacer(),
+                          Container(
+                            width: 50,
+                            height: 50,
+                            decoration: BoxDecoration(
+                              color: Colors.green.withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: IconButton(
+                              icon: const Icon(Icons.check, color: Colors.green),
+                              onPressed: () {
+                                _submitAttendance('present'); // Call submitAttendance with 'present'
+                              },
+                            ),
                           ),
-                        ),
-                        const SizedBox(width: 16),
-                        Container(
-                          width: 50,
-                          height: 50,
-                          decoration: BoxDecoration(
-                            color: Colors.red.withOpacity(0.2),
-                            borderRadius: BorderRadius.circular(10),
+                          const SizedBox(width: 16),
+                          Container(
+                            width: 50,
+                            height: 50,
+                            decoration: BoxDecoration(
+                              color: Colors.red.withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: IconButton(
+                              icon: const Icon(Icons.close, color: Colors.red),
+                              onPressed: () {
+                                _submitAttendance('absent'); // Call submitAttendance with 'absent'
+                              },
+                            ),
                           ),
-                          child: IconButton(
-                            icon: const Icon(Icons.close, color: Colors.red),
-                            onPressed: () {
-                              _submitAttendance('absent'); // Call submitAttendance with 'absent'
-                            },
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
-              ),
+
               const SizedBox(height: 16),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,

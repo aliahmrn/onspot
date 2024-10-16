@@ -30,17 +30,17 @@ class AuthService {
 
         // Check if the expected keys exist
         if (data['user'] != null && data['user']['id'] != null) {
-          // Extract token, role, name, and cleanerID from the response
+          // Extract token, role, name, and cleanerId from the response
           final String token = data['token'];
           final String role = data['user']['role'];
           final String userName = data['user']['name'];
-          final String cleanerID = data['user']['id'].toString(); // Store cleanerID as a string
+          final String cleanerId = data['user']['id'].toString(); // Store cleanerId as a string
 
           // Log successful response
-          print('Login successful, token: $token, role: $role, name: $userName, cleanerID: $cleanerID');
+          print('Login successful, token: $token, role: $role, name: $userName, cleanerId: $cleanerId');
 
-          // Save token, role, cleaner's name, and cleanerID
-          await saveUserDetails(token, role, userName, cleanerID);
+          // Save token, role, cleaner's name, and cleanerId
+          await saveUserDetails(token, role, userName, cleanerId);
         } else {
           print('Error: User ID or user object is null in response.');
           throw Exception('User ID or user object is null in response.');
@@ -55,14 +55,14 @@ class AuthService {
     }
   }
 
-  // Save token, role, cleaner's name, and cleanerID to shared preferences
-  Future<void> saveUserDetails(String token, String userRole, String userName, String cleanerID) async {
+  // Save token, role, cleaner's name, and cleanerId to shared preferences
+  Future<void> saveUserDetails(String token, String userRole, String userName, String cleanerId) async {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('token', token);       // Store token
       await prefs.setString('userRole', userRole); // Store user role
       await prefs.setString('userName', userName); // Store cleaner's name
-      await prefs.setString('cleanerID', cleanerID); // Store cleaner's ID as a string
+      await prefs.setString('cleanerId', cleanerId); // Store cleaner's ID as a string (use 'cleanerId' to match your key in HomeScreen)
 
       // Log a success message
       print('User details saved successfully');
@@ -72,13 +72,13 @@ class AuthService {
     }
   }
 
-  // Clear token, role, cleaner's name, and cleanerID from shared preferences
+  // Clear token, role, cleaner's name, and cleanerId from shared preferences
   Future<void> clearToken() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('token');
     await prefs.remove('userRole');
     await prefs.remove('userName');
-    await prefs.remove('cleanerID'); // Clear cleaner's ID
+    await prefs.remove('cleanerId'); // Clear cleaner's ID with the correct key
   }
 
   // Logout function
@@ -88,7 +88,7 @@ class AuthService {
       final token = prefs.getString('token');
 
       final response = await http.post(
-        Uri.parse('$baseUrl/logout'), // Use the logout endpoint
+        Uri.parse('$baseUrl/flutterlogout'), // Use the logout endpoint
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token', // Pass the token in the header
