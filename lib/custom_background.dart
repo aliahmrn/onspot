@@ -27,7 +27,7 @@ class CustomBackground extends StatelessWidget {
                 end: Alignment.bottomCenter,
                 colors: [
                   Color(0xFF4C7D90),
-                  Color.fromARGB(255, 255, 255, 255),
+                  Colors.white
                 ],
               ),
             ),

@@ -1,5 +1,32 @@
+import 'dart:convert'; // To handle JSON encoding
+import 'package:http/http.dart' as http; // Import the http package
+import 'package:shared_preferences/shared_preferences.dart'; // For storing and retrieving the token
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart'; // To handle date formatting
+import 'package:intl/intl.dart'; // For date formatting
+
+Future<String?> getToken() async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  return prefs.getString('token');
+}
+
+Future<List<String>> fetchLocations() async {
+  final token = await getToken();
+  final response = await http.get(
+    Uri.parse('http://your-api-url.com/api/locations'),
+    headers: {
+      'Authorization': 'Bearer $token',
+      'Content-Type': 'application/json',
+    },
+  );
+
+  if (response.statusCode == 200) {
+    List<dynamic> locationsJson = jsonDecode(response.body);
+    return locationsJson.map((location) => location.toString()).toList();
+  } else {
+    throw Exception('Failed to load locations');
+  }
+}
+
 
 class FileComplaintPage extends StatefulWidget {
   const FileComplaintPage({super.key});
@@ -13,50 +40,100 @@ class _FileComplaintPageState extends State<FileComplaintPage> {
   final TextEditingController _descriptionController = TextEditingController();
   String? _selectedLocation;
   DateTime? _selectedDate;
+  String? _imagePath; // For image storage
 
-  // Sample locations for the complaint
-  final List<String> _locations = [
-    'Room 101',
-    'Room 102',
-    'Conference Hall',
-    'Lobby',
-  ];
+  // locations for the complaint
+  List<String> _locations = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadLocations();
+  }
+
+  void _loadLocations() async {
+    try {
+      List<String> locations = await fetchLocations();
+      setState(() {
+        _locations = locations;
+      });
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error loading locations: $e')));
+    }
+  }
+
 
   // List to keep track of checkbox states for additional tasks
   List<bool> _additionalTasksChecked = [false, false, false, false, false];
 
-  void _submitComplaint() {
+    // Method to submit the complaint via the API
+  Future<void> _submitComplaint() async {
     if (_formKey.currentState!.validate()) {
-      // Process the complaint submission (e.g., send to API)
-      final complaintDescription = _descriptionController.text;
-      final complaintLocation = _selectedLocation;
-      final complaintDate = DateFormat('dd/MM/yyyy').format(_selectedDate!);
+      // Get the token from shared preferences
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      String? token = prefs.getString('token');
 
-      // Show confirmation message (for demo purposes)
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-              'Complaint Submitted:\nDescription: $complaintDescription\nLocation: $complaintLocation\nDate: $complaintDate'),
-          duration: const Duration(seconds: 3),
-        ),
-      );
+      if (token == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: User not authenticated')),
+        );
+        return;
+      }
 
-      // Clear the form
-      _descriptionController.clear();
-      setState(() {
-        _selectedLocation = null;
-        _selectedDate = null;
-        _additionalTasksChecked = [
-          false,
-          false,
-          false,
-          false,
-          false
-        ]; // Reset checkbox states
-      });
+      // Prepare complaint data
+      final complaintData = {
+        'comp_date': DateFormat('yyyy-MM-dd').format(_selectedDate!),
+        'comp_time': DateFormat('HH:mm:ss').format(DateTime.now()), // Current time
+        'comp_desc': _descriptionController.text,
+        'comp_location': _selectedLocation,
+        'comp_status': 'pending', // Default status
+        'comp_image': _imagePath, // Add image if needed, this is optional
+        'officer_id': 1 // Get this dynamically based on login or user profile
+      };
+
+      try {
+        // API endpoint
+        final url = Uri.parse('http://your-api-url.com/api/complaints');
+        
+        // Send POST request with token
+        final response = await http.post(
+          url,
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer $token',
+          },
+          body: jsonEncode(complaintData),
+        );
+
+        if (response.statusCode == 200) {
+          // On success
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Complaint Submitted Successfully')),
+          );
+          _clearForm(); // Clear the form
+        } else {
+          // On failure
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Error: Could not submit complaint')),
+          );
+        }
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e')),
+        );
+      }
     }
   }
 
+   // Method to clear the form after successful submission
+  void _clearForm() {
+    _descriptionController.clear();
+    setState(() {
+      _selectedLocation = null;
+      _selectedDate = null;
+      _additionalTasksChecked = [false, false, false, false, false];
+    });
+  }
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
       context: context,
@@ -89,7 +166,7 @@ class _FileComplaintPageState extends State<FileComplaintPage> {
             Navigator.pop(context);
           },
         ),
-        backgroundColor: const Color(0xFFFEF7FF), // Change AppBar color to #FEF7FF
+        backgroundColor: const Color.fromARGB(255, 255, 255, 255), 
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
@@ -98,172 +175,249 @@ class _FileComplaintPageState extends State<FileComplaintPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Upload Image card
-              Card(
-                color: const Color(0xFF92AEB9), // Set the card color
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    children: [
-                      Container(
-                        height: 150,
-                        width: double.infinity,
-                        color: Colors.grey[300],
-                        child: const Icon(Icons.camera_alt, size: 50),
+            // Upload Image card with file name and upload button layout
+            Card(
+              elevation: 4,
+              color: const Color(0xFF92AEB9), // Set the card color to match the theme
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 16.0), // Adjust vertical padding to make it thinner
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.start, // Align items to the left
+                  crossAxisAlignment: CrossAxisAlignment.center, // Center align the items vertically
+                  children: [
+                    // "Upload Image" text
+                    const Text(
+                      'Upload Image',
+                      style: TextStyle(
+                        color: Colors.black, // Black text for "Upload Image"
+                        fontSize: 16, // Font size for the text
+                        fontWeight: FontWeight.bold, // Optional: make the text bold
                       ),
-                      const SizedBox(height: 10),
-                      ElevatedButton.icon(
-                        onPressed: () {
-                          // Handle image upload
-                        },
-                        icon: const Icon(Icons.upload),
-                        label: const Text("Upload Image"),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.white, // Button color
-                          foregroundColor:
-                              const Color(0xFF92AEB9), // Text color
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 20),
+                    ),
+                    const SizedBox(width: 5), // Smaller space between the text and the file name box
 
-              // Location card
-              Card(
-                color: const Color(0xFF92AEB9), // Set the card color
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Location',
-                        style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white),
-                      ),
-                      DropdownButtonFormField<String>(
-                        value: _selectedLocation,
-                        decoration: InputDecoration(
-                          hintText: 'Select location',
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
+                    // Left side: File name text
+                    Expanded(
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 3.0, horizontal: 12.0), // Adjust padding
+                        decoration: BoxDecoration(
+                          color: Colors.white, // White background for the file name box
+                          borderRadius: BorderRadius.circular(8.0), // Rounded corners
+                          border: Border.all(color: Colors.grey[400]!), // Border for the box
+                        ),
+                        child: const Text(
+                          'picture.png', // Default file name text
+                          style: TextStyle(
+                            color: Colors.black, // File name text color
+                            fontSize: 16, // Font size for the file name
                           ),
-                          filled: true,
-                          fillColor: Colors.white,
                         ),
-                        items: _locations.map((String location) {
-                          return DropdownMenuItem<String>(
-                            value: location,
-                            child: Text(location),
-                          );
-                        }).toList(),
-                        onChanged: (value) {
-                          setState(() {
-                            _selectedLocation = value;
-                          });
-                        },
-                        validator: (value) {
-                          if (value == null) {
-                            return 'Please select a location';
-                          }
-                          return null;
-                        },
                       ),
-                    ],
+                    ),
+                    const SizedBox(width: 5), // Smaller space between file name and upload button
+
+                    // Right side: Upload button inside white container
+                    Container(
+                      height: 30, // Adjust height to be smaller
+                      width: 30,  // Adjust width to be smaller
+                      decoration: BoxDecoration(
+                        color: Colors.white, // White background for the upload button
+                        borderRadius: BorderRadius.circular(8.0), // Rounded corners
+                        border: Border.all(color: Colors.grey[400]!), // Border for the container
+                      ),
+                      child: Center( // Center the icon within the button
+                        child: IconButton(
+                          onPressed: () {
+                            // Handle image upload logic
+                          },
+                          icon: const Icon(Icons.camera_alt), // Camera icon for the upload
+                          color: Colors.black, // Icon color black
+                          iconSize: 16, // Adjust icon size to fit the smaller container
+                          padding: EdgeInsets.zero, // Remove default padding
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 40), // Increased space between the card and the grey box
+
+
+
+
+            // Grey box for image preview placed outside and below the upload image card
+            const SizedBox(height: 10), // Space between the card and the grey box
+
+            Container(
+              height: 200, // Set height for the grey box
+              width: double.infinity, // Take full width of the screen
+              decoration: BoxDecoration(
+                color: Colors.grey[300], // Set the grey color for the box
+                borderRadius: BorderRadius.circular(8.0), // Rounded corners
+              ),
+              child: Center(
+                child: const Text(
+                  'Image Preview', // Placeholder text for the grey box
+                  style: TextStyle(
+                    color: Colors.black, // Black text
+                    fontSize: 16, // Adjust font size if needed
                   ),
                 ),
               ),
-              const SizedBox(height: 16.0),
+            ),
+            const SizedBox(height: 35), // Increased space between the card and the grey box
 
-              // Date card
-              Card(
-                color: const Color(0xFF92AEB9), // Set the card color
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Date',
-                        style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white),
+            // Location card
+            Card(
+              elevation: 0, // Remove shadow by setting elevation to 0
+              color: Colors.transparent, // Set the card color to transparent
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Location',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black, // Change text color to black
                       ),
-                      GestureDetector(
-                        onTap: () => _selectDate(context),
-                        child: AbsorbPointer(
-                          child: TextFormField(
-                            decoration: InputDecoration(
-                              hintText: _selectedDate != null
-                                  ? DateFormat('dd/MM/yyyy')
-                                      .format(_selectedDate!)
-                                  : 'Select date',
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              filled: true,
-                              fillColor: Colors.white,
+                    ),
+                    DropdownButtonFormField<String>(
+                    value: _selectedLocation,
+                    decoration: InputDecoration(
+                      hintText: 'Room, Floor',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: const BorderSide(color: Colors.grey),
+                      ),
+                      filled: true,
+                      fillColor: Colors.white,
+                    ),
+                    items: _locations.map((String location) {
+                      return DropdownMenuItem<String>(
+                        value: location,
+                        child: Text(
+                          location,
+                          style: const TextStyle(color: Colors.grey),
+                        ),
+                      );
+                    }).toList(),
+                    onChanged: (value) {
+                      setState(() {
+                        _selectedLocation = value;
+                      });
+                    },
+                    validator: (value) {
+                      if (value == null) {
+                        return 'Please select a location';
+                      }
+                      return null;
+                    },
+                  ),
+
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 16.0),
+
+            // Date card
+            Card(
+              elevation: 0, // Remove shadow by setting elevation to 0
+              color: Colors.transparent, // Set the card color to transparent
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Date',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black, // Change text color to black
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: () => _selectDate(context),
+                      child: AbsorbPointer(
+                        child: TextFormField(
+                          decoration: InputDecoration(
+                            hintText: _selectedDate != null
+                                ? DateFormat('dd/MM/yyyy').format(_selectedDate!)
+                                : 'Select date',
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                              borderSide: const BorderSide(color: Colors.grey), // Set outline color to grey
                             ),
-                            validator: (value) {
-                              if (_selectedDate == null) {
-                                return 'Please select a date';
-                              }
-                              return null;
-                            },
+                            filled: true,
+                            fillColor: Colors.white,
                           ),
+                          validator: (value) {
+                            if (_selectedDate == null) {
+                              return 'Please select a date';
+                            }
+                            return null;
+                          },
+                          style: const TextStyle(color: Colors.grey), // Set input text color to grey
                         ),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(height: 16.0),
+            ),
+            const SizedBox(height: 16.0),
 
-              // Task description card
-              Card(
-                color: const Color(0xFF92AEB9), // Set the card color
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Task Description',
-                        style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white),
+            // Task description card
+            Card(
+              elevation: 0, // Remove shadow by setting elevation to 0
+              color: Colors.transparent, // Set the card color to transparent
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Task Description',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black, // Change text color to black
                       ),
-                      TextFormField(
-                        controller: _descriptionController,
-                        decoration: InputDecoration(
-                          hintText: 'Enter task description',
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          filled: true,
-                          fillColor: Colors.white,
-                          contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 16.0, vertical: 12.0),
+                    ),
+                    TextFormField(
+                      controller: _descriptionController,
+                      decoration: InputDecoration(
+                        hintText: 'Enter task description',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: const BorderSide(color: Colors.grey), // Set outline color to grey
                         ),
-                        maxLines: 4,
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Please enter a task description';
-                          }
-                          return null;
-                        },
+                        filled: true,
+                        fillColor: Colors.white,
+                        contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16.0, vertical: 12.0),
                       ),
-                    ],
-                  ),
+                      maxLines: 4,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter a task description';
+                        }
+                        return null;
+                      },
+                      style: const TextStyle(color: Colors.grey), // Set input text color to grey
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(height: 16.0),
+            ),
+            const SizedBox(height: 30.0),
+
 
               // Additional Tasks section
               Card(
@@ -316,17 +470,29 @@ class _FileComplaintPageState extends State<FileComplaintPage> {
               ),
               const SizedBox(height: 20),
 
-              Center(
-                child: ElevatedButton(
-                  onPressed: _submitComplaint,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF92AEB9), // Button color
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 40, vertical: 12),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end, // Aligns the button to the right
+                children: [
+                  TextButton(
+                    onPressed: () {
+                      // Add your send functionality here
+                    },
+                    style: TextButton.styleFrom(
+                      backgroundColor: const Color(0xFFF6F1F1), // Button color
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20), // Round-ish shape
+                      ),
+                    ),
+                    child: const Text(
+                      'Send', // Change button text to 'Send'
+                      style: TextStyle(
+                        color: Colors.black, // Text color
+                      ),
+                    ),
                   ),
-                  child: const Text('Submit Complaint'),
-                ),
+                ],
               ),
+
             ],
           ),
         ),

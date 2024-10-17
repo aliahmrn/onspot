@@ -18,6 +18,9 @@ class OnspotOfficerApp extends StatelessWidget {
         '/': (context) => const LoginScreen(), // Set the login screen as the initial route
         '/officer-home': (context) => OfficerHomeScreen(), // Set the Officer home screen route
       },
+      theme: ThemeData(
+        scaffoldBackgroundColor: Colors.white, // Set the default background color to white
+      ),
     );
   }
 }
