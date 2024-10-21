@@ -1,18 +1,20 @@
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../service/auth_service.dart'; // Import the AuthService to use its methods
 
 class AttendanceService {
-  final String baseUrl = 'http://127.0.0.1:8000/api';  // Base URL of the API
-  final String token;  // Token for authorization
+  final String baseUrl = 'http://192.168.1.110:8000/api'; // Base URL of the API
+  final String token; // Token for authorization
+  final AuthService authService = AuthService(); // Create an instance of AuthService
 
   AttendanceService(this.token);
 
   // Function to submit attendance
   Future<void> submitAttendance({
-    required String status,  // 'present' or 'absent'
+    required String status, // 'present' or 'absent'
   }) async {
-    final url = Uri.parse('$baseUrl/attendance');  // API endpoint for submitting attendance
+    final url = Uri.parse('$baseUrl/attendance'); // API endpoint for submitting attendance
 
     try {
       // Retrieve cleanerId from SharedPreferences
@@ -29,8 +31,8 @@ class AttendanceService {
 
       // Attendance data
       Map<String, dynamic> attendanceData = {
-        'id': cleanerId,  // Cleaner ID
-        'status': status,  // Attendance status ('present' or 'absent')
+        'id': cleanerId, // Cleaner ID
+        'status': status, // Attendance status ('present' or 'absent')
       };
 
       // Making POST request to the API
@@ -38,7 +40,7 @@ class AttendanceService {
         url,
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',  // Authorization header
+          'Authorization': 'Bearer $token', // Authorization header
         },
         body: json.encode(attendanceData),
       );
@@ -48,8 +50,11 @@ class AttendanceService {
         print('Attendance submitted successfully: ${response.body}');
 
         // Save today's date to SharedPreferences if submission is successful
-        final today = DateTime.now();
-        await prefs.setString('lastAttendanceDate', today.toIso8601String().substring(0, 10)); // Store date in 'yyyy-MM-dd' format
+        final todayDate = DateTime.now().toIso8601String(); // Get today's date as string
+        await prefs.setString('lastAttendanceDate', todayDate); // Save the date
+
+        // Save today's date to SharedPreferences if submission is successful
+        await authService.saveAttendanceSubmissionDate(); // Save today's date after submission
       } else {
         print('Error submitting attendance: ${response.statusCode} - ${response.body}');
         throw Exception('Failed to submit attendance: ${response.body}');

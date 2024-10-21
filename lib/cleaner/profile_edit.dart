@@ -1,8 +1,120 @@
 import 'package:flutter/material.dart';
-import 'profile.dart'; // Import CleanerProfileScreen for navigation
+import 'package:image_picker/image_picker.dart';
+import '../service/profile_service.dart'; // Import ProfileService
+import 'package:shared_preferences/shared_preferences.dart'; // Import for token management
 
-class CleanerProfileEditScreen extends StatelessWidget {
+class CleanerProfileEditScreen extends StatefulWidget {
   const CleanerProfileEditScreen({super.key});
+
+  @override
+  _CleanerProfileEditScreenState createState() => _CleanerProfileEditScreenState();
+}
+
+class _CleanerProfileEditScreenState extends State<CleanerProfileEditScreen> {
+  String? _currentProfilePic;
+  Map<String, dynamic>? cleanerInfo;
+  String? token;
+
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _usernameController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _phoneController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _initializeTokenAndLoadProfile();
+  }
+
+  Future<void> _initializeTokenAndLoadProfile() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    token = prefs.getString('token');
+
+    if (token != null) {
+      await _loadProfile();
+    } else {
+      print('No token found');
+      Navigator.pushReplacementNamed(context, '/'); // Navigate to login if no token
+    }
+  }
+
+  Future<void> _loadProfile() async {
+    ProfileService profileService = ProfileService();
+
+    try {
+      cleanerInfo = await profileService.fetchProfile(token!);
+      setState(() {
+        // Fetch all required fields including name, username, email, and phone
+        _currentProfilePic = cleanerInfo?['profile_pic'];
+        _nameController.text = cleanerInfo?['name'] ?? ''; // Fetch name
+        _usernameController.text = cleanerInfo?['username'] ?? ''; // Fetch username
+        _emailController.text = cleanerInfo?['email'] ?? ''; // Fetch email
+        _phoneController.text = cleanerInfo?['phone_no'] ?? ''; // Fetch phone number
+      });
+    } catch (e) {
+      print('Error fetching profile: $e');
+    }
+  }
+
+  Future<void> _updateProfile() async {
+    ProfileService profileService = ProfileService();
+
+    try {
+      Map<String, String> updatedData = {
+        'cleaner_name': _nameController.text,
+        'cleaner_username': _usernameController.text,
+        'email': _emailController.text,
+        'phone_no': _phoneController.text,
+      };
+
+      await profileService.updateProfile(token!, updatedData, _currentProfilePic);
+      // Show success message or navigate back after update
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Profile updated successfully!')));
+    } catch (e) {
+      print('Error updating profile: $e');
+    }
+  }
+
+  Future<void> _showImageOptions() async {
+    final ImagePicker picker = ImagePicker();
+    final String? action = await showDialog<String>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Choose an action'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, 'Upload'),
+              child: const Text('Upload'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context, 'Delete'),
+              child: const Text('Delete'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context, 'Cancel'),
+              child: const Text('Cancel'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (action == 'Upload') {
+      final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+      if (image != null) {
+        setState(() {
+          _currentProfilePic = image.path; // Update profile picture path
+        });
+        // TODO: Upload the image to your server
+      }
+    } else if (action == 'Delete') {
+      setState(() {
+        _currentProfilePic = null; // Clear profile picture
+      });
+      // TODO: Call your API to delete the profile picture
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -40,8 +152,8 @@ class CleanerProfileEditScreen extends StatelessWidget {
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
                       colors: [
-                        Color(0xFF4C7D90), // Keep the blue gradient color
-                        Color(0xFFFEF7FF), // Change the white color to #FEF7FF
+                        Color(0xFF4C7D90),
+                        Color(0xFFFEF7FF),
                       ],
                     ),
                   ),
@@ -65,29 +177,59 @@ class CleanerProfileEditScreen extends StatelessWidget {
                     CircleAvatar(
                       radius: 50,
                       backgroundColor: Colors.grey[300],
-                      child: const Icon(Icons.person, size: 50, color: Colors.white),
+                      backgroundImage: _currentProfilePic != null
+                          ? NetworkImage(_currentProfilePic!)
+                          : null,
+                      child: _currentProfilePic == null
+                          ? const Icon(Icons.person, size: 50, color: Colors.white)
+                          : null,
                     ),
-                    const Positioned(
+                    Positioned(
                       bottom: 0,
                       right: 0,
-                      child: CircleAvatar(
-                        radius: 16,
-                        backgroundColor: Color(0xFFFEF7FF), // Change to #FEF7FF
-                        child: Icon(Icons.edit, size: 16, color: Colors.grey),
+                      child: GestureDetector(
+                        onTap: _showImageOptions,
+                        child: const CircleAvatar(
+                          radius: 16,
+                          backgroundColor: Color(0xFFFEF7FF),
+                          child: Icon(Icons.edit, size: 16, color: Colors.black),
+                        ),
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 20),
-                _buildTextField('Name', 'Enter your name'),
-                const SizedBox(height: 20),
-                _buildTextField('Username', 'Enter your username'),
-                const SizedBox(height: 20),
-                _buildTextField('Email', 'Enter your email'),
-                const SizedBox(height: 20),
-                _buildTextField('Phone Number', 'Enter your phone number'),
-                const SizedBox(height: 20),
-                _buildSaveButton(context), // Add the Save button at the bottom
+                const SizedBox(height: 40),
+                _buildTextField('Name', _nameController),
+                const SizedBox(height: 30),
+                _buildTextField('Username', _usernameController),
+                const SizedBox(height: 30),
+                _buildTextField('Email', _emailController),
+                const SizedBox(height: 30),
+                _buildTextField('Phone Number', _phoneController),
+                const SizedBox(height: 30),
+                Center(
+                  child: SizedBox(
+                    width: 250, // You can set this to the desired width
+                    height: 50,
+                    child: ElevatedButton(
+                      onPressed: _updateProfile,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFFEF7FF),
+                        side: const BorderSide(color: Colors.black),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(5),
+                        ),
+                        minimumSize: const Size(250, 50),
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+                      ),
+                      child: const Text(
+                        'Save',
+                        style: TextStyle(color: Colors.black, fontSize: 16),
+                      ),
+                    ),
+                  ),
+                ),
+
               ],
             ),
           ),
@@ -96,14 +238,14 @@ class CleanerProfileEditScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildTextField(String label, String hint) {
+  Widget _buildTextField(String label, TextEditingController controller) {
     return Center(
-      child: SizedBox(
-        width: 300,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(left: 8.0),
+            child: Text(
               label,
               style: const TextStyle(
                 fontSize: 16,
@@ -111,51 +253,26 @@ class CleanerProfileEditScreen extends StatelessWidget {
                 color: Colors.black,
               ),
             ),
-            const SizedBox(height: 5),
-            TextField(
-              decoration: InputDecoration(
-                hintText: hint,
-                filled: true,
-                fillColor: Colors.white,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8.0),
-                  borderSide: const BorderSide(color: Colors.grey),
+          ),
+          const SizedBox(height: 5),
+          Center(
+            child: SizedBox(
+              width: 300,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 15),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  border: Border.all(color: Colors.grey),
+                  borderRadius: BorderRadius.circular(8),
                 ),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 15),
+                child: TextField(
+                  controller: controller,
+                  decoration: const InputDecoration.collapsed(hintText: ''),
+                ),
               ),
             ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // Save button widget
-  Widget _buildSaveButton(BuildContext context) {
-    return Center(
-      child: ElevatedButton(
-        onPressed: () {
-          // After saving, navigate back to the CleanerProfileScreen
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) => CleanerProfileScreen(),
-            ),
-          );
-        },
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.white,
-          side: const BorderSide(color: Colors.black),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(5.0),
           ),
-          minimumSize: const Size(250, 50),
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-        ),
-        child: const Text(
-          'Save',
-          style: TextStyle(color: Colors.black),
-        ),
+        ],
       ),
     );
   }

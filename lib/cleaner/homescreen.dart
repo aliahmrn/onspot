@@ -10,7 +10,9 @@ import '../service/attendance_service.dart';
 const Color appBarColor = Color(0xFFFFFFFF); // White color for AppBar
 
 class CleanerHomeScreen extends StatefulWidget {
-  const CleanerHomeScreen({super.key});
+  final bool attendanceSubmitted; 
+
+   const CleanerHomeScreen({super.key, this.attendanceSubmitted = false});
 
   @override
   _CleanerHomeScreenState createState() => _CleanerHomeScreenState();
@@ -28,8 +30,35 @@ class _CleanerHomeScreenState extends State<CleanerHomeScreen> {
     _loadUserName(); // Load the user's name
     _loadCleanerId(); // Load the dynamic cleaner ID
     _initializeAttendanceService(); // Initialize AttendanceService with token
-    _checkAttendanceStatus(); // Check if attendance has been submitted today
   }
+
+    // Method to initialize AttendanceService with token
+    Future<void> _initializeAttendanceService() async {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('token'); // Get the token from shared preferences
+
+      if (token != null) {
+        attendanceService = AttendanceService(token); // Initialize AttendanceService with token
+        await _checkAttendanceStatus(); // Check attendance status after initialization
+      } else {
+        // Handle the case where the token is null (e.g., navigate to login)
+        print('No token found, navigating to login...');
+        // You can navigate to the login screen or handle accordingly
+        // Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const LoginScreen()));
+      }
+    }
+
+    // Method to check if the attendance has been submitted today
+    Future<void> _checkAttendanceStatus() async {
+      // No need for a null check since we ensure attendanceService is initialized in _initializeAttendanceService
+      bool submittedToday = await attendanceService.isAttendanceSubmittedToday();
+      
+      // Update the state based on the result
+      setState(() {
+        isAttendanceSubmitted = submittedToday; 
+      });
+    }
+
 
   // Method to load the user's name from SharedPreferences
   Future<void> _loadUserName() async {
@@ -48,30 +77,6 @@ class _CleanerHomeScreenState extends State<CleanerHomeScreen> {
     });
   }
 
-  // Method to initialize AttendanceService with token
-  Future<void> _initializeAttendanceService() async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('token'); // Get the token from shared preferences
-
-    if (token != null) {
-      attendanceService = AttendanceService(token); // Initialize AttendanceService with token
-    } else {
-      // Handle the case where the token is null (e.g., navigate to login)
-      print('No token found, navigating to login...');
-      // You can navigate to the login screen or handle accordingly
-    }
-  }
-
-  // Method to check if the attendance has been submitted today
-  Future<void> _checkAttendanceStatus() async {
-    // Directly call the AttendanceService method to check attendance status
-    bool submittedToday = await attendanceService.isAttendanceSubmittedToday();
-    
-    // Update the state based on the result
-    setState(() {
-      isAttendanceSubmitted = submittedToday; 
-    });
-  }
 
   // Navigate to the notifications screen
   void _handleBellTap(BuildContext context) {
@@ -100,6 +105,9 @@ class _CleanerHomeScreenState extends State<CleanerHomeScreen> {
       await attendanceService.submitAttendance(
         status: status // Pass only the status parameter
       );
+
+      // Re-check the attendance status to update the card visibility
+      await _checkAttendanceStatus(); // Check if attendance has been submitted today
 
       // Hide the attendance card after successful submission
       setState(() {

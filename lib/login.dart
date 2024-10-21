@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:onspot_facility/service/auth_service.dart';
+import 'package:onspot_facility/service/attendance_service.dart'; // Import the AttendanceService
 import 'cleaner/homescreen.dart';
-import 'register.dart'; 
+import 'register.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -11,20 +12,21 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final TextEditingController _inputController = TextEditingController(); // Changed to be more generic for input (username/email)
+  final TextEditingController _inputController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final AuthService _authService = AuthService();
+  late AttendanceService attendanceService; // Declare attendanceService here
   String _errorMessage = '';
   bool _isLoading = false;
 
   Future<void> _login() async {
-    final String input = _inputController.text; // Use 'input' to accept both username and email
+    final String input = _inputController.text;
     final String password = _passwordController.text;
 
     // Input validation
     if (input.isEmpty || password.isEmpty) {
       setState(() {
-        _errorMessage = 'Please enter both username/email and password';
+        _errorMessage = 'Please enter both username and password';
       });
       return;
     }
@@ -34,19 +36,25 @@ class _LoginScreenState extends State<LoginScreen> {
     });
 
     try {
-      await _authService.login(input, password); // Pass 'input' instead of just 'email'
+      await _authService.login(input, password); // Perform login
+
+      // Initialize attendanceService with the token
+      final String token = await _authService.getToken();
+      attendanceService = AttendanceService(token); // Store attendanceService for later use
+
+      // Check if attendance is already submitted for today
+      bool attendanceSubmitted = await attendanceService.isAttendanceSubmittedToday();
 
       // Navigate to Cleaner Home Screen upon successful login
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => const CleanerHomeScreen()),
+        MaterialPageRoute(builder: (context) => CleanerHomeScreen(attendanceSubmitted: attendanceSubmitted)), // Pass attendance status
       );
     } catch (e) {
-      // Handle exceptions, such as invalid credentials
       setState(() {
         _errorMessage = 'Failed to login: ${e.toString()}'; // Update error message
       });
-      print('Error: $e'); // Log the error for debugging
+      print('Error: $e'); // Log the error for debugging purposes
     } finally {
       setState(() {
         _isLoading = false; // Hide loading indicator
@@ -96,7 +104,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     child: Column(
                       children: <Widget>[
                         // Input fields for username/email and password
-                        _buildInputField('Username or Email', _inputController), // Updated to be generic
+                        _buildInputField('Username', _inputController),
                         const SizedBox(height: 40),
                         _buildInputField('Password', _passwordController, obscureText: true),
                         const SizedBox(height: 20),
@@ -134,7 +142,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             // Navigate to RegistrationScreen when clicked
                             Navigator.push(
                               context,
-                              MaterialPageRoute(builder: (context) => const RegistrationScreen()), // Navigate to RegistrationScreen
+                              MaterialPageRoute(builder: (context) => const RegistrationScreen()),
                             );
                           },
                           child: const Text(
