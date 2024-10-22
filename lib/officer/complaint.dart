@@ -7,10 +7,10 @@ class FileComplaintPage extends StatefulWidget {
   const FileComplaintPage({super.key});
 
   @override
-  _FileComplaintPageState createState() => _FileComplaintPageState();
+  FileComplaintPageState createState() => FileComplaintPageState();
 }
 
-class _FileComplaintPageState extends State<FileComplaintPage> {
+class FileComplaintPageState extends State<FileComplaintPage> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _descriptionController = TextEditingController();
   String? _selectedLocation;
@@ -31,18 +31,38 @@ class _FileComplaintPageState extends State<FileComplaintPage> {
   Future<void> _submitComplaint() async {
     if (_formKey.currentState!.validate()) {
       if (_selectedDate == null || _selectedLocation == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please select a date and location')),
-        );
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Please select a date and location')),
+          );
+        }
         return;
       }
 
-      await ComplaintService().submitComplaint(
+      // Submitting the complaint via the service
+      bool success = await ComplaintService().submitComplaint(
         description: _descriptionController.text,
         location: _selectedLocation!,
         date: _selectedDate!,
         imagePath: _imagePath,
       );
+
+      if (mounted) {
+        if (success) {
+          // Show success message
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Complaint added successfully')),
+          );
+
+          // Redirect to officer home screen
+          Navigator.pushReplacementNamed(context, '/officer-home');
+        } else {
+          // Show failure message
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Failed to submit complaint. Try again.')),
+          );
+        }
+      }
     }
   }
 
@@ -71,7 +91,7 @@ class _FileComplaintPageState extends State<FileComplaintPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Call for Cleaner'),
+        title: const Text('File a Complaint'),
         centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),

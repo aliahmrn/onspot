@@ -7,10 +7,10 @@ class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
   @override
-  _LoginScreenState createState() => _LoginScreenState();
+  LoginScreenState createState() => LoginScreenState(); // No underscore here
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class LoginScreenState extends State<LoginScreen> { // No underscore here
   final TextEditingController _inputController = TextEditingController(); // Changed to be more generic for input (username/email)
   final TextEditingController _passwordController = TextEditingController();
   final AuthService _authService = AuthService();
@@ -36,11 +36,13 @@ class _LoginScreenState extends State<LoginScreen> {
     try {
       await _authService.login(input, password); // Pass 'input' instead of just 'email'
 
-      // Navigate to Officer Home Screen upon successful login
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => OfficerHomeScreen()),
-      );
+      // Only navigate if the widget is still mounted
+      if (mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => OfficerHomeScreen()),
+        );
+      }
     } catch (e) {
       // Handle exceptions with a specific message for invalid credentials
       setState(() {
@@ -49,9 +51,11 @@ class _LoginScreenState extends State<LoginScreen> {
             : 'Failed to login: ${e.toString()}';
       });
     } finally {
-      setState(() {
-        _isLoading = false; // Hide loading indicator
-      });
+      if (mounted) {
+        setState(() {
+          _isLoading = false; // Hide loading indicator
+        });
+      }
     }
   }
 

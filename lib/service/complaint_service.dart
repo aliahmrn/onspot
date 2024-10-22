@@ -2,8 +2,11 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:logger/logger.dart';
 
 class ComplaintService {
+  final Logger _logger = Logger(); // Initialize logger
+
   // Get token from SharedPreferences
   Future<String?> getToken() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -18,8 +21,10 @@ class ComplaintService {
     String? imagePath,
   }) async {
     String? token = await getToken();
-    print('Token: $token'); // Debugging
+    _logger.d('Token: $token'); // Debugging
+
     if (token == null) {
+      _logger.e('User not authenticated');
       throw Exception('User not authenticated');
     }
 
@@ -37,15 +42,20 @@ class ComplaintService {
       request.files.add(await http.MultipartFile.fromPath('comp_image', imagePath));
     }
 
-    var streamedResponse = await request.send();
-    var response = await http.Response.fromStream(streamedResponse);
+    try {
+      var streamedResponse = await request.send();
+      var response = await http.Response.fromStream(streamedResponse);
 
-    // Check the response status code and return a boolean
-    if (response.statusCode == 201) {
-      return true; // Success
-    } else {
-      print('Failed to submit complaint: ${response.body}');
-      return false; // Failure
+      if (response.statusCode == 201) {
+        _logger.i('Complaint submitted successfully');
+        return true; // Success
+      } else {
+        _logger.e('Failed to submit complaint: ${response.body}');
+        return false; // Failure
+      }
+    } catch (error) {
+      _logger.e('Error occurred during complaint submission: $error');
+      throw Exception('Error occurred during complaint submission: $error');
     }
   }
 
@@ -55,9 +65,11 @@ class ComplaintService {
     try {
       final XFile? image = await picker.pickImage(source: ImageSource.gallery);
       if (image != null) {
+        _logger.i('Image selected: ${image.path}');
         return image.path; // Return image path
       }
     } catch (e) {
+      _logger.e('Error selecting image: $e');
       throw Exception('Error selecting image: $e');
     }
     return null;

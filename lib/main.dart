@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'login.dart'; // Import the login screen
-import 'officer/homescreen.dart'; // Import the officer home screen
+import 'officer/homescreen.dart';
+import 'officer/complaint.dart'; // Import the officer home screen
 
 void main() {
   runApp(const OnspotOfficerApp());
@@ -17,6 +18,7 @@ class OnspotOfficerApp extends StatelessWidget {
       routes: {
         '/': (context) => const LoginScreen(), // Set the login screen as the initial route
         '/officer-home': (context) => OfficerHomeScreen(), // Set the Officer home screen route
+         '/file-complaint': (context) => const FileComplaintPage(), // Define the complaint page route
       },
       theme: ThemeData(
         scaffoldBackgroundColor: Colors.white, // Set the default background color to white

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'navbar.dart'; // Import the new navigation bar widget
 import 'history.dart';
 import 'profile.dart';
-import '../bell.dart';
+import '../widget/bell.dart';
 import 'complaint.dart';
 
 class OfficerHomeScreen extends StatelessWidget {
@@ -34,7 +34,7 @@ class OfficerHomeScreen extends StatelessWidget {
           elevation: 4.0, // Add shadow to AppBar
           child: AppBar(
             elevation: 0, // Remove default elevation
-            backgroundColor: const Color(0xFFFEF7FF), // Change AppBar color to #FEF7FF
+            backgroundColor: Colors.white,
             title: const Center(
               child: Text(
                 'Home',
