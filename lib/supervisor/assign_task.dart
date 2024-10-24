@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';  // Import for date/time formatting
 import '../service/complaints_service.dart'; // Import the service
-import 'package:shared_preferences/shared_preferences.dart';
 
 class AssignTaskPage extends StatefulWidget {
   final String complaintId;
@@ -19,21 +18,12 @@ class _AssignTaskPageState extends State<AssignTaskPage> {
   String? selectedNumOfCleaners;           // Holds the selected number of cleaners
   List<String> availableCleaners = [];     // List of available cleaners
   List<String?> selectedCleaners = [];     // Holds selected cleaners
-  String? supervisorId;
   
 
   @override
   void initState() {
     super.initState();
     _fetchComplaintDetails();  // Call the function to fetch data
-    _getSupervisorId();  // Fetch supervisor ID
-  }
-    // Function to fetch supervisor ID from SharedPreferences
-  Future<void> _getSupervisorId() async {
-    final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      supervisorId = prefs.getString('svId');
-    });
   }
 
   // Function to fetch complaint details from the backend
