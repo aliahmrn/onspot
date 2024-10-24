@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'login.dart'; // Import the login screen
-import 'protected_route.dart'; // Import your ProtectedRoute
 import 'supervisor/homescreen.dart'; // Import the supervisor home screen
 
 void main() {
@@ -17,8 +16,11 @@ class OnspotSupervisorApp extends StatelessWidget {
       initialRoute: '/',
       routes: {
         '/': (context) => LoginScreen(), // Set the initial route to the login screen
-        '/supervisor-home': (context) => const ProtectedRoute(child: SupervisorHomeScreen()), // Protect the Supervisor home route
+        '/supervisor-home': (context) =>  SupervisorHomeScreen(), // Protect the Supervisor home route
       },
+      theme: ThemeData(
+        scaffoldBackgroundColor: Colors.white, // Set the default background color to white
+      ),
     );
   }
 }

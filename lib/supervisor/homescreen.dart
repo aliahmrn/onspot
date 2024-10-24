@@ -4,6 +4,8 @@ import 'profile.dart';
 import 'navbar.dart'; // Import the SupervisorBottomNavBar widget
 import '../bell.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
 
 class SupervisorHomeScreen extends StatefulWidget {
   const SupervisorHomeScreen({super.key});
@@ -13,6 +15,23 @@ class SupervisorHomeScreen extends StatefulWidget {
 }
 
 class _SupervisorHomeScreenState extends State<SupervisorHomeScreen> {
+  String userName = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserName(); // Load the supervisor's name
+  }
+
+    // Method to load the supervisor's name from SharedPreferences
+  Future<void> _loadUserName() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      userName = prefs.getString('name') ?? 'Supervisor'; // Default to 'Supervisor' if no name is found
+    });
+  }
+
+
   void _navigateToProfile() {
     Navigator.push(
       context,
@@ -84,8 +103,8 @@ class _SupervisorHomeScreenState extends State<SupervisorHomeScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
-                    'Welcome, Supervisor',
+                  Text(
+                    'Welcome, $userName!',
                     style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.w600,
@@ -94,15 +113,12 @@ class _SupervisorHomeScreenState extends State<SupervisorHomeScreen> {
                   Row(
                     children: [
                       BellProfileWidget(
-                        onBellTap:
-                            _navigateToHistory, // Navigate to history on bell tap
+                        onBellTap: _navigateToHistory, // Navigate to history on bell tap
                       ),
                       GestureDetector(
-                        onTap:
-                            _navigateToProfile, // Navigate to ProfilePage on tap
+                        onTap: _navigateToProfile, // Navigate to ProfilePage on tap
                         child: const CircleAvatar(
-                          backgroundImage:
-                              AssetImage('assets/images/profile.jpg'),
+                          backgroundImage: AssetImage('assets/images/profile.jpg'),
                           radius: 20,
                         ),
                       ),

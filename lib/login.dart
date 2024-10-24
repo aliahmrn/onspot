@@ -1,8 +1,8 @@
+
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
-import 'package:onspot_supervisor/supervisor/homescreen.dart';
-import 'package:onspot_supervisor/service/auth_service.dart';
+import '../service/auth_service.dart';
+import 'supervisor/homescreen.dart';
+import 'register.dart'; 
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -12,65 +12,47 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  String userType = 'Cleaner'; // Default to Cleaner
-  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _inputController = TextEditingController(); // Changed to be more generic for input (username/email)
   final TextEditingController _passwordController = TextEditingController();
   final AuthService _authService = AuthService();
   String _errorMessage = '';
+  bool _isLoading = false;
 
   Future<void> _login() async {
-    final String email = _emailController.text;
+    final String input = _inputController.text; // Use 'input' to accept both username and email
     final String password = _passwordController.text;
 
-    if (email.isEmpty || password.isEmpty) {
+    // Input validation
+    if (input.isEmpty || password.isEmpty) {
       setState(() {
-        _errorMessage = 'Please enter both email and password';
+        _errorMessage = 'Please enter both username/email and password';
       });
       return;
     }
 
+    setState(() {
+      _isLoading = true; // Show loading indicator
+    });
+
     try {
-      final response = await http.post(
-        Uri.parse('http://127.0.0.1:8000/api/login'),
-        headers: <String, String>{
-          'Content-Type': 'application/json; charset=UTF-8',
-        },
-        body: jsonEncode(<String, String>{
-          'email': email,
-          'password': password,
-        }),
+      await _authService.login(input, password); // Pass 'input' instead of just 'email'
+
+      // Navigate to Officer Home Screen upon successful login
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => SupervisorHomeScreen()),
       );
-
-      // Check the response status
-      if (response.statusCode == 200) {
-        final Map<String, dynamic> data = json.decode(response.body);
-        final String token = data['access_token']; // Get the access token
-        final String role = data['user']['role']; // Get the user role
-
-        print('Role: $role'); // Log the role for debugging
-        
-        // Save token securely
-        await _authService.saveToken(token);
-
-        // Determine user role
-        if  (role == 'supervisor') {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => SupervisorHomeScreen()),
-          );
-        }
-      } else {
-        // Handle error response
-        setState(() {
-          _errorMessage = 'Invalid email or password';
-        });
-      }
     } catch (e) {
-      // Handle exceptions, such as network issues
+      // Handle exceptions with a specific message for invalid credentials
       setState(() {
-        _errorMessage = 'Failed to login: $e';
+        _errorMessage = e.toString() == 'Exception: Invalid login credentials.'
+            ? 'Invalid login credentials.'
+            : 'Failed to login: ${e.toString()}';
       });
-      print('Error: $e'); // Log the error for debugging
+    } finally {
+      setState(() {
+        _isLoading = false; // Hide loading indicator
+      });
     }
   }
 
@@ -105,26 +87,6 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 5),
-                const Center(
-                  child: Text(
-                    'Sign in as:',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.black,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 20),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    _buildUserTypeOption('Cleaner'),
-                    _buildUserTypeOption('Supervisor'),
-                    _buildUserTypeOption('Officer'),
-                  ],
-                ),
                 const SizedBox(height: 20),
                 Card(
                   elevation: 5,
@@ -135,12 +97,13 @@ class _LoginScreenState extends State<LoginScreen> {
                     padding: const EdgeInsets.all(20.0),
                     child: Column(
                       children: <Widget>[
-                        _buildInputField('Email', _emailController),
+                        // Input fields for username/email and password
+                        _buildInputField('Username or Email', _inputController), // Updated to be generic
                         const SizedBox(height: 40),
                         _buildInputField('Password', _passwordController, obscureText: true),
                         const SizedBox(height: 20),
                         ElevatedButton(
-                          onPressed: _login,
+                          onPressed: _isLoading ? null : _login, // Disable button while loading
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.black,
                             padding: const EdgeInsets.symmetric(horizontal: 100, vertical: 15),
@@ -149,10 +112,9 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                             textStyle: const TextStyle(fontSize: 16),
                           ),
-                          child: const Text(
-                            'Sign In',
-                            style: TextStyle(color: Colors.white),
-                          ),
+                          child: _isLoading
+                              ? const CircularProgressIndicator(color: Colors.white) // Show loading indicator
+                              : const Text('Sign In', style: TextStyle(color: Colors.white)),
                         ),
                         const SizedBox(height: 10),
                         if (_errorMessage.isNotEmpty) ...[
@@ -163,12 +125,25 @@ class _LoginScreenState extends State<LoginScreen> {
                           const SizedBox(height: 10),
                         ],
                         TextButton(
-                          onPressed: () {},
+                          onPressed: () {}, // Add forgot password functionality if needed
                           child: const Text(
                             'Forgot password?',
                             style: TextStyle(color: Colors.black),
                           ),
                         ),
+                        TextButton(
+                        onPressed: () {
+                          // Navigate to RegistrationScreen when clicked
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => const RegistrationScreen()), // Navigate to RegistrationScreen
+                          );
+                        },
+                        child: const Text(
+                          "Don't have an account? Register",
+                          style: TextStyle(color: Colors.black),
+                        ),
+                      ),
                       ],
                     ),
                   ),
@@ -207,27 +182,6 @@ class _LoginScreenState extends State<LoginScreen> {
               border: OutlineInputBorder(),
             ),
           ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildUserTypeOption(String type) {
-    return Row(
-      children: [
-        Radio<String>(
-          value: type,
-          groupValue: userType,
-          onChanged: (value) {
-            setState(() {
-              userType = value!;
-            });
-          },
-          activeColor: Colors.black,
-        ),
-        Text(
-          type,
-          style: const TextStyle(color: Colors.black),
         ),
       ],
     );
