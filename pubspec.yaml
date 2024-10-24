@@ -40,6 +40,7 @@ dependencies:
   image_picker: ^1.1.2
   permission_handler: ^11.3.1 
   logger: ^2.4.0
+  image: ^4.3.0
 
 
   # The following adds the Cupertino Icons font to your application.
@@ -85,6 +86,12 @@ flutter:
     - assets/images/ear.svg
     - assets/images/thumbs_up.svg
     - assets/images/search.svg
+    - assets/images/mop.svg
+    - assets/images/vacuuming.svg
+    - assets/images/wipe.svg
+    - assets/images/window.svg
+    - assets/images/toilet.svg
+    
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see

@@ -1,15 +1,61 @@
 import 'package:flutter/material.dart';
-import 'navbar.dart'; // Import the new navigation bar widget
+import 'navbar.dart';
 import 'history.dart';
 import 'profile.dart';
 import '../widget/bell.dart';
 import 'complaint.dart';
+import '../service/auth_service.dart'; // Import AuthService
+import '../service/history_service.dart'; // Import complaint service
 
-class OfficerHomeScreen extends StatelessWidget {
+class OfficerHomeScreen extends StatefulWidget {
   const OfficerHomeScreen({super.key});
 
+  @override
+  OfficerHomeScreenState createState() => OfficerHomeScreenState();
+}
+
+class OfficerHomeScreenState extends State<OfficerHomeScreen> {
+  String officerName = 'Officer'; // Default name if fetching fails or takes time
+  Map<String, dynamic>? recentComplaint; // Variable to store the recent complaint
+  bool isLoadingComplaint = true; // Flag to indicate loading state
+  final AuthService _authService = AuthService(); // Instance of AuthService
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchOfficerName(); // Fetch the officer's name when the screen loads
+    _fetchRecentComplaint(); // Fetch recent complaint when the screen loads
+  }
+
+  Future<void> _fetchOfficerName() async {
+    try {
+      final userData = await _authService.getUser();
+      setState(() {
+        officerName = userData['name'] ?? 'Officer'; // Use fetched name, fallback to 'Officer' if null
+      });
+    } catch (e) {
+      setState(() {
+        officerName = 'Officer'; // Fallback in case of error
+      });
+    }
+  }
+
+  Future<void> _fetchRecentComplaint() async {
+    try {
+      final complaint = await fetchMostRecentComplaint(); // Fetch the most recent complaint
+      setState(() {
+        recentComplaint = complaint;
+        isLoadingComplaint = false;
+      });
+    } catch (e) {
+      setState(() {
+        recentComplaint = null;
+        isLoadingComplaint = false;
+      });
+    }
+  }
+
   void _handleBellTap(BuildContext context) {
-    // Navigate to history page or any other page on bell tap
     Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => const HistoryPage()),
@@ -17,7 +63,6 @@ class OfficerHomeScreen extends StatelessWidget {
   }
 
   void _handleProfileTap(BuildContext context) {
-    // Navigate to profile page on profile picture tap
     Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => const OfficerProfileScreen()),
@@ -29,11 +74,11 @@ class OfficerHomeScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(56.0), // Set preferred height for AppBar
+        preferredSize: const Size.fromHeight(56.0), 
         child: Material(
-          elevation: 4.0, // Add shadow to AppBar
+          elevation: 0, 
           child: AppBar(
-            elevation: 0, // Remove default elevation
+            elevation: 0,
             backgroundColor: Colors.white,
             title: const Center(
               child: Text(
@@ -45,7 +90,7 @@ class OfficerHomeScreen extends StatelessWidget {
                 ),
               ),
             ),
-            automaticallyImplyLeading: false, // Remove back button
+            automaticallyImplyLeading: false,
           ),
         ),
       ),
@@ -58,9 +103,9 @@ class OfficerHomeScreen extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
-                  'Welcome, Officer',
-                  style: TextStyle(
+                Text(
+                  'Welcome, $officerName', // Display the officer's name
+                  style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
                   ),
@@ -68,17 +113,15 @@ class OfficerHomeScreen extends StatelessWidget {
                 Row(
                   children: [
                     BellProfileWidget(
-                      onBellTap: () =>
-                          _handleBellTap(context), // Handle bell tap
+                      onBellTap: () => _handleBellTap(context),
                     ),
                     const SizedBox(width: 10),
                     GestureDetector(
-                      onTap: () => _handleProfileTap(
-                          context), // Handle profile picture tap
+                      onTap: () => _handleProfileTap(context),
                       child: const CircleAvatar(
-                        backgroundImage:
-                            AssetImage('assets/images/profile.png'),
-                        radius: 15, // Profile picture size
+                        // Replaced with a placeholder icon or asset
+                        child: Icon(Icons.person, size: 24), 
+                        radius: 15,
                       ),
                     ),
                   ],
@@ -104,11 +147,9 @@ class OfficerHomeScreen extends StatelessWidget {
             // File Complaint Section
             GestureDetector(
               onTap: () {
-                // Navigate to file complaint page
                 Navigator.push(
                   context,
-                  MaterialPageRoute(
-                      builder: (context) => const FileComplaintPage()),
+                  MaterialPageRoute(builder: (context) => const FileComplaintPage()),
                 );
               },
               child: Container(
@@ -140,14 +181,15 @@ class OfficerHomeScreen extends StatelessWidget {
                           Text(
                             'Noticed a mess?',
                             style: TextStyle(
-                                fontSize: 18, fontWeight: FontWeight.bold),
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                           Text('We\'re on it - File a complaint now!'),
                         ],
                       ),
                     ),
-                    Icon(Icons.arrow_forward_ios,
-                        size: 20, color: Colors.black),
+                    Icon(Icons.arrow_forward_ios, size: 20, color: Colors.black),
                   ],
                 ),
               ),
@@ -164,11 +206,9 @@ class OfficerHomeScreen extends StatelessWidget {
                 ),
                 GestureDetector(
                   onTap: () {
-                    // Navigate to history page
                     Navigator.push(
                       context,
-                      MaterialPageRoute(
-                          builder: (context) => const HistoryPage()),
+                      MaterialPageRoute(builder: (context) => const HistoryPage()),
                     );
                   },
                   child: const Text(
@@ -186,7 +226,6 @@ class OfficerHomeScreen extends StatelessWidget {
             // Recent History Item
             GestureDetector(
               onTap: () {
-                // Navigate to history page
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => const HistoryPage()),
@@ -195,7 +234,7 @@ class OfficerHomeScreen extends StatelessWidget {
               child: Container(
                 padding: const EdgeInsets.all(16.0),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF92AEB9), // Background color
+                  color: const Color(0xFF92AEB9),
                   borderRadius: BorderRadius.circular(12),
                   boxShadow: [
                     BoxShadow(
@@ -206,40 +245,41 @@ class OfficerHomeScreen extends StatelessWidget {
                     ),
                   ],
                 ),
-                child: const Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Icon(Icons.location_on, size: 24, color: Colors.black),
-                        SizedBox(width: 5),
-                        Text(
-                          'Floor 2',
-                          style: TextStyle(
-                              fontSize: 18, fontWeight: FontWeight.w500),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: 5),
-                    Text(
-                      'Room Cleaning',
-                      style:
-                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                    ),
-                    SizedBox(height: 5),
-                    Text(
-                      '1 week ago',
-                      style: TextStyle(fontSize: 16, color: Colors.black54),
-                    ),
-                  ],
-                ),
+                child: isLoadingComplaint
+                    ? const Center(child: CircularProgressIndicator()) // Show loading indicator while fetching
+                    : recentComplaint != null
+                        ? Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  const Icon(Icons.location_on, size: 24, color: Colors.black),
+                                  const SizedBox(width: 5),
+                                  Text(
+                                    recentComplaint?['comp_location'] ?? 'Unknown location',
+                                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 5),
+                              Text(
+                                recentComplaint?['comp_desc'] ?? 'No description',
+                                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                              ),
+                              const SizedBox(height: 5),
+                              Text(
+                                'Status: ${recentComplaint?['comp_status'] ?? 'Unknown status'}',
+                                style: const TextStyle(fontSize: 16, color: Colors.black54),
+                              ),
+                            ],
+                          )
+                        : const Center(child: Text('No recent complaints available')),
               ),
             ),
           ],
         ),
       ),
-      bottomNavigationBar:
-          const OfficerNavBar(currentIndex: 0), // OfficerNavBar at bottom
+      bottomNavigationBar: const OfficerNavBar(currentIndex: 0),
     );
   }
 }

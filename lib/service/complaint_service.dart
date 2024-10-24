@@ -1,16 +1,28 @@
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:logger/logger.dart';
+import 'package:image_picker/image_picker.dart';
 
 class ComplaintService {
+  final ImagePicker picker = ImagePicker();
   final Logger _logger = Logger(); // Initialize logger
 
   // Get token from SharedPreferences
   Future<String?> getToken() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     return prefs.getString('token');
+  }
+
+    // Method to pick an image from the gallery or camera
+ // Method to pick an image from either the gallery or the camera
+  Future<String?> pickImage({ImageSource source = ImageSource.gallery}) async {
+    final XFile? pickedFile = await picker.pickImage(source: source);
+
+    if (pickedFile != null) {
+      return pickedFile.path; // Return the path of the selected image
+    }
+    return null; // Return null if no image is picked
   }
 
   // Method to submit a complaint API request
@@ -21,23 +33,22 @@ class ComplaintService {
     String? imagePath,
   }) async {
     String? token = await getToken();
-    _logger.d('Token: $token'); // Debugging
 
     if (token == null) {
-      _logger.e('User not authenticated');
       throw Exception('User not authenticated');
     }
 
-    var request = http.MultipartRequest('POST', Uri.parse('http://10.0.2.2:8000/api/complaints'));
+    var request = http.MultipartRequest(
+      'POST',
+      Uri.parse('http://10.0.2.2:8000/api/complaints'),
+    );
     request.headers['Authorization'] = 'Bearer $token';
 
-    // Fields
-    request.fields['comp_date'] = DateFormat('yyyy-MM-dd').format(DateTime.now().toUtc());
+    request.fields['comp_date'] = DateFormat('yyyy-MM-dd').format(date);
     request.fields['comp_time'] = DateFormat('HH:mm').format(DateTime.now().toUtc());
     request.fields['comp_desc'] = description;
     request.fields['comp_location'] = location;
 
-    // Add image if it exists
     if (imagePath != null && imagePath.isNotEmpty) {
       request.files.add(await http.MultipartFile.fromPath('comp_image', imagePath));
     }
@@ -48,30 +59,17 @@ class ComplaintService {
 
       if (response.statusCode == 201) {
         _logger.i('Complaint submitted successfully');
-        return true; // Success
+        return true;
+      } else if (response.statusCode == 401) {
+        _logger.e('Unauthorized. Please log in again.');
+        throw Exception('Unauthorized. Please log in again.');
       } else {
         _logger.e('Failed to submit complaint: ${response.body}');
-        return false; // Failure
+        throw Exception('Failed to submit complaint: ${response.body}');
       }
     } catch (error) {
       _logger.e('Error occurred during complaint submission: $error');
       throw Exception('Error occurred during complaint submission: $error');
     }
-  }
-
-  // Image picker
-  Future<String?> pickImage() async {
-    final ImagePicker picker = ImagePicker();
-    try {
-      final XFile? image = await picker.pickImage(source: ImageSource.gallery);
-      if (image != null) {
-        _logger.i('Image selected: ${image.path}');
-        return image.path; // Return image path
-      }
-    } catch (e) {
-      _logger.e('Error selecting image: $e');
-      throw Exception('Error selecting image: $e');
-    }
-    return null;
   }
 }

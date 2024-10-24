@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:onspot_officer/service/complaint_service.dart';
 import 'dart:io';
 
+
 class FileComplaintPage extends StatefulWidget {
   const FileComplaintPage({super.key});
 
@@ -44,7 +45,7 @@ class FileComplaintPageState extends State<FileComplaintPage> {
         description: _descriptionController.text,
         location: _selectedLocation!,
         date: _selectedDate!,
-        imagePath: _imagePath,
+        imagePath: _imagePath,  // Pass imagePath to the service
       );
 
       if (mounted) {
@@ -65,6 +66,7 @@ class FileComplaintPageState extends State<FileComplaintPage> {
       }
     }
   }
+
 
   Future<void> _pickImage() async {
     final String? selectedImagePath = await ComplaintService().pickImage();
@@ -265,7 +267,7 @@ class FileComplaintPageState extends State<FileComplaintPage> {
         TextButton(
           onPressed: _submitComplaint,
           style: TextButton.styleFrom(
-            backgroundColor: const Color(0xFFF6F1F1),
+            backgroundColor: Colors.white,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           ),
           child: const Text('Send', style: TextStyle(color: Colors.black)),

@@ -3,6 +3,9 @@ import 'navbar.dart';
 import 'profileedit.dart';
 import 'package:onspot_officer/login.dart';
 import 'package:onspot_officer/service/auth_service.dart'; // Import AuthService
+import 'package:onspot_officer/service/profile_service.dart'; // Import ProfileService
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:typed_data'; // Make sure to import this
 
 class OfficerProfileScreen extends StatefulWidget {
   const OfficerProfileScreen({super.key});
@@ -13,8 +16,9 @@ class OfficerProfileScreen extends StatefulWidget {
 
 class OfficerProfileScreenState extends State<OfficerProfileScreen> {
   Map<String, dynamic>? userData;
+  Uint8List? profilePic; // Change to store Uint8List
   AuthService authService = AuthService(); // Initialize the AuthService
-  bool isLoading = true; // Add loading indicator state
+  ProfileService profileService = ProfileService(); // Initialize the ProfileService
 
   @override
   void initState() {
@@ -23,18 +27,20 @@ class OfficerProfileScreenState extends State<OfficerProfileScreen> {
   }
 
   Future<void> _loadUserData() async {
-    try {
-      userData = await authService.getUser(); // Fetch user data from AuthService
-      setState(() {
-        isLoading = false; // Set loading to false when data is loaded
-      });
-    } catch (e) {
-      print('Error fetching user data: $e');
-      setState(() {
-        isLoading = false; // Ensure loading state is updated even on error
-      });
+      try {
+        userData = await authService.getUser(); // Fetch user data from AuthService
+        final prefs = await SharedPreferences.getInstance();
+        final token = prefs.getString('token'); // Fetch token from SharedPreferences
+
+        if (token != null) {
+          final profileData = await profileService.fetchProfile(token); // Fetch profile data
+          //profilePic = profileData['profile_pic']; // Store profile picture as Uint8List
+        }
+        setState(() {}); // Update UI when data is loaded
+      } catch (e) {
+        print('Error fetching user data: $e');
+      }
     }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -75,46 +81,47 @@ class OfficerProfileScreenState extends State<OfficerProfileScreen> {
               ),
             ),
           ),
-          isLoading
-              ? const Center(child: CircularProgressIndicator()) // Show loader while data is loading
-              : SingleChildScrollView(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 20.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      const SizedBox(height: 100),
-                      const CircleAvatar(
-                        radius: 50,
-                        backgroundColor: Colors.white,
-                        child: Icon(
-                          Icons.person,
-                          size: 50,
-                          color: Colors.grey,
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      // Display fetched user data (name, username, etc.)
-                      Text(
-                        userData?['name'] ?? '', // Use fetched name
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black,
-                        ),
-                      ),
-                      Text(
-                        userData?['username'] ?? '', // Use fetched username
-                        style: const TextStyle(color: Color.fromARGB(176, 0, 0, 0)),
-                      ),
-                      const SizedBox(height: 40),
-                      _buildTextField('Email', userData?['email'] ?? ''),
-                      const SizedBox(height: 30),
-                      _buildTextField('Phone Number', userData?['phone_no'] ?? ''),
-                      const SizedBox(height: 30), // Space before buttons
-                      _buildButtonSection(context),
-                    ],
+          SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 20.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                const SizedBox(height: 100),
+/*               CircleAvatar(
+                  radius: 50,
+                  backgroundColor: Colors.white,
+                  backgroundImage: profilePic != null
+                      ? MemoryImage(profilePic!) // Use MemoryImage to display Uint8List
+                      : const AssetImage('assets/default_profile.png') as ImageProvider, // Fallback image
+                ),*/
+                const CircleAvatar(
+                  radius: 50,
+                  backgroundColor: Colors.white,
+                  child: Icon(Icons.person, size: 50, color: Colors.grey), // Placeholder icon
+                ),
+                const SizedBox(height: 10),
+                // Display fetched user data (name, username, etc.), or show empty strings until data is available
+                Text(
+                  userData?['name'] ?? '', // Use fetched name
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
                   ),
                 ),
+                Text(
+                  userData?['username'] ?? '', // Use fetched username
+                  style: const TextStyle(color: Color.fromARGB(176, 0, 0, 0)),
+                ),
+                const SizedBox(height: 40),
+                _buildTextField('Email', userData?['email'] ?? ''),
+                const SizedBox(height: 30),
+                _buildTextField('Phone Number', userData?['phone_no'] ?? ''),
+                const SizedBox(height: 30), // Space before buttons
+                _buildButtonSection(context),
+              ],
+            ),
+          ),
         ],
       ),
       bottomNavigationBar: const OfficerNavBar(currentIndex: 3),

@@ -25,3 +25,30 @@ Future<List<dynamic>> fetchComplaintHistory() async {
     throw Exception('Failed to load complaints');
   }
 }
+
+// Function to fetch the most recent complaint
+Future<Map<String, dynamic>?> fetchMostRecentComplaint() async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  String? token = prefs.getString('token');  // Retrieve token from SharedPreferences
+
+  if (token == null) {
+    throw Exception('User not authenticated');
+  }
+
+  final response = await http.get(
+    Uri.parse('http://10.0.2.2:8000/api/complaints-recent'),
+    headers: {
+      'Authorization': 'Bearer $token', // Pass token in Authorization header
+    },
+  );
+
+  if (response.statusCode == 200) {
+    // Parse and return the most recent complaint
+    return json.decode(response.body);
+  } else if (response.statusCode == 404) {
+    // Handle no complaints found
+    return null;
+  } else {
+    throw Exception('Failed to load recent complaint');
+  }
+}
