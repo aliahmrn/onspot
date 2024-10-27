@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 class CleanIcons extends StatelessWidget {
-  const CleanIcons({Key? key}) : super(key: key);  // 'key' passed to super
+  const CleanIcons({super.key});  // Converted 'key' to a super parameter
 
   @override
   Widget build(BuildContext context) {
@@ -30,7 +30,7 @@ class CleanIcons extends StatelessWidget {
 class MopIcon extends StatelessWidget {
   final double size;
 
-  const MopIcon({super.key, this.size = 24.0}); // Added 'super.key' for key parameter
+  const MopIcon({super.key, this.size = 24.0}); // Converted 'key' to a super parameter
 
   @override
   Widget build(BuildContext context) {
@@ -46,7 +46,7 @@ class MopIcon extends StatelessWidget {
 class VacuumingIcon extends StatelessWidget {
   final double size;
 
-  const VacuumingIcon({super.key, this.size = 24.0}); // Added 'super.key' for key parameter
+  const VacuumingIcon({super.key, this.size = 24.0}); // Converted 'key' to a super parameter
 
   @override
   Widget build(BuildContext context) {
@@ -62,7 +62,7 @@ class VacuumingIcon extends StatelessWidget {
 class WipeIcon extends StatelessWidget {
   final double size;
 
-  const WipeIcon({super.key, this.size = 24.0}); // Added 'super.key' for key parameter
+  const WipeIcon({super.key, this.size = 24.0}); // Converted 'key' to a super parameter
 
   @override
   Widget build(BuildContext context) {
@@ -78,7 +78,7 @@ class WipeIcon extends StatelessWidget {
 class WindowIcon extends StatelessWidget {
   final double size;
 
-  const WindowIcon({super.key, this.size = 24.0}); // Added 'super.key' for key parameter
+  const WindowIcon({super.key, this.size = 24.0}); // Converted 'key' to a super parameter
 
   @override
   Widget build(BuildContext context) {
@@ -94,7 +94,7 @@ class WindowIcon extends StatelessWidget {
 class ToiletIcon extends StatelessWidget {
   final double size;
 
-  const ToiletIcon({super.key, this.size = 24.0}); // Added 'super.key' for key parameter
+  const ToiletIcon({super.key, this.size = 24.0}); // Converted 'key' to a super parameter
 
   @override
   Widget build(BuildContext context) {

@@ -80,6 +80,7 @@ class OfficerHomeScreenState extends State<OfficerHomeScreen> {
           child: AppBar(
             elevation: 0,
             backgroundColor: Colors.white,
+            automaticallyImplyLeading: false,
             title: const Center(
               child: Text(
                 'Home',
@@ -90,7 +91,6 @@ class OfficerHomeScreenState extends State<OfficerHomeScreen> {
                 ),
               ),
             ),
-            automaticallyImplyLeading: false,
           ),
         ),
       ),
@@ -119,9 +119,8 @@ class OfficerHomeScreenState extends State<OfficerHomeScreen> {
                     GestureDetector(
                       onTap: () => _handleProfileTap(context),
                       child: const CircleAvatar(
-                        // Replaced with a placeholder icon or asset
-                        child: Icon(Icons.person, size: 24), 
                         radius: 15,
+                        child: Icon(Icons.person, size: 24), 
                       ),
                     ),
                   ],
@@ -137,8 +136,8 @@ class OfficerHomeScreenState extends State<OfficerHomeScreen> {
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(12),
                 image: const DecorationImage(
-                  image: AssetImage('assets/images/welcome_vacuum.png'),
                   fit: BoxFit.cover,
+                  image: AssetImage('assets/images/welcome_vacuum.png'),
                 ),
               ),
             ),

@@ -24,11 +24,13 @@ class HistoryPageState extends State<HistoryPage> {
   Future<void> _loadComplaintHistory() async {
     try {
       List<dynamic> data = await fetchComplaintHistory();
+      if (!mounted) return; // Check if the widget is still mounted
       setState(() {
         historyData = data;
         hasFetchedData = true;
       });
     } catch (e) {
+      if (!mounted) return; // Check if the widget is still mounted
       setState(() {
         hasFetchedData = true;
       });

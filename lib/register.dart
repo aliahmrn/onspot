@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'login.dart';
 import 'service/auth_service.dart'; // Import AuthService
+import 'package:logger/logger.dart'; // Import the logger package
 
 class RegistrationScreen extends StatefulWidget {
   const RegistrationScreen({super.key});
@@ -21,6 +22,8 @@ class RegistrationScreenState extends State<RegistrationScreen> {
 
   final AuthService _authService = AuthService(); // Instantiate AuthService
   bool _isDisposed = false; // Track if the widget is disposed
+
+  final Logger _logger = Logger(); // Instantiate Logger
 
   // Define setStateIfMounted method to avoid errors after async tasks
   void setStateIfMounted(f) {
@@ -71,7 +74,7 @@ class RegistrationScreenState extends State<RegistrationScreen> {
       setStateIfMounted(() {
         _errorMessage = 'Failed to register: ${e.toString()}';
       });
-      print('Error: $e');
+      _logger.e('Registration error: $e'); // Log the error
     } finally {
       setStateIfMounted(() {
         _isLoading = false;
