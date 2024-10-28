@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../service/auth_service.dart';
 import 'register.dart'; 
 import 'package:google_fonts/google_fonts.dart';
+import 'forgot_password.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -126,13 +127,18 @@ Widget build(BuildContext context) {
                         ),
                         const SizedBox(height: 10),
                       ],
-                      TextButton(
-                        onPressed: () {},
-                        child: const Text(
-                          'Forgot password?',
-                          style: TextStyle(color: Colors.black),
+                        TextButton(
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => const ForgotPasswordScreen()),
+                            );
+                          },
+                          child: const Text(
+                            'Forgot password?',
+                            style: TextStyle(color: Colors.black),
+                          ),
                         ),
-                      ),
                       TextButton(
                         onPressed: () {
                           Navigator.push(
