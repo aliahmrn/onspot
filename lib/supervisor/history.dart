@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'navbar.dart'; // Import the SupervisorBottomNavBar widget
+import '../service/complaints_service.dart';
+import 'history_details.dart'; // Import the TaskDetailsPage
 
 class HistoryPage extends StatelessWidget {
   const HistoryPage({super.key});
@@ -8,134 +10,123 @@ class HistoryPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: const Color(0xFFFEF7FF), // Changed AppBar color
+        backgroundColor: const Color.fromARGB(255, 255, 255, 255), // Changed AppBar color
         elevation: 0,
         centerTitle: true,
         title: const Text(
           'History',
           style: TextStyle(
             color: Colors.black,
-            fontSize: 20,
+            fontSize: 18,
             fontWeight: FontWeight.bold, // Make "History" bold
           ),
         ),
         automaticallyImplyLeading: false, // Remove back button
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: ListView.builder(
-          itemCount:
-              3, // You can change this to reflect the number of history items
-          itemBuilder: (context, index) {
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 16.0),
-              child: Card(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(
-                      10), // Reduced curveness of the card
-                ),
-                color: const Color(0xFF92AEB9), // Background color of the task card
-                elevation: 2,
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Row(
-                        children: [
-                          Icon(
-                            Icons.access_time,
-                            color: Colors.black,
-                          ),
-                          SizedBox(width: 10),
-                          Text(
-                            'Task assigned',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black,
-                            ),
-                          ),
-                          Spacer(),
-                          Text(
-                            '9:41 AM',
-                            style: TextStyle(color: Colors.black),
-                          ),
-                        ],
+      body: FutureBuilder<List<Map<String, dynamic>>>(
+        future: ComplaintsService().fetchAssignedTasksHistory(), // Fetch history data
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+            return Center(child: Text('No assigned tasks history.'));
+          }
+
+          final tasks = snapshot.data!;
+          return Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: ListView.builder(
+              itemCount: tasks.length,
+              itemBuilder: (context, index) {
+                final task = tasks[index];
+                final compDate = task['comp_date'] ?? 'No Date';
+                final description = task['comp_desc'] ?? 'No Description';
+                final noOfCleaners = task['no_of_cleaners'] ?? '0';
+                final status = task['comp_status'] ?? 'Unknown';
+
+                return InkWell(
+                  onTap: () {
+                    print("Selected Complaint ID: ${task['id']}");
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => TaskDetailsPage(complaintId: task['id'].toString()),
                       ),
-                      const SizedBox(height: 10),
-                      const Text(
-                        'Floor 2',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.black,
+                    );
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.only(bottom: 16.0),
+                    child: Card(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      color: const Color(0xFF92AEB9),
+                      elevation: 2,
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                const Icon(Icons.access_time, color: Colors.black),
+                                const SizedBox(width: 10),
+                                const Text(
+                                  'Complaint assigned',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.black,
+                                  ),
+                                ),
+                                const Spacer(),
+                                Text(
+                                  compDate,
+                                  style: const TextStyle(color: Colors.black),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 10),
+                            Text(
+                              description,
+                              style: const TextStyle(
+                                fontSize: 14,
+                                color: Colors.black,
+                              ),
+                            ),
+                            const SizedBox(height: 5),
+                            Text(
+                              '$noOfCleaners Cleaners',
+                              style: const TextStyle(
+                                fontSize: 14,
+                                color: Colors.black,
+                              ),
+                            ),
+                            const SizedBox(height: 10),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Status: $status', // Display the complaint status
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.black,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
                         ),
                       ),
-                      const SizedBox(height: 5),
-                      const Text(
-                        '2 Cleaners',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.black,
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      Row(
-                        mainAxisAlignment:
-                            MainAxisAlignment.start, // Align to the left
-                        children: [
-                          ElevatedButton(
-                            onPressed: () {},
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor:
-                                  const Color(0xFFC3D2D7), // Updated fill color
-                              side: const BorderSide(
-                                  color: Colors.black), // Black border
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(
-                                    8), // Reduced button curveness
-                              ),
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 24, vertical: 12),
-                            ),
-                            child: const Text(
-                              'Pending',
-                              style: TextStyle(
-                                color: Colors.black, // Set text color to black
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 10), // Space between the buttons
-                          ElevatedButton(
-                            onPressed: () {},
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor:
-                                  const Color(0xFFC3D2D7), // Updated fill color
-                              side: const BorderSide(
-                                  color: Colors.black), // Black border
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(
-                                    8), // Reduced button curveness
-                              ),
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 24, vertical: 12),
-                            ),
-                            child: const Text(
-                              'Completed',
-                              style: TextStyle(
-                                color: Colors.black, // Set text color to black
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
+                    ),
                   ),
-                ),
-              ),
-            );
-          },
-        ),
+                );
+              },
+            ),
+          );
+        },
       ),
       bottomNavigationBar: const SupervisorBottomNavBar(
         currentIndex: 3, // Set current index to 3 for History screen

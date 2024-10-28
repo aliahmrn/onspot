@@ -1,51 +1,57 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart'; // Import the intl package
+import 'package:intl/intl.dart';
 import 'assign_task.dart';
-import '../service/complaints_service.dart'; // Import the service
+import '../service/complaints_service.dart';
+import 'navbar.dart'; // Import the navigation bar
 
-class ComplaintPage extends StatelessWidget {
-  final ComplaintsService complaintsService = ComplaintsService(); // Create an instance of ComplaintsService
+class ComplaintPage extends StatefulWidget {
+  const ComplaintPage({super.key});
 
-  ComplaintPage({super.key});
+  @override
+  _ComplaintPageState createState() => _ComplaintPageState();
+}
+
+class _ComplaintPageState extends State<ComplaintPage> {
+  final ComplaintsService complaintsService = ComplaintsService();
+
+  Future<void> _refreshComplaints() async {
+    setState(() {}); // Trigger a rebuild to fetch updated complaints
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false,
+        centerTitle: true,
         title: const Text(
           'Complaints',
           style: TextStyle(
-            fontWeight: FontWeight.bold, // Set the font weight to bold
-            fontSize: 18, // Set the font size to 18
+            fontWeight: FontWeight.bold,
+            fontSize: 18,
           ),
         ),
         backgroundColor: const Color.fromARGB(255, 255, 255, 255),
       ),
       body: FutureBuilder<List<Map<String, dynamic>>>(
-        future: complaintsService.fetchComplaints(), // Fetch complaints
+        future: complaintsService.fetchComplaints(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            // While loading, show a loading spinner
             return Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
-            // If there's an error, display it
             return Center(child: Text('Error: ${snapshot.error}'));
           } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            // If no data, display a message
-            return Center(child: Text('No complaints found.'));
+            return Center(child: Text('No complaints yet.'));
           }
 
-          // Data is available; render the list of complaints
           final complaints = snapshot.data!;
           return ListView.builder(
             itemCount: complaints.length,
             itemBuilder: (context, index) {
               final complaint = complaints[index];
-
-              // Parse the time string and format it
               final timeString = complaint['comp_time']!;
-              final DateTime time = DateTime.parse('1970-01-01 $timeString'); // Use a fixed date to parse the time
-              final String formattedTime = DateFormat('HH:mm').format(time); // Format to "HH:mm"
+              final DateTime time = DateTime.parse('1970-01-01 $timeString');
+              final String formattedTime = DateFormat('HH:mm').format(time);
 
               return Padding(
                 padding: const EdgeInsets.all(8.0),
@@ -60,7 +66,6 @@ class ComplaintPage extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // New section for Complaint title and time
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
@@ -72,51 +77,60 @@ class ComplaintPage extends StatelessWidget {
                                 color: Colors.black87,
                               ),
                             ),
-                            // Display formatted time on the right side of the complaint title
                             Text(
-                              formattedTime, // Display the formatted time
+                              formattedTime,
                               style: const TextStyle(
-                                fontSize: 14, // Change font size to 12
+                                fontSize: 14,
                                 color: Colors.black54,
                               ),
                             ),
                           ],
                         ),
                         const SizedBox(height: 8),
-                        // Description of the complaint
                         Text(
-                          complaint['comp_desc']!, // Updated to match your API response
+                          complaint['comp_desc']!,
                           style: const TextStyle(
                             fontSize: 16,
                             color: Colors.black87,
                           ),
                         ),
                         const SizedBox(height: 8),
-                        // Date below the description
                         Text(
-                          'Date: ${complaint['comp_date']!}', // Updated to match your API response
+                          'Date: ${complaint['comp_date']!}',
                           style: const TextStyle(
                             fontSize: 12,
                             color: Colors.black54,
                           ),
                         ),
                         const SizedBox(height: 16),
-
-                        // "Assign Task" button
-                        ElevatedButton(
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => AssignTaskPage(complaintId: complaint['id'].toString()),
+                        Row(
+                          children: [
+                            const Spacer(), // Pushes the button to the right
+                            ElevatedButton(
+                              onPressed: () async {
+                                // Navigate and await for the result after assignment
+                                await Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => AssignTaskPage(complaintId: complaint['id'].toString()),
+                                  ),
+                                );
+                                _refreshComplaints(); // Refresh the list after task assignment
+                              },
+                              style: ElevatedButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                backgroundColor: Colors.white,
+                                foregroundColor: Colors.black,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(20.0), // Rounded corners
+                                ),
                               ),
-                            );
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.white,
-                            foregroundColor: Colors.black,
-                          ),
-                          child: const Text('Assign Task'),
+                              child: const Text(
+                                'Assign Complaint',
+                                style: TextStyle(fontSize: 14), // Smaller font size
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
@@ -127,6 +141,7 @@ class ComplaintPage extends StatelessWidget {
           );
         },
       ),
+      bottomNavigationBar: const SupervisorBottomNavBar(currentIndex: 2), // Add the navigation bar here
     );
   }
 }

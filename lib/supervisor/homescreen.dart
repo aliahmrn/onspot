@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
-import 'history.dart';
+import 'package:intl/intl.dart';
 import 'profile.dart';
-import 'navbar.dart'; // Import the SupervisorBottomNavBar widget
+import 'navbar.dart';
 import '../bell.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
+import '../service/complaints_service.dart';
+import 'complaints.dart'; 
+import 'package:google_fonts/google_fonts.dart';
 
 class SupervisorHomeScreen extends StatefulWidget {
   const SupervisorHomeScreen({super.key});
@@ -16,21 +18,38 @@ class SupervisorHomeScreen extends StatefulWidget {
 
 class _SupervisorHomeScreenState extends State<SupervisorHomeScreen> {
   String userName = '';
+  Map<String, dynamic>? latestComplaint;
+  bool isLoading = true;
+  String? error;
 
   @override
   void initState() {
     super.initState();
-    _loadUserName(); // Load the supervisor's name
+    _loadUserName();
+    _fetchUnassignedComplaints();
   }
 
-    // Method to load the supervisor's name from SharedPreferences
   Future<void> _loadUserName() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
-      userName = prefs.getString('name') ?? 'Supervisor'; // Default to 'Supervisor' if no name is found
+      userName = prefs.getString('name') ?? 'Supervisor';
     });
   }
 
+  Future<void> _fetchUnassignedComplaints() async {
+    try {
+      final complaints = await ComplaintsService().fetchComplaints();
+      setState(() {
+        latestComplaint = complaints.isNotEmpty ? complaints.first : null;
+        isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        error = 'Failed to load complaints: $e';
+        isLoading = false;
+      });
+    }
+  }
 
   void _navigateToProfile() {
     Navigator.push(
@@ -39,59 +58,30 @@ class _SupervisorHomeScreenState extends State<SupervisorHomeScreen> {
     );
   }
 
-  void _navigateToHistory() {
+  void _navigateToComplaintsPage() {
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => const HistoryPage()),
-    );
-  }
-
-  void _navigateToHistoryFromCard() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const HistoryPage()),
+      MaterialPageRoute(builder: (context) => ComplaintPage()), // Navigate to ComplaintsPage
     );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFEF7FF), // Change background color to #FEF7FF
-      appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(kToolbarHeight),
-        child: Container(
-          decoration: BoxDecoration(
-            color: const Color(0xFFFEF7FF), // Change app bar background color to #FEF7FF
-            boxShadow: [
-              BoxShadow(
-                color: Colors.grey.withOpacity(0.5), // Shadow color
-                spreadRadius: 2, // Spread radius of the shadow
-                blurRadius: 5, // Blur radius of the shadow for smooth effect
-                offset: const Offset(0, 3), // Offset the shadow to create depth
-              ),
-            ],
-            border: Border(
-              bottom: BorderSide(
-                color: Colors.grey.shade300, // Light grey border color
-                width: 1.0, // Thickness of the border
-              ),
-            ),
-          ),
-          child: AppBar(
-            elevation: 0, // No internal elevation
-            backgroundColor: Colors.transparent, // Transparent to show the container's background
-            automaticallyImplyLeading: false, // Remove the back button
-            title: const Text(
-              'Home',
-              style: TextStyle(
-                color: Colors.black,
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            centerTitle: true,
+      backgroundColor: const Color.fromARGB(255, 255, 255, 255),
+      appBar: AppBar(
+        elevation: 0, // Remove shadow
+        backgroundColor: const Color.fromARGB(255, 255, 255, 255),
+        automaticallyImplyLeading: false,
+        title: const Text(
+          'Home',
+          style: TextStyle(
+            color: Colors.black,
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
           ),
         ),
+        centerTitle: true,
       ),
       body: SingleChildScrollView(
         child: Padding(
@@ -105,18 +95,16 @@ class _SupervisorHomeScreenState extends State<SupervisorHomeScreen> {
                 children: [
                   Text(
                     'Welcome, $userName!',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w600,
+                    style: GoogleFonts.openSans(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
                   Row(
                     children: [
-                      BellProfileWidget(
-                        onBellTap: _navigateToHistory, // Navigate to history on bell tap
-                      ),
+                      BellProfileWidget(onBellTap: _navigateToComplaintsPage),
                       GestureDetector(
-                        onTap: _navigateToProfile, // Navigate to ProfilePage on tap
+                        onTap: _navigateToProfile,
                         child: const CircleAvatar(
                           backgroundImage: AssetImage('assets/images/profile.jpg'),
                           radius: 20,
@@ -140,102 +128,114 @@ class _SupervisorHomeScreenState extends State<SupervisorHomeScreen> {
                 ),
               ),
               const SizedBox(height: 30),
-              const Text(
-                'Complaint',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Complaints',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: _navigateToComplaintsPage, // Navigate to ComplaintsPage on See All
+                    child: const Text(
+                      'See All',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.black,
+                      ),
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: 10),
-              GestureDetector(
-                onTap: _navigateToHistoryFromCard,
-                child: Container(
-                  padding: const EdgeInsets.all(16.0),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF92AEB9), // Color for the complaint card
-                    borderRadius: BorderRadius.circular(12),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.grey.withOpacity(0.5),
-                        spreadRadius: 2,
-                        blurRadius: 5,
-                        offset: const Offset(0, 3), // Shadow effect
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Stack(
-                        alignment: Alignment.topRight, // Align the time to the top right
-                        children: [
-                          Row(
-                            children: [
-                              Icon(
-                                Icons.place,
-                                size: 30,
-                                color: Colors.black, // Icon color
-                              ),
-                              SizedBox(width: 5),
-                              Text(
-                                'Floor 2',
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w500,
-                                  color: Colors.white, // Matching the white text color
+              isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : error != null
+                      ? Center(child: Text(error!))
+                      : latestComplaint != null
+                          ? GestureDetector(
+                              onTap: _navigateToComplaintsPage, // Navigate to ComplaintsPage on card tap
+                              child: Container(
+                                padding: const EdgeInsets.all(16.0),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF92AEB9),
+                                  borderRadius: BorderRadius.circular(12),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.grey.withOpacity(0.5),
+                                      spreadRadius: 2,
+                                      blurRadius: 5,
+                                      offset: const Offset(0, 3),
+                                    ),
+                                  ],
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        const Icon(Icons.place, size: 30, color: Colors.black),
+                                        const SizedBox(width: 5),
+                                        Text(
+                                          latestComplaint!['comp_location'] ?? 'No Location',
+                                          style: const TextStyle(
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.w500,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                        const Spacer(),
+                                        Text(
+                                          latestComplaint!['comp_time'] != null
+                                              ? DateFormat('HH:mm').format(DateTime.parse("1970-01-01 ${latestComplaint!['comp_time']}"))
+                                              : 'N/A',
+                                          style: const TextStyle(
+                                            fontSize: 14,
+                                            color: Color(0xFF3c6576),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 5),
+                                    Text(
+                                      latestComplaint!['comp_desc'] ?? 'No Description',
+                                      style: const TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 5),
+                                    Row(
+                                      children: [
+                                        SvgPicture.asset(
+                                          'assets/images/calendar.svg',
+                                          height: 24,
+                                          color: Colors.black,
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Text(
+                                          latestComplaint!['comp_date'] ?? 'N/A',
+                                          style: const TextStyle(
+                                            fontSize: 14,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
                                 ),
                               ),
-                            ],
-                          ),
-                          Positioned(
-                            right: 0,
-                            child: Text(
-                              '9:41 AM', // Static time
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: Color(0xFF3c6576), // Time color
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 5),
-                      const Text(
-                        'Room Cleaning',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold, // Bold text for Room Cleaning
-                        ),
-                      ),
-                      const SizedBox(height: 5),
-                      Row(
-                        children: [
-                          SvgPicture.asset(
-                            'assets/images/calendar.svg', // Ensure the path is correct
-                            height: 24, // Adjust icon size as needed
-                            color: Colors.black, // Makes the icon black
-                          ),
-                          const SizedBox(width: 8), // Space between icon and text
-                          const Text(
-                            'Today',
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Colors.white, // Matching white text color
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ),
+                            )
+                          : const Center(child: Text('No unassigned complaints available.')),
             ],
           ),
         ),
       ),
       bottomNavigationBar: const SupervisorBottomNavBar(
-        currentIndex: 0, // Set current index to 0 for Home screen
+        currentIndex: 0,
       ),
     );
   }

@@ -56,87 +56,89 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Center(
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(20.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                const SizedBox(height: 20),
-                const Column(
-                  children: [
-                    Text(
-                      'OnSpot',
-                      style: TextStyle(
-                        fontSize: 32,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF4C7D90),
-                      ),
+@override
+Widget build(BuildContext context) {
+  return Scaffold(
+    backgroundColor: const Color(0xFF92AEB9),
+    body: Center(
+      child: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: <Widget>[
+              const SizedBox(height: 60),
+              const Column(
+                children: [
+                  Text(
+                    'OnSpot',
+                    style: TextStyle(
+                      fontSize: 32,
+                      fontWeight: FontWeight.bold,
+                      color: Color.fromARGB(255, 0, 0, 0),
                     ),
-                    Text(
-                      'Facility',
-                      style: TextStyle(
-                        fontSize: 32,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF4C7D90),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 20),
-                Card(
-                  elevation: 5,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(15),
                   ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(20.0),
-                    child: Column(
-                      children: <Widget>[
-                        // Input fields for username/email and password
-                        _buildInputField('Username or Email', _inputController), // Updated to be generic
-                        const SizedBox(height: 40),
-                        _buildInputField('Password', _passwordController, obscureText: true),
-                        const SizedBox(height: 20),
-                        ElevatedButton(
-                          onPressed: _isLoading ? null : _login, // Disable button while loading
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.black,
-                            padding: const EdgeInsets.symmetric(horizontal: 100, vertical: 15),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(30),
-                            ),
-                            textStyle: const TextStyle(fontSize: 16),
+                  Text(
+                    'Facility',
+                    style: TextStyle(
+                      fontSize: 32,
+                      fontWeight: FontWeight.bold,
+                      color: Color.fromARGB(255, 0, 0, 0),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              Card(
+                elevation: 5,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(15),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(20.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      _buildInputField('Username or Email', _inputController),
+                      const SizedBox(height: 20),
+                      _buildInputField('Password', _passwordController, obscureText: true),
+                      const SizedBox(height: 20),
+                      ElevatedButton(
+                        onPressed: _isLoading ? null : _login,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.black,
+                          padding: const EdgeInsets.symmetric(vertical: 15),
+                          minimumSize: const Size(150, 40),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(30),
                           ),
-                          child: _isLoading
-                              ? const CircularProgressIndicator(color: Colors.white) // Show loading indicator
-                              : const Text('Sign In', style: TextStyle(color: Colors.white)),
+                          textStyle: const TextStyle(fontSize: 16),
+                        ),
+                        child: _isLoading
+                            ? const CircularProgressIndicator(color: Colors.white)
+                            : const Text('Sign In', style: TextStyle(color: Colors.white)),
+                      ),
+                      const SizedBox(height: 10),
+                      if (_errorMessage.isNotEmpty) ...[
+                        Text(
+                          _errorMessage,
+                          style: const TextStyle(color: Colors.red),
                         ),
                         const SizedBox(height: 10),
-                        if (_errorMessage.isNotEmpty) ...[
-                          Text(
-                            _errorMessage,
-                            style: const TextStyle(color: Colors.red),
-                          ),
-                          const SizedBox(height: 10),
-                        ],
-                        TextButton(
-                          onPressed: () {}, // Add forgot password functionality if needed
-                          child: const Text(
-                            'Forgot password?',
-                            style: TextStyle(color: Colors.black),
-                          ),
+                      ],
+                      TextButton(
+                        onPressed: () {},
+                        child: const Text(
+                          'Forgot password?',
+                          style: TextStyle(color: Colors.black),
                         ),
-                        TextButton(
+                      ),
+                      TextButton(
                         onPressed: () {
-                          // Navigate to RegistrationScreen when clicked
                           Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (context) => const RegistrationScreen()), // Navigate to RegistrationScreen
+                            MaterialPageRoute(builder: (context) => const RegistrationScreen()),
                           );
                         },
                         child: const Text(
@@ -144,46 +146,57 @@ class _LoginScreenState extends State<LoginScreen> {
                           style: TextStyle(color: Colors.black),
                         ),
                       ),
-                      ],
-                    ),
+                    ],
                   ),
                 ),
-                const SizedBox(height: 20),
-                Transform.rotate(
-                  angle: -90 * 3.1415926535 / 180,
-                  child: Image.asset(
-                    'assets/images/vacuum.png',
-                    height: 200,
-                  ),
+              ),
+              const SizedBox(height: 60),
+              Transform.rotate(
+                angle: -90 * 3.1415926535 / 180,
+                child: Image.asset(
+                  'assets/images/vacuum.png',
+                  height: 200,
                 ),
-              ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    ),
+  );
+}
+
+
+Widget _buildInputField(String label, TextEditingController controller, {bool obscureText = false}) {
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Text(
+        label,
+        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+      ),
+      const SizedBox(height: 6),
+      SizedBox(
+        width: 350,
+        child: TextField(
+          controller: controller,
+          obscureText: obscureText,
+          decoration: InputDecoration(
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(30), // Increase border radius for more rounded corners
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(30), // Apply to enabled border as well
+              borderSide: const BorderSide(color: Colors.grey),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(30), // Apply to focused border
+              borderSide: const BorderSide(color: Colors.black),
             ),
           ),
         ),
       ),
-    );
-  }
-
-  Widget _buildInputField(String label, TextEditingController controller, {bool obscureText = false}) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-        ),
-        const SizedBox(height: 8),
-        SizedBox(
-          width: 350,
-          child: TextField(
-            controller: controller,
-            obscureText: obscureText,
-            decoration: const InputDecoration(
-              border: OutlineInputBorder(),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
+    ],
+  );
+}
 }

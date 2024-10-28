@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'login.dart'; // Import the login screen
 import 'supervisor/homescreen.dart'; // Import the supervisor home screen
+import 'package:google_fonts/google_fonts.dart'; 
 
 void main() {
   runApp(const OnspotSupervisorApp());
@@ -20,6 +21,7 @@ class OnspotSupervisorApp extends StatelessWidget {
       },
       theme: ThemeData(
         scaffoldBackgroundColor: Colors.white, // Set the default background color to white
+         textTheme: GoogleFonts.openSansTextTheme(),
       ),
     );
   }

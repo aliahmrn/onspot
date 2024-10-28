@@ -123,7 +123,7 @@ class SupervisorBottomNavBar extends StatelessWidget {
                       height: 24,
                       color: currentIndex == 2 ? Colors.black : Colors.grey,
                     ),
-                    label: 'Assign Task',
+                    label: 'Complaints',
                   ),
                   BottomNavigationBarItem(
                     icon: SvgPicture.asset(

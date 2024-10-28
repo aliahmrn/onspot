@@ -95,7 +95,7 @@ class _SearchPageState extends State<SearchPage> {
     return Scaffold(
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: const Color(0xFFFEF7FF), // Changed AppBar color
+        backgroundColor: const Color.fromARGB(255, 255, 255, 255), // Changed AppBar color
         automaticallyImplyLeading: false, // Remove back button
         title: const Padding(
           padding: EdgeInsets.only(top: 10.0), // Adds padding to move the text down
