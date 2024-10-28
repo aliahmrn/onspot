@@ -1,6 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <application
-        android:label="onspot_facility"
+        android:label="onspot_cleaner"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

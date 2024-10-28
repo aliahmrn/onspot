@@ -1,4 +1,4 @@
-package com.example.onspot_facility
+package com.example.onspot_cleaner
 
 import io.flutter.embedding.android.FlutterActivity
 

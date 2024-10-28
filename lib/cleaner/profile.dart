@@ -51,7 +51,7 @@ class CleanerProfileScreen extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 20.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
+              children: [                                                                                 
                 const SizedBox(height: 100),
                 CircleAvatar(
                   radius: 50,

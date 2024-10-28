@@ -1,6 +1,6 @@
 {
-    "name": "onspot_facility",
-    "short_name": "onspot_facility",
+    "name": "onspot_cleaner",
+    "short_name": "onspot_cleaner",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

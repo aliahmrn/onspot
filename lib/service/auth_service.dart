@@ -1,90 +1,149 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:logger/logger.dart'; // Import logger package
 
 class AuthService {
-  final String baseUrl = 'http://127.0.0.1:8000/api'; // Replace with your API URL
+  final String baseUrl = 'http://10.0.2.2:8000/api'; // Android Emulator
+  var logger = Logger(); // Create a logger instance
 
-  Future<void> register(String name, String email, String password) async {
-    final response = await http.post(
-      Uri.parse('$baseUrl/register'),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({
-        'name': name,
-        'email': email,
+  Future<void> login(String input, String password) async {
+    try {
+      // Prepare the request body
+      final requestBody = jsonEncode({
+        'login': input,
         'password': password,
-      }),
-    );
+      });
 
-    if (response.statusCode != 201) {
-      throw Exception('Failed to register user');
+      final response = await http.post(
+        Uri.parse('$baseUrl/flutterlogin'), // Endpoint for login
+        headers: {'Content-Type': 'application/json'},
+        body: requestBody,
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+
+        // Extract token and role from the response
+        final String token = data['token'];
+        final String role = data['user']['role'];
+
+        // Check if role is "cleaner" before proceeding
+        if (role == 'cleaner') {
+          // Save token and role
+          await saveToken(token, role);
+          logger.i('Login successful. Token saved for cleaner.'); // Log info
+        } else {
+          throw Exception('Access denied: User is not an cleaner');
+        }
+      } else if (response.statusCode == 401) {
+        // Handle invalid credentials with specific message
+        throw Exception('Invalid login credentials.');
+      }
+    } catch (e) {
+      logger.e('Error during login', error: e); // Correct logging
+      throw Exception('Error during login: ${e.toString()}');
     }
   }
 
-  // Modified login function for cleaner only
-  Future<void> login(String username, String password) async {
-    final response = await http.post(
-      Uri.parse('$baseUrl/login'),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({
-        'user_type': 'cleaner', // Fixed user type for cleaner login
-        'username': username, // Only username for cleaner login
-        'password': password,
-      }),
-    );
+  // Register function with default role "cleaner"
+  Future<void> register(String name, String username, String email, String password, String phoneNo) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/flutterregister'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json', // Expect JSON response
+        },
+        body: jsonEncode({
+          'username': username,
+          'name': name,
+          'email': email,
+          'password': password,
+          'password_confirmation': password,
+          'phone_no': phoneNo,
+          'role': 'cleaner',
+        }),
+      );
 
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      // Store token and role in shared preferences
-      await saveToken(data['token'], 'cleaner'); // Save with user type as 'cleaner'
-    } else {
-      throw Exception('Failed to login: ${response.body}');
+      if (response.statusCode == 201) {
+        logger.i('Registration successful.'); // Log info
+      } else {
+        logger.w('Registration failed: ${response.statusCode} - ${response.body}'); // Correct logging
+        throw Exception('Failed to register user: ${response.body}');
+      }
+    } catch (e) {
+      logger.e('Error during registration', error: e); // Correct logging
+      throw Exception('Error during registration: $e');
     }
   }
 
-  // Method to save token and user role
+  // Save token and role to shared preferences
   Future<void> saveToken(String token, String userRole) async {
-    // Store token and user role in shared preferences
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('token', token);
-    await prefs.setString('userRole', userRole); // Store user role if needed
+    await prefs.setString('userRole', userRole); // Store user role
+    logger.i('Token and role saved successfully.'); // Log info
   }
 
+  // Clear all stored user details from shared preferences
+  Future<void> clearUserDetails() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.clear(); // Clear all user details
+    logger.i('User details cleared successfully.'); // Log info
+  }
+
+  // Logout function
   Future<void> logout() async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('token');
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('token');
 
-    final response = await http.post(
-      Uri.parse('$baseUrl/logout'),
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token',
-      },
-    );
+      final response = await http.post(
+        Uri.parse('$baseUrl/flutterlogout'), // Use the logout endpoint
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token', // Pass the token in the header
+          'Accept': 'application/json',
+        },
+      );
 
-    if (response.statusCode != 200) {
-      throw Exception('Failed to logout');
+      if (response.statusCode == 200) {
+        await clearUserDetails(); // Clear all stored user details upon successful logout
+        logger.i('Logout successful. User details cleared.'); // Log info
+      } else {
+        logger.w('Logout failed: ${response.statusCode} - ${response.body}'); // Correct logging
+        throw Exception('Failed to logout: ${response.body}');
+      }
+    } catch (e) {
+      logger.e('Error during logout', error: e); // Correct logging
+      throw Exception('Error during logout: $e');
     }
-
-    await prefs.remove('token'); // Remove token on logout
-    await prefs.remove('userRole'); // Remove user role on logout
   }
 
+  // Get current user details
   Future<Map<String, dynamic>> getUser() async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('token');
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('token');
 
-    final response = await http.get(
-      Uri.parse('$baseUrl/user'),
-      headers: {
-        'Authorization': 'Bearer $token',
-      },
-    );
+      final response = await http.get(
+        Uri.parse('$baseUrl/profile'), // Endpoint to get user details
+        headers: {
+          'Authorization': 'Bearer $token', // Pass the token in the header
+        },
+      );
 
-    if (response.statusCode != 200) {
-      throw Exception('Failed to load user');
+      if (response.statusCode == 200) {
+        logger.i('User data fetched successfully.'); // Log info
+        return jsonDecode(response.body); // Return user data as a map
+      } else {
+        logger.w('Failed to load user: ${response.statusCode} - ${response.body}'); // Correct logging
+        throw Exception('Failed to load user: ${response.body}');
+      }
+    } catch (e) {
+      logger.e('Error while getting user', error: e); // Correct logging
+      throw Exception('Error while getting user: $e');
     }
-
-    return jsonDecode(response.body);
   }
 }
