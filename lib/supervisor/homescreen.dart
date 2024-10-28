@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'profile.dart';
-import 'navbar.dart';
 import '../bell.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -233,9 +232,6 @@ class _SupervisorHomeScreenState extends State<SupervisorHomeScreen> {
             ],
           ),
         ),
-      ),
-      bottomNavigationBar: const SupervisorBottomNavBar(
-        currentIndex: 0,
       ),
     );
   }

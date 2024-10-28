@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:convert'; // For JSON decoding
 import 'package:http/http.dart' as http; // For making HTTP requests
-import 'navbar.dart'; // Import the SupervisorBottomNavBar widget
 import 'package:shared_preferences/shared_preferences.dart'; // For shared preferences
 import '../supervisor/cleaner_detail.dart';
 
@@ -206,10 +205,12 @@ class _SearchPageState extends State<SearchPage> {
                             );
                           },
                           child: Card(
+                            color: Colors.white, // Set background color to white
+                            elevation: 4, // Add shadow effect
                             margin: const EdgeInsets.symmetric(vertical: 8.0),
                             child: ListTile(
                               leading: CircleAvatar(
-                                backgroundColor: Colors.blue[100], // Light blue background
+                                backgroundColor: const Color(0xFF92AEB9),
                                 child: Text(
                                   filteredCleaners[index]['name']![0], // First letter of the name
                                   style: const TextStyle(
@@ -230,9 +231,6 @@ class _SearchPageState extends State<SearchPage> {
                   ),
           ],
         ),
-      ),
-      bottomNavigationBar: const SupervisorBottomNavBar(
-        currentIndex: 1, // Set current index to 1 for Search screen
       ),
     );
   }

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'navbar.dart'; // Import the SupervisorBottomNavBar widget
 import '../service/complaints_service.dart';
 import 'history_details.dart'; // Import the TaskDetailsPage
 
@@ -127,9 +126,6 @@ class HistoryPage extends StatelessWidget {
             ),
           );
         },
-      ),
-      bottomNavigationBar: const SupervisorBottomNavBar(
-        currentIndex: 3, // Set current index to 3 for History screen
       ),
     );
   }

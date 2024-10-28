@@ -1,8 +1,8 @@
 
 import 'package:flutter/material.dart';
 import '../service/auth_service.dart';
-import 'supervisor/homescreen.dart';
 import 'register.dart'; 
+import 'package:google_fonts/google_fonts.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -37,11 +37,10 @@ class _LoginScreenState extends State<LoginScreen> {
     try {
       await _authService.login(input, password); // Pass 'input' instead of just 'email'
 
-      // Navigate to Officer Home Screen upon successful login
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => SupervisorHomeScreen()),
-      );
+      // Navigate to Supervisor Home Screen upon successful login
+      // Navigate to MainNavigator upon successful login
+      Navigator.pushReplacementNamed(context, '/main-navigator');
+
     } catch (e) {
       // Handle exceptions with a specific message for invalid credentials
       setState(() {
@@ -69,21 +68,21 @@ Widget build(BuildContext context) {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: <Widget>[
               const SizedBox(height: 60),
-              const Column(
+              Column(
                 children: [
                   Text(
                     'OnSpot',
-                    style: TextStyle(
+                    style: GoogleFonts.poppins(
                       fontSize: 32,
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w800, // ExtraBold weight
                       color: Color.fromARGB(255, 0, 0, 0),
                     ),
                   ),
                   Text(
                     'Facility',
-                    style: TextStyle(
+                    style: GoogleFonts.poppins(
                       fontSize: 32,
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w800, // ExtraBold weight
                       color: Color.fromARGB(255, 0, 0, 0),
                     ),
                   ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'login.dart';
-import 'service/auth_service.dart'; // Import AuthService
+import '../service/auth_service.dart'; 
+import 'package:google_fonts/google_fonts.dart';
 
 class RegistrationScreen extends StatefulWidget {
   const RegistrationScreen({super.key});
@@ -12,17 +13,16 @@ class RegistrationScreen extends StatefulWidget {
 class _RegistrationScreenState extends State<RegistrationScreen> {
   final TextEditingController _fullNameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _usernameController = TextEditingController(); // Username controller
+  final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController = TextEditingController();
   final TextEditingController _phoneNumberController = TextEditingController();
   String _errorMessage = '';
   bool _isLoading = false;
 
-  final AuthService _authService = AuthService(); // Instantiate AuthService
-  bool _isDisposed = false; // Track if the widget is disposed
+  final AuthService _authService = AuthService();
+  bool _isDisposed = false;
 
-  // Define setStateIfMounted method to avoid errors after async tasks
   void setStateIfMounted(f) {
     if (!_isDisposed && mounted) {
       setState(f);
@@ -32,12 +32,11 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   Future<void> _register() async {
     final String fullName = _fullNameController.text;
     final String email = _emailController.text;
-    final String username = _usernameController.text; // Use username
+    final String username = _usernameController.text;
     final String password = _passwordController.text;
     final String confirmPassword = _confirmPasswordController.text;
     final String phoneNumber = _phoneNumberController.text;
 
-    // Input validation
     if (fullName.isEmpty || email.isEmpty || username.isEmpty || password.isEmpty || confirmPassword.isEmpty || phoneNumber.isEmpty) {
       setStateIfMounted(() {
         _errorMessage = 'Please fill out all the fields';
@@ -57,12 +56,9 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     });
 
     try {
-      // Call the register method from AuthService with username
       await _authService.register(fullName, username, email, password, phoneNumber);
+      if (!mounted || _isDisposed) return;
 
-      if (!mounted || _isDisposed) return; // Prevents continuing if disposed
-
-      // Navigate to the Login Screen upon successful registration
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const LoginScreen()),
@@ -81,7 +77,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
 
   @override
   void dispose() {
-    _isDisposed = true; // Mark the widget as disposed
+    _isDisposed = true;
     _fullNameController.dispose();
     _emailController.dispose();
     _usernameController.dispose();
@@ -94,6 +90,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFF92AEB9),
       body: Center(
         child: SingleChildScrollView(
           child: Padding(
@@ -102,12 +99,12 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
                 const SizedBox(height: 20),
-                const Text(
+                Text(
                   'Register',
-                  style: TextStyle(
-                    fontSize: 32,
+                  style: GoogleFonts.poppins(
+                    fontSize: 28,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF4C7D90),
+                    color: const Color.fromARGB(255, 0, 0, 0),
                   ),
                 ),
                 const SizedBox(height: 20),
@@ -124,7 +121,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                         const SizedBox(height: 20),
                         _buildInputField('Email', _emailController),
                         const SizedBox(height: 20),
-                        _buildInputField('Username', _usernameController), // Username field
+                        _buildInputField('Username', _usernameController),
                         const SizedBox(height: 20),
                         _buildInputField('Password', _passwordController, obscureText: true),
                         const SizedBox(height: 20),
@@ -136,7 +133,8 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                           onPressed: _isLoading ? null : _register,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.black,
-                            padding: const EdgeInsets.symmetric(horizontal: 100, vertical: 15),
+                            padding: const EdgeInsets.symmetric(vertical: 15),
+                            minimumSize: const Size(150, 40), // Adjust width and height here
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(30),
                             ),
@@ -147,8 +145,6 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                               : const Text('Register', style: TextStyle(color: Colors.white)),
                         ),
                         const SizedBox(height: 10),
-
-                        // Button to redirect to the Login page
                         TextButton(
                           onPressed: () {
                             Navigator.pushReplacement(
@@ -157,7 +153,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                             );
                           },
                           child: const Text(
-                            'Already have an account? Log in',
+                            'Already have an account? Sign In',
                             style: TextStyle(
                               color: Colors.black,
                               fontSize: 16,
@@ -165,7 +161,6 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                             ),
                           ),
                         ),
-
                         if (_errorMessage.isNotEmpty) ...[
                           Text(
                             _errorMessage,
@@ -199,8 +194,18 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
           child: TextField(
             controller: controller,
             obscureText: obscureText,
-            decoration: const InputDecoration(
-              border: OutlineInputBorder(),
+            decoration: InputDecoration(
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(30),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(30),
+                borderSide: const BorderSide(color: Colors.grey),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(30),
+                borderSide: const BorderSide(color: Colors.black),
+              ),
             ),
           ),
         ),

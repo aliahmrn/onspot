@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'assign_task.dart';
 import '../service/complaints_service.dart';
-import 'navbar.dart'; // Import the navigation bar
 
 class ComplaintPage extends StatefulWidget {
   const ComplaintPage({super.key});
@@ -141,7 +140,6 @@ class _ComplaintPageState extends State<ComplaintPage> {
           );
         },
       ),
-      bottomNavigationBar: const SupervisorBottomNavBar(currentIndex: 2), // Add the navigation bar here
     );
   }
 }

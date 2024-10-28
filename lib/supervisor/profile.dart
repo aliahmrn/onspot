@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import '../supervisor/profileedit.dart';
 import '../login.dart';
-import '../supervisor/navbar.dart';
-import 'package:onspot_supervisor/service/auth_service.dart'; 
-
+import 'package:onspot_supervisor/service/auth_service.dart';
 
 class SVProfilePage extends StatelessWidget {
   const SVProfilePage({super.key});
@@ -24,41 +22,39 @@ class SVProfilePage extends StatelessWidget {
           _buildButtonSection(context),
         ],
       ),
-      bottomNavigationBar: SupervisorBottomNavBar(currentIndex: 4),
     );
   }
 
-Widget _buildButtonSection(BuildContext context) {
-  return Column(
-    crossAxisAlignment: CrossAxisAlignment.center,
-    children: [
-      ElevatedButton.icon(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const SVProfileEditPage()),
-          );
-        },
-        icon: const Icon(Icons.edit, color: Colors.black),
-        label: const Text(
-          'Edit Information',
-          style: TextStyle(color: Colors.black),
-        ),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: const Color.fromARGB(255, 234, 220, 233),
-          elevation: 5, // Add shadow
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(30), // More curved
+  Widget _buildButtonSection(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        ElevatedButton.icon(
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const SVProfileEditPage()),
+            );
+          },
+          icon: const Icon(Icons.edit, color: Colors.black),
+          label: const Text(
+            'Edit Information',
+            style: TextStyle(color: Colors.black),
           ),
-          minimumSize: const Size(200, 50), 
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFF92AEB9),
+            elevation: 5, // Add shadow
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(30), // More curved
+            ),
+            minimumSize: const Size(200, 50), 
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+          ),
         ),
-      ),
-      const SizedBox(height: 30),
-    ],
-  );
-}
-
+        const SizedBox(height: 30),
+      ],
+    );
+  }
 }
 
 class ProfilePage extends StatelessWidget {
@@ -98,7 +94,7 @@ class ProfilePage extends StatelessWidget {
         children: [
           Container(
             decoration: const BoxDecoration(
-              color: Color(0xFFFEF7FF), // Change background color to #fef7ff
+              color: Color.fromARGB(255, 255, 255, 255), // Change background color to #fef7ff
             ),
           ),
           Positioned(
@@ -156,7 +152,7 @@ class ProfilePage extends StatelessWidget {
                 ElevatedButton(
                   onPressed: () => _logout(context), // Call logout method
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color.fromARGB(255, 234, 220, 233),
+                    backgroundColor: const Color(0xFF92AEB9),
                     elevation: 5, // Add shadow
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(30), // More curved
@@ -169,7 +165,6 @@ class ProfilePage extends StatelessWidget {
                     style: TextStyle(color: Colors.black),
                   ),
                 ),
-
               ],
             ),
           ),
@@ -227,9 +222,9 @@ class ProfilePage extends StatelessWidget {
   void _logout(BuildContext context) async {
     final AuthService authService = AuthService();
     await authService.clearUserDetails(); // Clear the token
-   Navigator.pushReplacement(
-  context,
-  MaterialPageRoute(builder: (context) => const LoginScreen()), // Navigate back to the login screen
-);
-}
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => const LoginScreen()), // Navigate back to the login screen
+    );
+  }
 }

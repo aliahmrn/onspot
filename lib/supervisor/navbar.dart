@@ -1,63 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:onspot_supervisor/supervisor/complaints.dart';
-import 'package:onspot_supervisor/supervisor/history.dart';
-import 'package:onspot_supervisor/supervisor/profile.dart';
-import 'package:onspot_supervisor/supervisor/search.dart';
-import '../supervisor/homescreen.dart';
 
 class SupervisorBottomNavBar extends StatelessWidget {
   final int currentIndex;
+  final Function(int) onTap;
 
   const SupervisorBottomNavBar({
-    super.key,
+    Key? key,
     required this.currentIndex,
-  });
-
-  void _navigateToPage(BuildContext context, Widget page) {
-    Navigator.push(
-      context,
-      PageRouteBuilder(
-        pageBuilder: (context, animation, secondaryAnimation) => page,
-        transitionsBuilder: (context, animation, secondaryAnimation, child) {
-          const begin = Offset(1.0, 0.0); // Slide from right
-          const end = Offset.zero;
-          const curve = Curves.easeInOut;
-
-          var tween =
-              Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
-          var offsetAnimation = animation.drive(tween);
-
-          return SlideTransition(
-            position: offsetAnimation,
-            child: child,
-          );
-        },
-      ),
-    );
-  }
-
-  void _onItemTapped(BuildContext context, int index) {
-    if (index == currentIndex) return; // Prevent navigating to the same page
-
-    switch (index) {
-      case 0:
-        _navigateToPage(context, const SupervisorHomeScreen());
-        break;
-      case 1:
-        _navigateToPage(context, SearchPage());
-        break;
-      case 2:
-        _navigateToPage(context,  ComplaintPage());
-        break;
-      case 3:
-        _navigateToPage(context, const HistoryPage());
-        break;
-      case 4:
-        _navigateToPage(context, SVProfilePage());
-        break;
-    }
-  }
+    required this.onTap,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -75,12 +27,12 @@ class SupervisorBottomNavBar extends StatelessWidget {
               height: 60,
               decoration: BoxDecoration(
                 color: Colors.transparent,
-                borderRadius: BorderRadius.circular(24), // Rounded corners for shadow
+                borderRadius: BorderRadius.circular(24),
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withOpacity(0.2),
                     blurRadius: 12,
-                    offset: const Offset(0, 6), // Position the shadow below the container
+                    offset: const Offset(0, 6),
                   ),
                 ],
               ),
@@ -90,13 +42,14 @@ class SupervisorBottomNavBar extends StatelessWidget {
           ClipRRect(
             borderRadius: BorderRadius.circular(24),
             child: Container(
-              color: Colors.white, // White background color
+              color: Colors.white,
               child: BottomNavigationBar(
-                backgroundColor: Colors.white, // Solid white color for the bar
-                selectedItemColor: Colors.black, // Black for selected icons
-                unselectedItemColor: Colors.grey, // Grey for unselected icons
-                currentIndex: currentIndex, // Highlight the current tab
-                onTap: (index) => _onItemTapped(context, index),
+                backgroundColor: Colors.white,
+                selectedItemColor: Colors.black,
+                unselectedItemColor: Colors.grey,
+                currentIndex: currentIndex,
+                onTap: onTap, // Use the passed onTap function to handle navigation
+                type: BottomNavigationBarType.fixed,
                 items: <BottomNavigationBarItem>[
                   BottomNavigationBarItem(
                     icon: Image.asset(
@@ -144,7 +97,6 @@ class SupervisorBottomNavBar extends StatelessWidget {
                     label: 'Profile',
                   ),
                 ],
-                type: BottomNavigationBarType.fixed, // Ensures all icons are visible
               ),
             ),
           ),
