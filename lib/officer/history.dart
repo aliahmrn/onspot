@@ -3,6 +3,8 @@ import 'package:intl/intl.dart';
 import 'package:onspot_officer/service/history_service.dart';
 import 'navbar.dart';
 import 'complaintdetails.dart';
+import 'package:onspot_officer/widget/date.dart';
+
 
 class HistoryPage extends StatefulWidget {
   const HistoryPage({super.key});
@@ -139,7 +141,7 @@ class HistoryPageState extends State<HistoryPage> {
                                           ),
                                           const SizedBox(height: 8),
                                           Text(
-                                            complaint['comp_date'] ?? '',
+                                            formatDate(complaint['comp_date']),
                                             style: const TextStyle(
                                               color: Colors.black45,
                                               fontSize: 12,

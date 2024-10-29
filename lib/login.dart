@@ -1,27 +1,33 @@
 import 'package:flutter/material.dart';
 import 'package:onspot_officer/service/auth_service.dart';
 import 'officer/homescreen.dart';
-import 'register.dart'; 
+import 'register.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
   @override
-  LoginScreenState createState() => LoginScreenState(); // No underscore here
+  LoginScreenState createState() => LoginScreenState();
 }
 
-class LoginScreenState extends State<LoginScreen> { // No underscore here
-  final TextEditingController _inputController = TextEditingController(); // Changed to be more generic for input (username/email)
+class LoginScreenState extends State<LoginScreen> {
+  final TextEditingController _inputController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final AuthService _authService = AuthService();
   String _errorMessage = '';
   bool _isLoading = false;
 
+  @override
+  void dispose() {
+    _inputController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
   Future<void> _login() async {
-    final String input = _inputController.text; // Use 'input' to accept both username and email
+    final String input = _inputController.text;
     final String password = _passwordController.text;
 
-    // Input validation
     if (input.isEmpty || password.isEmpty) {
       setState(() {
         _errorMessage = 'Please enter both username/email and password';
@@ -30,13 +36,13 @@ class LoginScreenState extends State<LoginScreen> { // No underscore here
     }
 
     setState(() {
-      _isLoading = true; // Show loading indicator
+      _isLoading = true;
+      _errorMessage = ''; // Clear error message when retrying
     });
 
     try {
-      await _authService.login(input, password); // Pass 'input' instead of just 'email'
+      await _authService.login(input, password);
 
-      // Only navigate if the widget is still mounted
       if (mounted) {
         Navigator.pushReplacement(
           context,
@@ -44,7 +50,6 @@ class LoginScreenState extends State<LoginScreen> { // No underscore here
         );
       }
     } catch (e) {
-      // Handle exceptions with a specific message for invalid credentials
       setState(() {
         _errorMessage = e.toString() == 'Exception: Invalid login credentials.'
             ? 'Invalid login credentials.'
@@ -53,7 +58,7 @@ class LoginScreenState extends State<LoginScreen> { // No underscore here
     } finally {
       if (mounted) {
         setState(() {
-          _isLoading = false; // Hide loading indicator
+          _isLoading = false;
         });
       }
     }
@@ -100,13 +105,12 @@ class LoginScreenState extends State<LoginScreen> { // No underscore here
                     padding: const EdgeInsets.all(20.0),
                     child: Column(
                       children: <Widget>[
-                        // Input fields for username/email and password
-                        _buildInputField('Username or Email', _inputController), // Updated to be generic
+                        _buildInputField('Username or Email', _inputController),
                         const SizedBox(height: 40),
                         _buildInputField('Password', _passwordController, obscureText: true),
                         const SizedBox(height: 20),
                         ElevatedButton(
-                          onPressed: _isLoading ? null : _login, // Disable button while loading
+                          onPressed: _isLoading ? null : _login,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.black,
                             padding: const EdgeInsets.symmetric(horizontal: 100, vertical: 15),
@@ -116,7 +120,7 @@ class LoginScreenState extends State<LoginScreen> { // No underscore here
                             textStyle: const TextStyle(fontSize: 16),
                           ),
                           child: _isLoading
-                              ? const CircularProgressIndicator(color: Colors.white) // Show loading indicator
+                              ? const CircularProgressIndicator(color: Colors.white)
                               : const Text('Sign In', style: TextStyle(color: Colors.white)),
                         ),
                         const SizedBox(height: 10),
@@ -128,25 +132,26 @@ class LoginScreenState extends State<LoginScreen> { // No underscore here
                           const SizedBox(height: 10),
                         ],
                         TextButton(
-                          onPressed: () {}, // Add forgot password functionality if needed
+                          onPressed: () {
+                            // TODO: Implement forgot password navigation
+                          },
                           child: const Text(
                             'Forgot password?',
                             style: TextStyle(color: Colors.black),
                           ),
                         ),
                         TextButton(
-                        onPressed: () {
-                          // Navigate to RegistrationScreen when clicked
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (context) => const RegistrationScreen()), // Navigate to RegistrationScreen
-                          );
-                        },
-                        child: const Text(
-                          "Don't have an account? Register",
-                          style: TextStyle(color: Colors.black),
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => const RegistrationScreen()),
+                            );
+                          },
+                          child: const Text(
+                            "Don't have an account? Register",
+                            style: TextStyle(color: Colors.black),
+                          ),
                         ),
-                      ),
                       ],
                     ),
                   ),

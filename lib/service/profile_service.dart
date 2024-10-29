@@ -17,10 +17,10 @@ class ProfileService {
 
     if (response.statusCode == 200) {
       Map<String, dynamic> profileData = json.decode(response.body);
-      // Ensure the profile picture URL is complete
-      if (profileData['profile_pic'] != null) {
-        profileData['profile_pic'] = '$baseUrl${profileData['profile_pic']}';
-      }
+
+      // Log the profile data for debugging
+      _logger.i('Profile data fetched: $profileData');
+
       return profileData;
     } else {
       _logger.e('Failed to load profile: ${response.body}');

@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'navbar.dart';
 import 'profileedit.dart';
 import 'package:onspot_officer/login.dart';
-import 'package:onspot_officer/service/auth_service.dart'; // Import AuthService
-import 'package:onspot_officer/service/profile_service.dart'; // Import ProfileService
+import 'package:onspot_officer/service/auth_service.dart';
+import 'package:onspot_officer/service/profile_service.dart';
+import 'package:onspot_officer/widget/localhost.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'dart:typed_data'; // Make sure to import this
 
 class OfficerProfileScreen extends StatefulWidget {
   const OfficerProfileScreen({super.key});
@@ -16,9 +16,9 @@ class OfficerProfileScreen extends StatefulWidget {
 
 class OfficerProfileScreenState extends State<OfficerProfileScreen> {
   Map<String, dynamic>? userData;
-  Uint8List? profilePic; // Change to store Uint8List
-  AuthService authService = AuthService(); // Initialize the AuthService
-  ProfileService profileService = ProfileService(); // Initialize the ProfileService
+  String? profilePicUrl; // Store the URL of the profile picture
+  final AuthService authService = AuthService(); // Initialize the AuthService
+  final ProfileService profileService = ProfileService(); // Initialize the ProfileService
 
   @override
   void initState() {
@@ -26,21 +26,25 @@ class OfficerProfileScreenState extends State<OfficerProfileScreen> {
     _loadUserData();
   }
 
-  Future<void> _loadUserData() async {
-      try {
-        userData = await authService.getUser(); // Fetch user data from AuthService
-        final prefs = await SharedPreferences.getInstance();
-        final token = prefs.getString('token'); // Fetch token from SharedPreferences
+Future<void> _loadUserData() async {
+  try {
+    userData = await authService.getUser(); // Fetch user data from AuthService
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('token'); // Fetch token from SharedPreferences
 
-        if (token != null) {
-          final profileData = await profileService.fetchProfile(token); // Fetch profile data
-          //profilePic = profileData['profile_pic']; // Store profile picture as Uint8List
-        }
-        setState(() {}); // Update UI when data is loaded
-      } catch (e) {
-        print('Error fetching user data: $e');
-      }
+    if (token != null) {
+      final profileData = await profileService.fetchProfile(token); // Fetch profile data
+      profilePicUrl = profileData['profile_pic'] != null
+          ? resolveUrl(profileData['profile_pic']) // Ensure URL is resolved here
+          : null;
     }
+
+    setState(() {}); // Update UI when data is loaded
+  } catch (e) {
+    print('Error fetching user data: $e');
+  }
+}
+
 
   @override
   Widget build(BuildContext context) {
@@ -86,19 +90,22 @@ class OfficerProfileScreenState extends State<OfficerProfileScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                const SizedBox(height: 100),
-/*               CircleAvatar(
-                  radius: 50,
-                  backgroundColor: Colors.white,
-                  backgroundImage: profilePic != null
-                      ? MemoryImage(profilePic!) // Use MemoryImage to display Uint8List
-                      : const AssetImage('assets/default_profile.png') as ImageProvider, // Fallback image
-                ),*/
-                const CircleAvatar(
-                  radius: 50,
-                  backgroundColor: Colors.white,
-                  child: Icon(Icons.person, size: 50, color: Colors.grey), // Placeholder icon
-                ),
+              const SizedBox(height: 100),
+              CircleAvatar(
+                radius: 50,
+                backgroundColor: Colors.white,
+                backgroundImage: profilePicUrl != null
+                    ? NetworkImage(resolveUrl(profilePicUrl!)) // Use resolveUrl for compatibility on mobile
+                    : const AssetImage('assets/default_profile.png') as ImageProvider,
+                onBackgroundImageError: (_, __) {
+                  setState(() {
+                    profilePicUrl = null; // Reset the URL to trigger fallback
+                  });
+                },
+                child: profilePicUrl == null
+                    ? const Icon(Icons.person, size: 50, color: Colors.grey) // Display icon if no profile picture
+                    : null,
+              ),
                 const SizedBox(height: 10),
                 // Display fetched user data (name, username, etc.), or show empty strings until data is available
                 Text(

@@ -128,7 +128,6 @@ class OfficerHomeScreenState extends State<OfficerHomeScreen> {
               ],
             ),
             const SizedBox(height: 20),
-
             // Welcome Banner
             Container(
               width: double.infinity,

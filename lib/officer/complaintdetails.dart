@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:onspot_officer/service/complaintdetails_service.dart'; // Import the service
-import 'package:onspot_officer/widget/cleanicons.dart'; // Adjust the import based on your folder structure
+import 'package:onspot_officer/service/complaintdetails_service.dart'; 
+import 'package:onspot_officer/widget/cleanicons.dart'; 
+import 'package:onspot_officer/widget/date.dart';
+import 'package:onspot_officer/widget/localhost.dart';
 
 class ComplaintDetailsPage extends StatefulWidget {
   final int complaintId;
@@ -84,6 +86,7 @@ class _ComplaintDetailsPageState extends State<ComplaintDetailsPage> {
                             style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                           ),
                           const SizedBox(height: 20),
+                          //real
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
@@ -108,9 +111,10 @@ class _ComplaintDetailsPageState extends State<ComplaintDetailsPage> {
                                   ),
                                   const SizedBox(width: 10),
                                   Text(
-                                    complaintDetails!['comp_date'] ?? 'Unknown',
+                                    formatDate(complaintDetails!['comp_date']),
                                     style: const TextStyle(fontSize: 16),
                                   ),
+
                                 ],
                               ),
                             ],
@@ -157,6 +161,20 @@ class _ComplaintDetailsPageState extends State<ComplaintDetailsPage> {
                             ),
                           ],
                         ),
+                        child: complaintDetails!['comp_image'] != null
+                            ? ClipRRect(
+                                borderRadius: BorderRadius.circular(30),
+                                child: Image.network(
+                                  resolveUrl(complaintDetails!['comp_image']), // Apply the URL replacement here
+                                  width: double.infinity,
+                                  height: double.infinity,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (context, error, stackTrace) {
+                                    return const Center(child: Text('Image failed to load')); // Fallback if image fails
+                                  },
+                                ),
+                              )
+                            : const Center(child: Text('No image available')), // Display text if there is no image URL
                       ),
                     ),
                     Positioned(
