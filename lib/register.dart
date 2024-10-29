@@ -59,10 +59,13 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
       await _authService.register(fullName, username, email, password, phoneNumber);
       if (!mounted || _isDisposed) return;
 
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const LoginScreen()),
-      );
+    Navigator.of(context).pushReplacement(
+      PageRouteBuilder(
+        pageBuilder: (context, animation, secondaryAnimation) => const LoginScreen(),
+        transitionDuration: Duration.zero,
+        reverseTransitionDuration: Duration.zero,
+      ),
+    );
     } catch (e) {
       setStateIfMounted(() {
         _errorMessage = 'Failed to register: ${e.toString()}';
@@ -103,7 +106,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                   'Register',
                   style: GoogleFonts.poppins(
                     fontSize: 28,
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w600,
                     color: const Color.fromARGB(255, 0, 0, 0),
                   ),
                 ),
@@ -147,9 +150,12 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                         const SizedBox(height: 10),
                         TextButton(
                           onPressed: () {
-                            Navigator.pushReplacement(
-                              context,
-                              MaterialPageRoute(builder: (context) => const LoginScreen()),
+                            Navigator.of(context).pushReplacement(
+                              PageRouteBuilder(
+                                pageBuilder: (context, animation, secondaryAnimation) => const LoginScreen(),
+                                transitionDuration: Duration.zero,
+                                reverseTransitionDuration: Duration.zero,
+                              ),
                             );
                           },
                           child: const Text(

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'assign_task.dart';
 import '../service/complaints_service.dart';
+import 'main_navigator.dart';
 
 class ComplaintPage extends StatefulWidget {
   const ComplaintPage({super.key});
@@ -21,26 +22,38 @@ class _ComplaintPageState extends State<ComplaintPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        automaticallyImplyLeading: false,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          onPressed: () {
+            Navigator.of(context).pushAndRemoveUntil(
+              MaterialPageRoute(
+                builder: (context) => const MainNavigator(),
+                settings: RouteSettings(arguments: 0), // Indicate the home tab
+              ),
+              (route) => false,
+            );
+          },
+        ),
         centerTitle: true,
         title: const Text(
           'Complaints',
           style: TextStyle(
             fontWeight: FontWeight.bold,
             fontSize: 18,
+            color: Colors.black,
           ),
         ),
-        backgroundColor: const Color.fromARGB(255, 255, 255, 255),
+        backgroundColor: Colors.white,
       ),
       body: FutureBuilder<List<Map<String, dynamic>>>(
         future: complaintsService.fetchComplaints(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
+            return const Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
             return Center(child: Text('Error: ${snapshot.error}'));
           } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return Center(child: Text('No complaints yet.'));
+            return const Center(child: Text('No complaints yet.'));
           }
 
           final complaints = snapshot.data!;
@@ -104,10 +117,9 @@ class _ComplaintPageState extends State<ComplaintPage> {
                         const SizedBox(height: 16),
                         Row(
                           children: [
-                            const Spacer(), // Pushes the button to the right
+                            const Spacer(),
                             ElevatedButton(
                               onPressed: () async {
-                                // Navigate and await for the result after assignment
                                 await Navigator.push(
                                   context,
                                   MaterialPageRoute(
@@ -121,12 +133,12 @@ class _ComplaintPageState extends State<ComplaintPage> {
                                 backgroundColor: Colors.white,
                                 foregroundColor: Colors.black,
                                 shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(20.0), // Rounded corners
+                                  borderRadius: BorderRadius.circular(20.0),
                                 ),
                               ),
                               child: const Text(
                                 'Assign Complaint',
-                                style: TextStyle(fontSize: 14), // Smaller font size
+                                style: TextStyle(fontSize: 14),
                               ),
                             ),
                           ],

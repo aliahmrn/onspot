@@ -24,6 +24,16 @@ class _MainNavigatorState extends State<MainNavigator> {
     const SVProfilePage(),
   ];
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Update index if arguments are passed (e.g., from ComplaintPage back arrow)
+    final args = ModalRoute.of(context)?.settings.arguments as int?;
+    if (args != null) {
+      _currentIndex = args; // Set _currentIndex to argument (0 for home)
+    }
+  }
+
   void _onItemTapped(int index) {
     setState(() {
       _currentIndex = index;
@@ -39,7 +49,7 @@ class _MainNavigatorState extends State<MainNavigator> {
       ),
       bottomNavigationBar: SupervisorBottomNavBar(
         currentIndex: _currentIndex,
-        onTap: _onItemTapped, // Pass the onTap function for navigation
+        onTap: _onItemTapped,
       ),
     );
   }

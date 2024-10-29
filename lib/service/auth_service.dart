@@ -157,4 +157,52 @@ class AuthService {
       throw Exception('Error during registration: $e');
     }
   }
+ 
+
+  // Send Reset Code
+  Future<void> sendResetCode(String email) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/forgot-password'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'email': email}),
+      );
+
+      if (response.statusCode == 200) {
+        print('Reset code sent successfully.');
+      } else {
+        final data = jsonDecode(response.body);
+        throw Exception(data['message'] ?? 'Failed to send reset code.');
+      }
+    } catch (e) {
+      throw Exception('Error during forgot password request: ${e.toString()}');
+    }
+  }
+
+  // Reset Password (sends the email, code, and new password to the backend for verification and reset)
+  Future<void> resetPassword(String email, String code, String password, String confirmPassword) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/reset-password'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'email': email,
+          'code': code,
+          'password': password,
+          'password_confirmation': confirmPassword,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        print('Password has been reset successfully.');
+      } else {
+        final data = jsonDecode(response.body);
+        throw Exception(data['message'] ?? 'Failed to reset password.');
+      }
+    } catch (e) {
+      throw Exception('Error during password reset: ${e.toString()}');
+    }
+  }
 }
+
+
