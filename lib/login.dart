@@ -43,7 +43,7 @@ class LoginScreenState extends State<LoginScreen> { // No underscore here
       }
     } catch (e) {
       setState(() {
-        _errorMessage = e.toString() == 'Exception: Invalid login credentials.'
+        _errorMessage = e.toString() == 'Invalid login credentials.'
             ? 'Invalid login credentials.'
             : 'Failed to login: ${e.toString()}';
       });

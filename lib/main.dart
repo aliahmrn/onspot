@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'login.dart';
 import 'cleaner/homescreen.dart'; // Import the cleaner home screen
+import 'package:google_fonts/google_fonts.dart';
 
 
 void main() {
@@ -19,6 +20,10 @@ class OnspotCleanerApp extends StatelessWidget {
         '/': (context) => LoginScreen(), // Set the initial route to the login screen
         '/cleaner-home': (context) =>  CleanerHomeScreen(), // Protect the Cleaner home route
       },
+          theme: ThemeData(
+            scaffoldBackgroundColor: Colors.white, // Set the default background color to white
+            textTheme: GoogleFonts.openSansTextTheme(),
+          ),
     );
   }
 }

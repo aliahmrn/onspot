@@ -28,6 +28,7 @@ dependencies:
   cupertino_icons: ^1.0.8
   flutter_tts: ^4.0.2
   logger: ^2.4.0
+  google_fonts: ^6.2.1  
 
 dev_dependencies:
   flutter_test:
@@ -53,3 +54,8 @@ flutter:
     - assets/images/ear.svg
     - assets/images/thumbs_up.svg
     - assets/images/search.svg
+    - assets/images/mop.svg
+    - assets/images/vacuuming.svg
+    - assets/images/wipe.svg
+    - assets/images/window.svg
+    - assets/images/toilet.svg

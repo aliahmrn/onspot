@@ -6,7 +6,7 @@ import 'navbar.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../widget/bell.dart';
 
-const Color appBarColor = Color(0xFFFFFFFF); // White color for AppBar
+const Color appBarColor = Colors.white;
 
 class CleanerHomeScreen extends StatelessWidget {
   const CleanerHomeScreen({super.key});

@@ -1,113 +1,136 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
+import 'package:logger/logger.dart';
+import 'package:onspot_cleaner/service/task_service.dart'; // Import TaskService for API calls
 import 'navbar.dart'; // Import the reusable navbar
 import 'task_details.dart'; // Import TaskDetailsPage for navigation
+import 'package:onspot_cleaner/widget/cleanericons.dart'; // Import CleanerIcons for icons
 
-class CleanerTasksScreen extends StatelessWidget {
+class CleanerTasksScreen extends StatefulWidget {
   const CleanerTasksScreen({super.key});
+
+  @override
+  CleanerTasksScreenState createState() => CleanerTasksScreenState();
+}
+
+class CleanerTasksScreenState extends State<CleanerTasksScreen> {
+  final Logger logger = Logger();
+  final TaskService taskService = TaskService();
+
+  late Future<List<Map<String, dynamic>>?> futureTasks;
+
+  @override
+  void initState() {
+    super.initState();
+    futureTasks = taskService.getCleanerTasks(69); // Use cleaner's ID as per your use case
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.white, // Change AppBar color to #FEF7FF
-        elevation: 0, // Remove shadow
+        backgroundColor: Colors.white,
+        elevation: 0,
         automaticallyImplyLeading: false,
         title: const Text(
           'Tasks',
           style: TextStyle(
             color: Colors.black,
-            fontSize: 20, // Same size as "Home" on the homescreen
+            fontSize: 20,
             fontWeight: FontWeight.bold,
           ),
         ),
-        centerTitle: true, // Center the title
+        centerTitle: true,
       ),
-      body: Container(
-        color: Colors.white, // Keep the body background color
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // First task
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                // Two icons (ear, thumbs up)
-                Row(
-                  children: [
-                    _buildSvgIconButton(
-                        'assets/images/ear.svg'), // Use SVG for ear icon
-                    const SizedBox(width: 8),
-                    _buildSvgIconButton(
-                        'assets/images/thumbs_up.svg'), // Use SVG for thumbs-up
-                  ],
-                ),
-                const SizedBox(width: 16), // Space between icons and task card
-              ],
-            ),
-            const SizedBox(height: 8),
-            // Task Card 1
-            _buildTaskCard(context, 'Room Cleaning', 'Floor 2'),
-            const SizedBox(height: 16),
+      body: FutureBuilder<List<Map<String, dynamic>>?>(
+        future: futureTasks,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasError) {
+            logger.e('Error fetching tasks: ${snapshot.error}');
+            return const Center(child: Text('Failed to load tasks.'));
+          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+            return const Center(child: Text('No tasks available.'));
+          }
 
-            // Second task
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                // Two icons (ear, thumbs up)
-                Row(
-                  children: [
-                    _buildSvgIconButton(
-                        'assets/images/ear.svg'), // Use SVG for ear icon
-                    const SizedBox(width: 8),
-                    _buildSvgIconButton(
-                        'assets/images/thumbs_up.svg'), // Use SVG for thumbs-up
-                  ],
-                ),
-                const SizedBox(width: 16), // Space between icons and task card
-              ],
-            ),
+          final tasks = snapshot.data!;
 
-            const SizedBox(height: 8),
-            // Task Card 2
-            _buildTaskCard(context, 'Window Cleaning', 'Floor 4'),
-          ],
-        ),
+          return Container(
+            color: Colors.white,
+            padding: const EdgeInsets.all(16.0),
+            child: ListView.builder(
+              itemCount: tasks.length,
+              itemBuilder: (context, index) {
+                final task = tasks[index];
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        IconButton(
+                          icon: CleanerIcons.earIcon(),
+                          onPressed: () {
+                            logger.i('Ear icon tapped for complaint ID: ${task['complaint_id']}');
+                            // Add action for ear button here
+                          },
+                        ),
+                        IconButton(
+                          icon: CleanerIcons.thumbsUpIcon(),
+                          onPressed: () {
+                            logger.i('Thumbs up icon tapped for complaint ID: ${task['complaint_id']}');
+                            // Add action for thumbs up button here
+                          },
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8), // Space between buttons and card
+                    _buildTaskCard(
+                      context,
+                      task['comp_desc'] ?? 'No Description',
+                      task['comp_location'] ?? 'No Location',
+                      task['comp_date'] ?? 'No Date',
+                      task['comp_image'] ?? null,
+                      task['complaint_id'],
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+                );
+              },
+            ),
+          );
+        },
       ),
-      // Reusable Cleaner Bottom NavBar with slide transition
       bottomNavigationBar: CleanerBottomNavBar(
-        currentIndex: 1, // Set the index to 1 for "Tasks" as selected
+        currentIndex: 1,
       ),
     );
   }
 
-  // Updated helper function to include navigation to TaskDetailsPage
-  Widget _buildTaskCard(BuildContext context, String title, String subtitle) {
-    return InkWell(
-      onTap: () {
-        // Navigate to TaskDetailsPage when the task is tapped
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const TaskDetailsPage()),
-        );
-      },
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: const Color(0xFF92AEB9),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Column(
+  Widget _buildTaskCard(
+    BuildContext context,
+    String title,
+    String subtitle,
+    String date,
+    String? imageUrl,
+    int complaintId,
+  ) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFF92AEB9),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Expanded(
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   title,
                   style: const TextStyle(
-                    fontSize: 16, // Adjusted font size
+                    fontSize: 16,
                     fontWeight: FontWeight.bold,
                     color: Colors.black87,
                   ),
@@ -120,27 +143,37 @@ class CleanerTasksScreen extends StatelessWidget {
                     color: Colors.black54,
                   ),
                 ),
+                const SizedBox(height: 4),
+                Text(
+                  date,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: Colors.black54,
+                  ),
+                ),
               ],
             ),
-            const Icon(Icons.arrow_forward, color: Colors.black54),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // Helper function to build icon button with SVG
-  Widget _buildSvgIconButton(String svgPath) {
-    return Container(
-      width: 40, // Fixed width for the icon button
-      height: 40, // Fixed height for the icon button
-      decoration: BoxDecoration(
-        color: const Color(0xFFC4C3CB),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(6.0),
-        child: SvgPicture.asset(svgPath), // Add SVG asset here
+          ),
+          const SizedBox(width: 8),
+          IconButton(
+            icon: const Icon(Icons.arrow_forward, color: Colors.black54),
+            onPressed: () {
+              logger.i('Navigating to TaskDetailsPage for complaint ID: $complaintId');
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => TaskDetailsPage(
+                    complaintId: complaintId,
+                    location: subtitle,
+                    date: date,
+                    imageUrl: imageUrl,
+                    description: title,
+                  ),
+                ),
+              );
+            },
+          ),
+        ],
       ),
     );
   }
@@ -148,6 +181,6 @@ class CleanerTasksScreen extends StatelessWidget {
 
 void main() {
   runApp(MaterialApp(
-    home: const CleanerTasksScreen(), // Use the CleanerTasksScreen class here
+    home: const CleanerTasksScreen(),
   ));
 }
