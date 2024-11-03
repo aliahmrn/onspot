@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:onspot_cleaner/widget/cleanicons.dart'; // Import custom icons
 
 class TaskDetailsPage extends StatefulWidget {
   final int complaintId;
@@ -8,26 +9,26 @@ class TaskDetailsPage extends StatefulWidget {
   final String description;
 
   const TaskDetailsPage({
-    Key? key,
+    super.key,
     required this.complaintId,
     required this.location,
     required this.date,
     this.imageUrl,
     required this.description,
-  }) : super(key: key);
+  });
 
   @override
-  _TaskDetailsPageState createState() => _TaskDetailsPageState();
+  TaskDetailsPageState createState() => TaskDetailsPageState();
 }
 
-class _TaskDetailsPageState extends State<TaskDetailsPage> {
+class TaskDetailsPageState extends State<TaskDetailsPage> {
   bool isLoading = true;
 
   @override
   void initState() {
     super.initState();
     // Simulate loading data
-    Future.delayed(Duration(seconds: 1), () {
+    Future.delayed(const Duration(seconds: 1), () {
       setState(() {
         isLoading = false;
       });
@@ -36,213 +37,286 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+    final primaryColor = Theme.of(context).colorScheme.primary;
+    final onPrimaryColor = Theme.of(context).colorScheme.onPrimary;
+    final secondaryColor = Theme.of(context).colorScheme.secondary;
+    final onSecondaryColor = Theme.of(context).colorScheme.onSecondary;
+    final tertiaryColor = Theme.of(context).colorScheme.tertiary;
+
     return Scaffold(
-      appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(56.0),
-        child: Material(
-          elevation: 0,
-          child: AppBar(
-            elevation: 0,
-            backgroundColor: Colors.white,
-            centerTitle: true,
-            title: const Text(
-              'Task Details',
-              style: TextStyle(
-                color: Colors.black,
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            leading: IconButton(
-              icon: const Icon(Icons.arrow_back, color: Colors.black),
-              onPressed: () {
-                Navigator.pop(context);
-              },
-            ),
+      backgroundColor: primaryColor,
+      appBar: AppBar(
+        backgroundColor: primaryColor,
+        elevation: 0,
+        automaticallyImplyLeading: false,
+        centerTitle: true,
+        title: Text(
+          'Task Details',
+          style: TextStyle(
+            color: onPrimaryColor,  // Changed to onSecondaryColor
+            fontSize: screenWidth * 0.05,
+            fontWeight: FontWeight.bold,
           ),
         ),
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: onPrimaryColor),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        ),
       ),
-      body: isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : Stack(
-              children: [
-                Positioned(
-                  top: 20,
-                  left: 20,
-                  right: 20,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Image',
-                        style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 20),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Row(
+      body: Stack(
+        children: [
+          // Primary background layer
+          Container(color: primaryColor),
+
+          // Secondary layer for rounded content area
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: Container(
+              decoration: BoxDecoration(
+                color: secondaryColor,
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(screenWidth * 0.08),
+                  topRight: Radius.circular(screenWidth * 0.08),
+                ),
+              ),
+              child: isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : Stack(
+                      children: [
+                        Positioned(
+                          top: screenHeight * 0.03,
+                          left: screenWidth * 0.05,
+                          right: screenWidth * 0.05,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text(
-                                'Location',
-                                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                              ),
-                              const SizedBox(width: 10),
                               Text(
-                                widget.location,
-                                style: const TextStyle(fontSize: 16),
+                                'Image',
+                                style: TextStyle(
+                                  fontSize: screenWidth * 0.06,
+                                  fontWeight: FontWeight.bold,
+                                  color: onSecondaryColor,
+                                ),
+                              ),
+                              SizedBox(height: screenHeight * 0.02),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Text(
+                                        'Location',
+                                        style: TextStyle(
+                                          fontSize: screenWidth * 0.04,
+                                          fontWeight: FontWeight.bold,
+                                          color: onSecondaryColor,
+                                        ),
+                                      ),
+                                      SizedBox(width: screenWidth * 0.025),
+                                      Text(
+                                        widget.location,
+                                        style: TextStyle(
+                                          fontSize: screenWidth * 0.04,
+                                          color: onSecondaryColor,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  Row(
+                                    children: [
+                                      Text(
+                                        'Date',
+                                        style: TextStyle(
+                                          fontSize: screenWidth * 0.04,
+                                          fontWeight: FontWeight.bold,
+                                          color: onSecondaryColor,
+                                        ),
+                                      ),
+                                      SizedBox(width: screenWidth * 0.025),
+                                      Text(
+                                        widget.date,
+                                        style: TextStyle(
+                                          fontSize: screenWidth * 0.04,
+                                          color: onSecondaryColor,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                              SizedBox(height: screenHeight * 0.02),
+                            ],
+                          ),
+                        ),
+                        Positioned(
+                          top: screenHeight * 0.28,
+                          left: screenWidth * 0.075,
+                          right: screenWidth * 0.075,
+                          child: Container(
+                            width: screenWidth * 0.85,
+                            height: screenHeight * 0.6,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(screenWidth * 0.04),
+                              gradient: LinearGradient(
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                                colors: [
+                                  tertiaryColor,
+                                  secondaryColor,
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                        Positioned(
+                          top: screenHeight * 0.15,
+                          left: screenWidth * 0.075,
+                          right: screenWidth * 0.075,
+                          child: Container(
+                            width: screenWidth * 0.9,
+                            height: screenHeight * 0.3,
+                            decoration: BoxDecoration(
+                              color: Colors.grey[300],
+                              borderRadius: BorderRadius.circular(screenWidth * 0.08),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.1),
+                                  blurRadius: screenWidth * 0.02,
+                                  offset: Offset(0, screenHeight * 0.005),
+                                ),
+                              ],
+                            ),
+                            child: widget.imageUrl != null
+                                ? ClipRRect(
+                                    borderRadius: BorderRadius.circular(screenWidth * 0.08),
+                                    child: Image.network(
+                                      widget.imageUrl!,
+                                      width: double.infinity,
+                                      height: double.infinity,
+                                      fit: BoxFit.cover,
+                                      errorBuilder: (context, error, stackTrace) {
+                                        return Center(
+                                          child: Text(
+                                            'Image failed to load',
+                                            style: TextStyle(color: onSecondaryColor),
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                  )
+                                : Center(
+                                    child: Text(
+                                      'No image available',
+                                      style: TextStyle(color: onSecondaryColor),
+                                    ),
+                                  ),
+                          ),
+                        ),
+                        Positioned(
+                          top: screenHeight * 0.48,  // Adjusted to be closer to the image container
+                          left: screenWidth * 0.075,
+                          right: screenWidth * 0.075,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Center(
+                                child: Container(
+                                  width: screenWidth * 0.8,
+                                  padding: EdgeInsets.all(screenWidth * 0.04),
+                                  decoration: BoxDecoration(
+                                    color: secondaryColor,
+                                    borderRadius: BorderRadius.circular(screenWidth * 0.02),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withOpacity(0.1),
+                                        blurRadius: screenWidth * 0.02,
+                                        offset: Offset(0, screenHeight * 0.005),
+                                      ),
+                                    ],
+                                  ),
+                                  child: Text(
+                                    widget.description,
+                                    style: TextStyle(
+                                      fontSize: screenWidth * 0.04,
+                                      color: onSecondaryColor,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              SizedBox(height: screenHeight * 0.02),  // Adjusted for closer spacing
+                              Text(
+                                'Task included',
+                                style: TextStyle(
+                                  fontSize: screenWidth * 0.04,
+                                  fontWeight: FontWeight.bold,
+                                  color: onSecondaryColor,
+                                ),
+                              ),
+                              SizedBox(height: screenHeight * 0.015),
+                              Center(
+                                child: Container(
+                                  width: screenWidth * 0.8,
+                                  padding: EdgeInsets.symmetric(
+                                    vertical: screenHeight * 0.015,
+                                    horizontal: screenWidth * 0.04,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: secondaryColor,
+                                    borderRadius: BorderRadius.circular(screenWidth * 0.02),
+                                  ),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                    children: [
+                                      Column(
+                                        children: [
+                                          MopIcon(size: screenWidth * 0.08), // Custom mop icon
+                                          SizedBox(height: screenHeight * 0.01),
+                                          Text(
+                                            'Mopping',
+                                            style: TextStyle(fontSize: screenWidth * 0.04),
+                                          ),
+                                        ],
+                                      ),
+                                      Column(
+                                        children: [
+                                          VacuumingIcon(size: screenWidth * 0.08), // Custom vacuuming icon
+                                          SizedBox(height: screenHeight * 0.01),
+                                          Text(
+                                            'Vacuuming',
+                                            style: TextStyle(fontSize: screenWidth * 0.04),
+                                          ),
+                                        ],
+                                      ),
+                                      Column(
+                                        children: [
+                                          WipeIcon(size: screenWidth * 0.08), // Custom wiping icon
+                                          SizedBox(height: screenHeight * 0.01),
+                                          Text(
+                                            'Wiping',
+                                            style: TextStyle(fontSize: screenWidth * 0.04),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ),
                               ),
                             ],
                           ),
-                          Row(
-                            children: [
-                              const Text(
-                                'Date',
-                                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                              ),
-                              const SizedBox(width: 10),
-                              Text(
-                                widget.date,
-                                style: const TextStyle(fontSize: 16),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 20),
-                    ],
-                  ),
-                ),
-                Positioned(
-                  top: 200,
-                  left: 30,
-                  right: 30,
-                  child: Container(
-                    width: 400,
-                    height: 500,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(16),
-                      gradient: const LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [
-                          Color(0xFF4C7D90),
-                          Colors.white,
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-                Positioned(
-                  top: 110,
-                  left: 30,
-                  right: 30,
-                  child: Container(
-                    width: 410,
-                    height: 250,
-                    decoration: BoxDecoration(
-                      color: Colors.grey[300],
-                      borderRadius: BorderRadius.circular(30),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
-                          blurRadius: 4.0,
-                          offset: const Offset(0, 2),
                         ),
                       ],
                     ),
-                    child: widget.imageUrl != null
-                        ? ClipRRect(
-                            borderRadius: BorderRadius.circular(30),
-                            child: Image.network(
-                              widget.imageUrl!,
-                              width: double.infinity,
-                              height: double.infinity,
-                              fit: BoxFit.cover,
-                              errorBuilder: (context, error, stackTrace) {
-                                return const Center(child: Text('Image failed to load'));
-                              },
-                            ),
-                          )
-                        : const Center(child: Text('No image available')),
-                  ),
-                ),
-                Positioned(
-                  top: 380,
-                  left: 30,
-                  right: 30,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const SizedBox(height: 10),
-                      Center(
-                        child: Container(
-                          width: 330,
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(7),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.1),
-                                blurRadius: 4.0,
-                                offset: const Offset(0, 2),
-                              ),
-                            ],
-                          ),
-                          child: Text(
-                            widget.description,
-                            style: const TextStyle(fontSize: 16, color: Colors.black),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-                      const Text(
-                        'Task included',
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black),
-                      ),
-                      const SizedBox(height: 10),
-                      Center(
-                        child: Container(
-                          width: 330,
-                          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
-                          decoration: BoxDecoration(
-                            color: const Color.fromARGB(255, 240, 240, 240),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceAround,
-                            children: const [
-                              Column(
-                                children: [
-                                  Icon(Icons.cleaning_services, size: 32),
-                                  SizedBox(height: 5),
-                                  Text('Cleaning'),
-                                ],
-                              ),
-                              Column(
-                                children: [
-                                  Icon(Icons.cleaning_services, size: 32),
-                                  SizedBox(height: 5),
-                                  Text('Wiping'),
-                                ],
-                              ),
-                              Column(
-                                children: [
-                                  Icon(Icons.wash, size: 32),
-                                  SizedBox(height: 5),
-                                  Text('Organizing'),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
             ),
+          ),
+        ],
+      ),
     );
   }
 }

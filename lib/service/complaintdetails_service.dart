@@ -12,7 +12,7 @@ Future<Map<String, dynamic>?> fetchComplaintDetails(int complaintId) async {
   }
 
   final response = await http.get(
-    Uri.parse('http://10.0.2.2:8000/api/complaints/$complaintId/details'),  // Corrected endpoint
+   Uri.parse('http://10.0.2.2:8000/api/complaints/$complaintId/details'),  // Corrected endpoint
     headers: {
       'Authorization': 'Bearer $token', // Pass token in Authorization header
     },

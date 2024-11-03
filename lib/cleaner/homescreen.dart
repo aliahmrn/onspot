@@ -1,15 +1,36 @@
 import 'package:flutter/material.dart';
-import 'task.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'notifications.dart';
 import 'profile.dart';
-import 'navbar.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import '../widget/bell.dart';
+import 'navbar.dart';
+import 'task.dart';
+import '../service/task_service.dart';
 
-const Color appBarColor = Colors.white;
-
-class CleanerHomeScreen extends StatelessWidget {
+class CleanerHomeScreen extends StatefulWidget {
   const CleanerHomeScreen({super.key});
+
+  @override
+  _CleanerHomeScreenState createState() => _CleanerHomeScreenState();
+}
+
+class _CleanerHomeScreenState extends State<CleanerHomeScreen> {
+  bool isChecked = false;
+  Map<String, dynamic>? latestTask;
+  final TaskService taskService = TaskService();
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchLatestTask();
+  }
+
+  Future<void> _fetchLatestTask() async {
+    final task = await taskService.getLatestTask(69); // Replace 69 with the cleaner's actual ID
+    setState(() {
+      latestTask = task;
+    });
+  }
 
   void _handleBellTap(BuildContext context) {
     Navigator.push(
@@ -31,258 +52,236 @@ class CleanerHomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+
+    final primaryColor = Theme.of(context).primaryColor;
+    final secondaryColor = Theme.of(context).colorScheme.secondary;
+    final onPrimaryColor = Theme.of(context).colorScheme.onPrimary;
+    final outlineColor = Theme.of(context).colorScheme.outline;
+    final onSecondaryColor = Theme.of(context).colorScheme.onSecondary;
+
     return Scaffold(
-      appBar: PreferredSize(
-        preferredSize: Size.fromHeight(kToolbarHeight),
-        child: Container(
-          decoration: BoxDecoration(
-            color: appBarColor, // Set AppBar color
-          ),
-          child: AppBar(
-            elevation: 0, // No internal elevation
-            backgroundColor: Colors
-                .transparent, // Transparent to show the container's background
-            automaticallyImplyLeading: false, // Remove the back button
-            title: const Text(
-              'Home',
-              style: TextStyle(
-                color: Colors.black,
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            centerTitle: true,
+      backgroundColor: primaryColor,
+      appBar: AppBar(
+        backgroundColor: primaryColor,
+        elevation: 0,
+        automaticallyImplyLeading: false,
+        title: Text(
+          'Home',
+          style: TextStyle(
+            color: onPrimaryColor,
+            fontSize: screenWidth * 0.05,
+            fontWeight: FontWeight.bold,
           ),
         ),
+        centerTitle: true,
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  'Welcome, Cleaner!',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black87,
-                  ),
-                ),
-                Row(
-                  children: [
-                    BellProfileWidget(
-                      onBellTap: () => _handleBellTap(context),
-                    ),
-                    const SizedBox(width: 10),
-                    GestureDetector(
-                      onTap: () => _handleProfileTap(context),
-                      child: const CircleAvatar(
-                        backgroundImage: AssetImage(
-                            'assets/images/profile.png'), // Profile image asset
-                        radius: 15,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(12),
-              child: Container(
-                height: 180,
-                width: double.infinity,
-                decoration: const BoxDecoration(
-                  image: DecorationImage(
-                    image: AssetImage('assets/images/welcome_vacuum.png'),
-                    fit: BoxFit.cover,
-                  ),
-                ),
-                child: const Center(),
-              ),
-            ),
-            const SizedBox(height: 16),
-            Container(
+      body: Stack(
+        children: [
+          Container(color: primaryColor),
+          Positioned(
+            top: screenHeight * 0.01,
+            left: 0,
+            right: 0,
+            bottom: screenHeight * 0.08,
+            child: Container(
               decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.grey.withOpacity(0.3),
-                    spreadRadius: 2,
-                    blurRadius: 5,
-                    offset: const Offset(0, 3),
-                  ),
-                ],
+                color: secondaryColor,
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(screenWidth * 0.06),
+                  topRight: Radius.circular(screenWidth * 0.06),
+                ),
               ),
-              padding: const EdgeInsets.all(16.0),
+              padding: EdgeInsets.all(screenWidth * 0.04),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Welcome, Cleaner',
+                        style: TextStyle(
+                          fontSize: screenWidth * 0.05,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      Row(
+                        children: [
+                          BellProfileWidget(
+                            onBellTap: () => _handleBellTap(context),
+                          ),
+                          SizedBox(width: screenWidth * 0.025),
+                          GestureDetector(
+                            onTap: () => _handleProfileTap(context),
+                            child: CircleAvatar(
+                              child: Icon(Icons.person, size: screenWidth * 0.05),
+                              radius: screenWidth * 0.04,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: screenHeight * 0.02),
+                  Center(
+                    child: SvgPicture.asset(
+                      'assets/images/welcome.svg',
+                      height: screenHeight * 0.25,
+                    ),
+                  ),
+                  SizedBox(height: screenHeight * 0.02),
+                  Text(
                     'Attendance',
                     style: TextStyle(
-                      fontSize: 20,
+                      fontSize: screenWidth * 0.05,
                       fontWeight: FontWeight.bold,
                       color: Colors.black87,
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  SizedBox(height: screenHeight * 0.02),
+                  Container(
+                    padding: EdgeInsets.all(screenWidth * 0.03),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: outlineColor, width: screenWidth * 0.005),
+                      borderRadius: BorderRadius.circular(screenWidth * 0.03),
+                    ),
+                    child: Row(
+                      children: [
+                        IconButton(
+                          icon: Icon(
+                            isChecked ? Icons.check_box : Icons.check_box_outline_blank,
+                            color: isChecked ? Colors.green : Colors.grey,
+                          ),
+                          iconSize: screenWidth * 0.07,
+                          onPressed: () {
+                            setState(() {
+                              isChecked = !isChecked;
+                            });
+                          },
+                        ),
+                        SizedBox(width: screenWidth * 0.04),
+                        Text(
+                          'Name',
+                          style: TextStyle(
+                            fontSize: screenWidth * 0.045,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(height: screenHeight * 0.02),
                   Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text(
-                        'Name',
+                      Text(
+                        'Task',
                         style: TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.w500),
-                      ),
-                      const Spacer(),
-                      Container(
-                        width: 50,
-                        height: 50,
-                        decoration: BoxDecoration(
-                          color: Colors.green.withOpacity(0.2),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: IconButton(
-                          icon: const Icon(Icons.check, color: Colors.green),
-                          onPressed: () {
-                            // Handle check-in logic
-                          },
+                          fontSize: screenWidth * 0.05,
+                          fontWeight: FontWeight.bold,
+                          color: onSecondaryColor,
                         ),
                       ),
-                      const SizedBox(width: 16),
-                      Container(
-                        width: 50,
-                        height: 50,
-                        decoration: BoxDecoration(
-                          color: Colors.red.withOpacity(0.2),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: IconButton(
-                          icon: const Icon(Icons.close, color: Colors.red),
-                          onPressed: () {
-                            // Handle check-out logic
-                          },
+                      Text(
+                        'see all',
+                        style: TextStyle(
+                          fontSize: screenWidth * 0.035,
+                          fontWeight: FontWeight.w400,
+                          color: onSecondaryColor.withOpacity(0.6),
                         ),
                       ),
                     ],
                   ),
+                  SizedBox(height: screenHeight * 0.01),
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => CleanerTasksScreen()),
+                      );
+                    },
+                    child: Container(
+                      padding: EdgeInsets.all(screenWidth * 0.04),
+                      decoration: BoxDecoration(
+                        color: primaryColor,
+                        borderRadius: BorderRadius.circular(screenWidth * 0.03),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.grey.withOpacity(0.5),
+                            spreadRadius: screenWidth * 0.005,
+                            blurRadius: screenWidth * 0.03,
+                            offset: Offset(0, screenHeight * 0.005),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(Icons.location_on, size: screenWidth * 0.06, color: onPrimaryColor),
+                              SizedBox(width: screenWidth * 0.02),
+                              Text(
+                                latestTask != null ? latestTask!['comp_location'] : 'Location',
+                                style: TextStyle(
+                                  fontSize: screenWidth * 0.045,
+                                  fontWeight: FontWeight.w500,
+                                  color: onPrimaryColor,
+                                ),
+                              ),
+                            ],
+                          ),
+                          SizedBox(height: screenHeight * 0.005),
+                          Text(
+                            latestTask != null ? latestTask!['comp_desc'] : 'Task Description',
+                            style: TextStyle(
+                              fontSize: screenWidth * 0.04,
+                              fontWeight: FontWeight.bold,
+                              color: onPrimaryColor,
+                            ),
+                          ),
+                          SizedBox(height: screenHeight * 0.005),
+                          Row(
+                            children: [
+                              SvgPicture.asset(
+                                'assets/images/calendar.svg',
+                                height: screenWidth * 0.06,
+                                color: onPrimaryColor,
+                              ),
+                              SizedBox(width: screenWidth * 0.02),
+                              Text(
+                                latestTask != null ? latestTask!['comp_date'] : 'Date',
+                                style: TextStyle(
+                                  fontSize: screenWidth * 0.035,
+                                  color: onPrimaryColor,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),
-            const SizedBox(height: 16),
-            const Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Task',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black87,
-                  ),
-                ),
-                Text(
-                  'see all',
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w400,
-                    color: Colors.grey,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            GestureDetector(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => CleanerTasksScreen()),
-                );
-              },
+          ),
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            child: SafeArea(
               child: Container(
-                padding: const EdgeInsets.all(16.0),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF92AEB9),
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.grey.withOpacity(0.5),
-                      spreadRadius: 2,
-                      blurRadius: 5,
-                      offset: const Offset(0, 3),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Stack(
-                      alignment: Alignment.topRight,
-                      children: [
-                        Row(
-                          children: [
-                            const Icon(Icons.location_on,
-                                size: 24, color: Colors.black),
-                            const SizedBox(width: 5),
-                            const Text(
-                              'Floor 2',
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w500,
-                                color: Colors.black,
-                              ),
-                            ),
-                          ],
-                        ),
-                        Positioned(
-                          right: 0,
-                          child: const Text(
-                            '9:41 AM',
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Color(0xFF3c6576),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 5),
-                    const Text(
-                      'Room Cleaning',
-                      style:
-                          TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 5),
-                    Row(
-                      children: [
-                        SvgPicture.asset(
-                          'assets/images/calendar.svg',
-                          height: 24,
-                          color: Colors.black,
-                        ),
-                        const SizedBox(width: 8),
-                        const Text(
-                          'Today',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.black,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
+                color: Colors.white,
+                child: CleanerBottomNavBar(currentIndex: 0),
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
-      bottomNavigationBar: const CleanerBottomNavBar(currentIndex: 0),
     );
   }
 }

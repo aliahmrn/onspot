@@ -23,7 +23,7 @@ class TaskService {
 
     try {
       final response = await http.get(
-        Uri.parse('$baseUrl/tasks/cleaner/$cleanerId'),
+        Uri.parse('$baseUrl/cleaner/$cleanerId/tasks'),
         headers: {
           'Authorization': 'Bearer $token',
           'Accept': 'application/json',
@@ -73,4 +73,36 @@ class TaskService {
       return null;
     }
   }
+
+  // Fetch the latest task assigned to a specific cleaner
+  Future<Map<String, dynamic>?> getLatestTask(int cleanerId) async {
+    String? token = await _getToken();
+
+    if (token == null) {
+      logger.w('User not authenticated.');
+      return null;
+    }
+
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/cleaner/$cleanerId/tasks/latest'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Accept': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return data['task'];
+      } else {
+        logger.e('Failed to fetch latest task. Status code: ${response.statusCode}');
+        return null;
+      }
+    } catch (e) {
+      logger.e('Error fetching latest task', error: e);
+      return null;
+    }
+  }
+
 }

@@ -1,87 +1,108 @@
 import 'package:flutter/material.dart';
-import '../service/auth_service.dart'; // Import your AuthService
-import 'profile_edit.dart'; // Import CleanerProfileEditPage
-import 'navbar.dart'; // Import CleanerBottomNavBar
+import '../service/auth_service.dart';
+import 'profile_edit.dart';
+import 'navbar.dart';
 
 class CleanerProfileScreen extends StatelessWidget {
   const CleanerProfileScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final primaryColor = Theme.of(context).colorScheme.primary;
+    final secondaryColor = Theme.of(context).colorScheme.secondary;
+    final onPrimaryColor = Theme.of(context).colorScheme.onPrimary;
+    final screenWidth = MediaQuery.of(context).size.width;
+
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: const Color(0xFFFEF7FF), // Set AppBar color to #fef7ff
-        elevation: 0,
-        title: const Text(
-          'Profile',
-          style: TextStyle(
-            color: Colors.black,
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        centerTitle: true,
-      ),
+      backgroundColor: primaryColor,
       body: Stack(
         children: [
-          Container(
-            decoration: const BoxDecoration(
-              color: Color(0xFFFEF7FF), // Change background color to #fef7ff
-            ),
-          ),
+          // Profile Section (moved up)
           Positioned(
-            top: 0,
+            top: 20, // Move profile section closer to the top
             left: 0,
             right: 0,
+            height: 180, // Reduced height for a tighter profile section
             child: Container(
-              height: 200,
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    Color(0xFF4C7D90),
-                    Color(0xFFFEF7FF),
+              decoration: BoxDecoration(
+                color: primaryColor,
+                borderRadius: const BorderRadius.only(
+                  bottomLeft: Radius.circular(40),
+                  bottomRight: Radius.circular(40),
+                ),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                child: Column(
+                  children: [
+                    const SizedBox(height: 20), // Adjust this height to move the Row down
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        CircleAvatar(
+                          radius: 50,
+                          backgroundColor: Colors.white,
+                          child: Icon(
+                            Icons.person,
+                            size: 50,
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                        const SizedBox(width: 20),
+                        Column(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: const [
+                            
+                            Text(
+                              'Cleaner Name',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                            Text(
+                              'cleaner.username',
+                              style: TextStyle(color: Colors.white70),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
                   ],
                 ),
               ),
+
             ),
           ),
-          SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 20.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [                                                                                 
-                const SizedBox(height: 100),
-                CircleAvatar(
-                  radius: 50,
-                  backgroundColor: Colors.white,
-                  child: Icon(
-                    Icons.person,
-                    size: 50,
-                    color: Colors.grey[600],
-                  ),
+          // Secondary Container (moved up)
+          Positioned(
+            top: 160, // Positioned closer to the profile section
+            left: 0,
+            right: 0,
+            bottom: 0, // Extends to the bottom of the screen
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 20.0),
+              decoration: BoxDecoration(
+                color: secondaryColor,
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(40),
+                  topRight: Radius.circular(40),
                 ),
-                const SizedBox(height: 10),
-                const Text(
-                  'Cleaner Name',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
-                  ),
-                ),
-                const Text(
-                  'cleaner.username',
-                  style: TextStyle(color: Color.fromARGB(176, 0, 0, 0)),
-                ),
-                const SizedBox(height: 40),
-                _buildTextField('Email', 'cleaner@gmail.com'),
-                const SizedBox(height: 30),
-                _buildTextField('Phone Number', '0987654321'),
-                const SizedBox(height: 30), // Add some space before buttons
-                _buildButtonSection(context),
-              ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  const SizedBox(height: 40), // Adjusted spacing from the top
+                  _buildTextField('Email', 'cleaner@gmail.com', screenWidth),
+                  const SizedBox(height: 20),
+                  _buildTextField('Phone Number', '0987654321', screenWidth),
+                  const SizedBox(height: 30),
+                  _buildButtonSection(context),
+                ],
+              ),
             ),
           ),
         ],
@@ -90,44 +111,31 @@ class CleanerProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildTextField(String label, String value) {
+  Widget _buildTextField(String label, String value, double screenWidth) {
     return Center(
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Padding(
-            padding: const EdgeInsets.only(left: 8.0),
-            child: Text(
-              label,
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.normal,
-                color: Colors.black,
-              ),
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 16,
+              color: Colors.black,
+              fontWeight: FontWeight.w500,
             ),
           ),
           const SizedBox(height: 5),
-          Center(
-            child: SizedBox(
-              width: 300,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 15),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  border: Border.all(color: Colors.grey),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        value,
-                        style: const TextStyle(fontSize: 16),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+          Container(
+            width: screenWidth * 0.9,
+            padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 12),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.grey),
+            ),
+            child: Text(
+              value,
+              style: const TextStyle(fontSize: 16, color: Colors.black),
             ),
           ),
         ],
@@ -152,28 +160,26 @@ class CleanerProfileScreen extends StatelessWidget {
             style: TextStyle(color: Colors.black),
           ),
           style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFFFEF7FF), // Set button background color to #fef7ff
+            backgroundColor: const Color(0xFFFEF7FF),
             side: const BorderSide(color: Colors.black),
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(5),
+              borderRadius: BorderRadius.circular(12),
             ),
             minimumSize: const Size(250, 50),
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
           ),
         ),
         const SizedBox(height: 10),
         ElevatedButton(
           onPressed: () {
-            _logout(context); // Call logout method
+            _logout(context);
           },
           style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFFFEF7FF), // Set button background color to #fef7ff
+            backgroundColor: const Color(0xFFFEF7FF),
             side: const BorderSide(color: Colors.black),
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(5),
+              borderRadius: BorderRadius.circular(12),
             ),
             minimumSize: const Size(250, 50),
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
           ),
           child: const Text(
             'Logout',
@@ -186,7 +192,7 @@ class CleanerProfileScreen extends StatelessWidget {
 
   void _logout(BuildContext context) async {
     final AuthService authService = AuthService();
-    await authService.logout(); // Call the logout method to clear the token
-    Navigator.pushReplacementNamed(context, '/'); // Navigate back to the login screen
+    await authService.logout();
+    Navigator.pushReplacementNamed(context, '/');
   }
 }
