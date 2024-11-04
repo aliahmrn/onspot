@@ -95,7 +95,7 @@ class SupervisorHomeScreenState extends State<SupervisorHomeScreen> {
             top: screenHeight * 0.01,
             left: 0,
             right: 0,
-            bottom: screenHeight * 0.08, // Space for bottom navigation
+            bottom: 0, // Changed from screenHeight * 0.08 to 0
             child: Container(
               decoration: BoxDecoration(
                 color: secondaryColor,
@@ -129,7 +129,7 @@ class SupervisorHomeScreenState extends State<SupervisorHomeScreen> {
                           GestureDetector(
                             onTap: _navigateToProfile,
                             child: const CircleAvatar(
-                              backgroundImage: AssetImage('assets/images/profile.jpg'),
+                              backgroundImage: AssetImage('assets/images/user.jpg'),
                               radius: 20,
                             ),
                           ),
@@ -140,16 +140,9 @@ class SupervisorHomeScreenState extends State<SupervisorHomeScreen> {
                   SizedBox(height: screenHeight * 0.02),
                   // Welcome image
                   Center(
-                    child: Container(
-                      width: double.infinity,
+                    child: SvgPicture.asset(
+                      'assets/images/homeicon.svg',
                       height: screenHeight * 0.25,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(screenWidth * 0.03),
-                        image: const DecorationImage(
-                          image: AssetImage('assets/images/welcome_vacuum.png'),
-                          fit: BoxFit.cover,
-                        ),
-                      ),
                     ),
                   ),
                   SizedBox(height: screenHeight * 0.02),
@@ -246,10 +239,10 @@ class SupervisorHomeScreenState extends State<SupervisorHomeScreen> {
                                     ),
                                   ),
                                 )
-                              : const Center(child: Text('No unassigned complaints available.')),
-                ],
-              ),
-            ),
+                    : const Center(child: Text('No unassigned complaints available.')),
+                   ],
+                ),
+             ),
           ),
         ],
       ),

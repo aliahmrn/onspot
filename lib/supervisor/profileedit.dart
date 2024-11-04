@@ -1,21 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:logger/logger.dart'; // Import Logger
-import '../service/profile_service.dart'; // Import ProfileService
-import 'package:shared_preferences/shared_preferences.dart'; // Import for token management
+import 'package:logger/logger.dart';
+import '../service/profile_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class SVProfileEditScreen extends StatefulWidget {
   const SVProfileEditScreen({super.key});
 
   @override
-  SVProfileEditScreenState createState() => SVProfileEditScreenState(); // Made public
+  SVProfileEditScreenState createState() => SVProfileEditScreenState();
 }
 
 class SVProfileEditScreenState extends State<SVProfileEditScreen> {
   String? _currentProfilePic;
   Map<String, dynamic>? cleanerInfo;
   String? token;
-  final Logger _logger = Logger(); // Use Logger instead of print
+  final Logger _logger = Logger();
 
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _usernameController = TextEditingController();
@@ -36,8 +36,8 @@ class SVProfileEditScreenState extends State<SVProfileEditScreen> {
       await _loadProfile();
     } else {
       _logger.w('No token found');
-      if (mounted) { // Check if widget is still in tree
-        Navigator.pushReplacementNamed(context, '/'); // Navigate to login if no token
+      if (mounted) {
+        Navigator.pushReplacementNamed(context, '/');
       }
     }
   }
@@ -47,7 +47,7 @@ class SVProfileEditScreenState extends State<SVProfileEditScreen> {
 
     try {
       cleanerInfo = await profileService.fetchProfile(token!);
-      if (mounted) { // Ensure widget is still in the tree
+      if (mounted) {
         setState(() {
           _currentProfilePic = cleanerInfo?['profile_pic'];
           _nameController.text = cleanerInfo?['name'] ?? '';
@@ -73,9 +73,9 @@ class SVProfileEditScreenState extends State<SVProfileEditScreen> {
       };
 
       await profileService.updateProfile(token!, updatedData, _currentProfilePic);
-      if (mounted) { // Ensure widget is still in the tree
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Profile updated successfully!')),
+          const SnackBar(content: Text('Profile updated successfully!')),
         );
       }
     } catch (e) {
@@ -124,13 +124,16 @@ class SVProfileEditScreenState extends State<SVProfileEditScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final primaryColor = Theme.of(context).colorScheme.primary;
+    final screenWidth = MediaQuery.of(context).size.width;
+
     return Scaffold(
+      backgroundColor: primaryColor,
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: Colors.transparent,
-        automaticallyImplyLeading: false,
+        backgroundColor: primaryColor,
         title: const Text(
-          'Edit Info',
+          'Edit Profile',
           style: TextStyle(
             color: Colors.white,
             fontSize: 20,
@@ -145,95 +148,104 @@ class SVProfileEditScreenState extends State<SVProfileEditScreen> {
           },
         ),
       ),
-      extendBodyBehindAppBar: true,
       body: Stack(
         children: [
-          Positioned.fill(
-            child: Column(
-              children: [
-                Container(
-                  height: 200,
-                  decoration: const BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        Color(0xFF4C7D90),
-                        Color.fromARGB(255, 255, 255, 255),
-                      ],
-                    ),
-                  ),
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            height: 200,
+            child: Container(
+              decoration: BoxDecoration(
+                color: primaryColor,
+                borderRadius: const BorderRadius.only(
+                  bottomLeft: Radius.circular(40),
+                  bottomRight: Radius.circular(40),
                 ),
-                Expanded(
-                  child: Container(
-                    color: const Color.fromARGB(255, 255, 255, 255),
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Stack(
+                    children: [
+                      CircleAvatar(
+                        radius: 50,
+                        backgroundColor: Colors.grey[300],
+                        backgroundImage: _currentProfilePic != null
+                            ? NetworkImage(_currentProfilePic!)
+                            : null,
+                        child: _currentProfilePic == null
+                            ? const Icon(Icons.person, size: 50, color: Colors.white)
+                            : null,
+                      ),
+                      Positioned(
+                        bottom: 0,
+                        right: 0,
+                        child: GestureDetector(
+                          onTap: _showImageOptions,
+                          child: const CircleAvatar(
+                            radius: 16,
+                            backgroundColor: Color(0xFFFEF7FF),
+                            child: Icon(Icons.edit, size: 16, color: Colors.black),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
-          SingleChildScrollView(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                const SizedBox(height: 100),
-                Stack(
+          Positioned(
+            top: 200,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 20.0),
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(40),
+                  topRight: Radius.circular(40),
+                ),
+              ),
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    CircleAvatar(
-                      radius: 50,
-                      backgroundColor: Colors.grey[300],
-                      backgroundImage: _currentProfilePic != null
-                          ? NetworkImage(_currentProfilePic!)
-                          : null,
-                      child: _currentProfilePic == null
-                          ? const Icon(Icons.person, size: 50, color: Colors.white)
-                          : null,
-                    ),
-                    Positioned(
-                      bottom: 0,
-                      right: 0,
-                      child: GestureDetector(
-                        onTap: _showImageOptions,
-                        child: const CircleAvatar(
-                          radius: 16,
-                          backgroundColor: Color(0xFFFEF7FF),
-                          child: Icon(Icons.edit, size: 16, color: Colors.black),
+                    const SizedBox(height: 20),
+                    _buildTextField('Name', _nameController, screenWidth),
+                    const SizedBox(height: 30),
+                    _buildTextField('Username', _usernameController, screenWidth),
+                    const SizedBox(height: 30),
+                    _buildTextField('Email', _emailController, screenWidth),
+                    const SizedBox(height: 30),
+                    _buildTextField('Phone Number', _phoneController, screenWidth),
+                    const SizedBox(height: 30),
+                    Center(
+                      child: SizedBox(
+                        width: screenWidth * 0.9,
+                        height: 50,
+                        child: ElevatedButton(
+                          onPressed: _updateProfile,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFFFEF7FF),
+                            side: const BorderSide(color: Colors.black),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          child: const Text(
+                            'Save',
+                            style: TextStyle(color: Colors.black, fontSize: 16),
+                          ),
                         ),
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 40),
-                _buildTextField('Name', _nameController),
-                const SizedBox(height: 30),
-                _buildTextField('Username', _usernameController),
-                const SizedBox(height: 30),
-                _buildTextField('Email', _emailController),
-                const SizedBox(height: 30),
-                _buildTextField('Phone Number', _phoneController),
-                const SizedBox(height: 30),
-                Center(
-                  child: SizedBox(
-                    width: 250,
-                    height: 50,
-                    child: ElevatedButton(
-                      onPressed: _updateProfile,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFFFEF7FF),
-                        side: const BorderSide(color: Colors.black),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(5),
-                        ),
-                      ),
-                      child: const Text(
-                        'Save',
-                        style: TextStyle(color: Colors.black, fontSize: 16),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
+              ),
             ),
           ),
         ],
@@ -241,42 +253,33 @@ class SVProfileEditScreenState extends State<SVProfileEditScreen> {
     );
   }
 
-  Widget _buildTextField(String label, TextEditingController controller) {
-    return Center(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Padding(
-            padding: const EdgeInsets.only(left: 8.0),
-            child: Text(
-              label,
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.normal,
-                color: Colors.black,
-              ),
-            ),
+  Widget _buildTextField(String label, TextEditingController controller, double screenWidth) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 16,
+            color: Colors.black,
+            fontWeight: FontWeight.w500,
           ),
-          const SizedBox(height: 5),
-          Center(
-            child: SizedBox(
-              width: 300,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 15),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  border: Border.all(color: Colors.grey),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: TextField(
-                  controller: controller,
-                  decoration: const InputDecoration.collapsed(hintText: ''),
-                ),
-              ),
-            ),
+        ),
+        const SizedBox(height: 5),
+        Container(
+          width: screenWidth * 0.9,
+          padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 12),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Colors.grey),
           ),
-        ],
-      ),
+          child: TextField(
+            controller: controller,
+            decoration: const InputDecoration.collapsed(hintText: ''),
+          ),
+        ),
+      ],
     );
   }
 }
