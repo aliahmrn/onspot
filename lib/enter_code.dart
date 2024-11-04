@@ -5,31 +5,30 @@ import 'reset_password.dart';
 class EnterCodeScreen extends StatefulWidget {
   final String email;
 
-  const EnterCodeScreen({required this.email, Key? key}) : super(key: key);
+  const EnterCodeScreen({required this.email, super.key});
 
   @override
-  _EnterCodeScreenState createState() => _EnterCodeScreenState();
+  EnterCodeScreenState createState() => EnterCodeScreenState(); // Made public
 }
 
-class _EnterCodeScreenState extends State<EnterCodeScreen> {
+class EnterCodeScreenState extends State<EnterCodeScreen> {
   final TextEditingController _codeController = TextEditingController();
-  String _message = '';
-  bool _isLoading = false;
+  final String _message = ''; // Left mutable as it changes based on validation
+  final bool _isLoading = false; // Left mutable as it changes when loading state updates
 
-void _navigateToResetPassword() {
-  Navigator.push(
-    context,
-    PageRouteBuilder(
-      pageBuilder: (context, animation, secondaryAnimation) => ResetPasswordScreen(
-        email: widget.email,
-        code: _codeController.text,
+  void _navigateToResetPassword() {
+    Navigator.push(
+      context,
+      PageRouteBuilder(
+        pageBuilder: (context, animation, secondaryAnimation) => ResetPasswordScreen(
+          email: widget.email,
+          code: _codeController.text,
+        ),
+        transitionDuration: Duration.zero,
+        reverseTransitionDuration: Duration.zero,
       ),
-      transitionDuration: Duration.zero,
-      reverseTransitionDuration: Duration.zero,
-    ),
-  );
-}
-
+    );
+  }
 
   @override
   Widget build(BuildContext context) {

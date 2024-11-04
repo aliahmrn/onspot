@@ -1,17 +1,17 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:logger/logger.dart';
 
 class ComplaintsService {
   final String baseUrl = 'http://127.0.0.1:8000/api';
+  final Logger _logger = Logger(); // Initialize Logger
 
   Future<List<Map<String, dynamic>>> fetchComplaints() async {
     try {
-      // Retrieve token from shared preferences
       SharedPreferences prefs = await SharedPreferences.getInstance();
-      String? token = prefs.getString('token'); // Assume the token is stored with the key 'token'
+      String? token = prefs.getString('token');
 
-      // Set headers including authorization
       final headers = {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
@@ -19,25 +19,24 @@ class ComplaintsService {
 
       final response = await http.get(
         Uri.parse('$baseUrl/supervisor/complaints'),
-        headers: headers, // Include headers in the request
+        headers: headers,
       );
 
       if (response.statusCode == 200) {
-        // Parse the JSON response
         List<dynamic> data = json.decode(response.body);
         return List<Map<String, dynamic>>.from(data);
       } else {
-        print('Response status: ${response.statusCode}');
-        print('Response body: ${response.body}');
+        _logger.w('Response status: ${response.statusCode}');
+        _logger.w('Response body: ${response.body}');
         throw Exception('Failed to load complaints: ${response.statusCode}');
       }
     } catch (e) {
-      print('Error fetching complaints: $e');
+      _logger.e('Error fetching complaints: $e');
       throw Exception('Error fetching complaints: $e');
     }
   }
 
-Future<Map<String, dynamic>> getComplaintDetails(String complaintId) async {
+  Future<Map<String, dynamic>> getComplaintDetails(String complaintId) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? token = prefs.getString('token');
 
@@ -58,41 +57,38 @@ Future<Map<String, dynamic>> getComplaintDetails(String complaintId) async {
     }
   }
 
-// New method to send assigned task data to the backend with detailed logging
-Future<void> assignTask(String complaintId, Map<String, dynamic> body) async {
-  SharedPreferences prefs = await SharedPreferences.getInstance();
-  String? token = prefs.getString('token');
+  Future<void> assignTask(String complaintId, Map<String, dynamic> body) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? token = prefs.getString('token');
 
-  // Modify the body to ensure no_of_cleaners is an integer
-  final modifiedBody = {
-    'cleaner_ids': body['cleaner_ids'], // List of integers
-    'no_of_cleaners': int.tryParse(body['no_of_cleaners']?.toString() ?? '1'), // Convert to int if needed
-    'assigned_by': body['assigned_by'], // Assuming assigned_by is a string ID
-  };
+    final modifiedBody = {
+      'cleaner_ids': body['cleaner_ids'],
+      'no_of_cleaners': int.tryParse(body['no_of_cleaners']?.toString() ?? '1'),
+      'assigned_by': body['assigned_by'],
+    };
 
-  print('Modified Request Body: ${jsonEncode(modifiedBody)}'); // Log the modified body
+    _logger.i('Modified Request Body: ${jsonEncode(modifiedBody)}');
 
-  final response = await http.post(
-    Uri.parse('$baseUrl/supervisor/assign-task/$complaintId/assign'),
-    headers: {
-      'Authorization': 'Bearer $token',
-      'Content-Type': 'application/json',
-    },
-    body: jsonEncode(modifiedBody),
-  );
+    final response = await http.post(
+      Uri.parse('$baseUrl/supervisor/assign-task/$complaintId/assign'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode(modifiedBody),
+    );
 
-  print('Response Status: ${response.statusCode}');
-  print('Response Body: ${response.body}');
+    _logger.i('Response Status: ${response.statusCode}');
+    _logger.i('Response Body: ${response.body}');
 
-  if (response.statusCode != 200) {
-    print('Error assigning task: ${response.statusCode} - ${response.body}');
-    throw Exception('Failed to assign task: ${response.body}');
-  } else {
-    print('Task assigned successfully!');
+    if (response.statusCode != 200) {
+      _logger.e('Error assigning task: ${response.statusCode} - ${response.body}');
+      throw Exception('Failed to assign task: ${response.body}');
+    } else {
+      _logger.i('Task assigned successfully!');
+    }
   }
-}
 
-  //history
   Future<List<Map<String, dynamic>>> fetchAssignedTasksHistory() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? token = prefs.getString('token');
@@ -112,8 +108,7 @@ Future<void> assignTask(String complaintId, Map<String, dynamic> body) async {
     }
   }
 
-    //history details
- Future<Map<String, dynamic>> fetchAssignedTaskDetails(String complaintId) async {
+  Future<Map<String, dynamic>> fetchAssignedTaskDetails(String complaintId) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? token = prefs.getString('token');
 
@@ -129,13 +124,12 @@ Future<void> assignTask(String complaintId, Map<String, dynamic> body) async {
       if (response.statusCode == 200) {
         return jsonDecode(response.body);
       } else {
-        print('Failed to fetch task details: ${response.statusCode} - ${response.body}');
+        _logger.w('Failed to fetch task details: ${response.statusCode} - ${response.body}');
         throw Exception('Failed to load task details');
       }
     } catch (e) {
-      print('Error fetching task details: $e');
+      _logger.e('Error fetching task details: $e');
       throw Exception('Failed to load task details');
     }
   }
-
 }

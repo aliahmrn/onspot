@@ -9,10 +9,10 @@ class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
   @override
-  _LoginScreenState createState() => _LoginScreenState();
+  LoginScreenState createState() => LoginScreenState(); // Made public
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class LoginScreenState extends State<LoginScreen> {
   final TextEditingController _inputController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final AuthService _authService = AuthService();
@@ -37,10 +37,12 @@ class _LoginScreenState extends State<LoginScreen> {
     try {
       await _authService.login(input, password);
 
-      Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (context) => const MainNavigator()),
-        (route) => false, // Remove all previous routes
-      );
+      if (mounted) {
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (context) => const MainNavigator()),
+          (route) => false, // Remove all previous routes
+        );
+      }
     } catch (e) {
       setState(() {
         _errorMessage = e.toString() == 'Exception: Invalid login credentials.'

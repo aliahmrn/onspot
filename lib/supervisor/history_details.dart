@@ -8,10 +8,10 @@ class TaskDetailsPage extends StatefulWidget {
   const TaskDetailsPage({super.key, required this.complaintId});
 
   @override
-  _TaskDetailsPageState createState() => _TaskDetailsPageState();
+  TaskDetailsPageState createState() => TaskDetailsPageState();
 }
 
-class _TaskDetailsPageState extends State<TaskDetailsPage> {
+class TaskDetailsPageState extends State<TaskDetailsPage> {
   Map<String, dynamic>? taskDetails;
   bool isLoading = true;
   String? error;
@@ -41,7 +41,7 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: const Color.fromARGB(255, 255, 255, 255),
+        backgroundColor: Colors.white,
         elevation: 0,
         centerTitle: true,
         title: const Text(
@@ -74,30 +74,65 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
         children: [
           Card(
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(15),
             ),
-            elevation: 2,
-            color: const Color(0xFFF5F5F5),
+            elevation: 4,
+            color: Colors.white,
+            shadowColor: Colors.black26,
             child: Padding(
-              padding: const EdgeInsets.all(16.0),
+              padding: const EdgeInsets.all(20.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildInfoRow(icon: Icons.description, label: 'Description', value: taskDetails!['comp_desc'] ?? 'No Description'),
+                  _buildInfoRow(
+                    icon: Icons.description,
+                    label: 'Description',
+                    value: taskDetails!['comp_desc'] ?? 'No Description',
+                  ),
                   _buildDivider(),
-                  _buildInfoRow(icon: Icons.location_on, label: 'Location', value: taskDetails!['comp_location'] ?? 'No Location'),
+                  _buildInfoRow(
+                    icon: Icons.location_on,
+                    label: 'Location',
+                    value: taskDetails!['comp_location'] ?? 'No Location',
+                  ),
                   _buildDivider(),
-                  _buildInfoRow(icon: Icons.person, label: 'Complaint by', value: taskDetails!['officer_name'] ?? 'Unknown Officer'),
+                  _buildInfoRow(
+                    icon: Icons.person,
+                    label: 'Complaint by',
+                    value: taskDetails!['officer_name'] ?? 'Unknown Officer',
+                  ),
                   _buildDivider(),
-                  _buildInfoRow(icon: Icons.date_range, label: 'Date Of Complaint', value: formattedDate),
+                  _buildInfoRow(
+                    icon: Icons.date_range,
+                    label: 'Date Of Complaint',
+                    value: formattedDate,
+                  ),
                   _buildDivider(),
-                  _buildInfoRow(icon: Icons.access_time, label: 'Complaint Time', value: formattedTime),
+                  _buildInfoRow(
+                    icon: Icons.access_time,
+                    label: 'Complaint Time',
+                    value: formattedTime,
+                  ),
                   _buildDivider(),
-                  _buildInfoRow(icon: Icons.people, label: 'Number of Cleaners', value: '${taskDetails!['no_of_cleaners']}'),
+                  _buildInfoRow(
+                    icon: Icons.people,
+                    label: 'Number of Cleaners',
+                    value: '${taskDetails!['no_of_cleaners']}',
+                  ),
                   _buildDivider(),
-                  _buildInfoRow(icon: Icons.assignment_turned_in, label: 'Status', value: taskDetails!['comp_status'] ?? 'Unknown'),
+                  _buildStatusRow(
+                    icon: Icons.assignment_turned_in,
+                    label: 'Status',
+                    status: taskDetails!['comp_status'] ?? 'Unknown',
+                  ),
                   _buildDivider(),
-                  _buildInfoRow(icon: Icons.calendar_today, label: 'Assigned Date', value: DateFormat.yMMMMd().format(DateTime.parse(taskDetails!['assigned_date'] ?? DateTime.now().toString()))),
+                  _buildInfoRow(
+                    icon: Icons.calendar_today,
+                    label: 'Assigned Date',
+                    value: DateFormat.yMMMMd().format(
+                      DateTime.parse(taskDetails!['assigned_date'] ?? DateTime.now().toString()),
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -117,7 +152,7 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
   Widget _buildInfoRow({required IconData icon, required String label, required String value}) {
     return Row(
       children: [
-        Icon(icon, color: Colors.grey[700], size: 24),
+        Icon(icon, color: Colors.teal, size: 24),
         const SizedBox(width: 12),
         Expanded(
           child: Column(
@@ -125,12 +160,12 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
             children: [
               Text(
                 label,
-                style: const TextStyle(fontSize: 14, color: Colors.grey, fontWeight: FontWeight.w500),
+                style: const TextStyle(fontSize: 14, color: Colors.grey, fontWeight: FontWeight.w600),
               ),
               const SizedBox(height: 4),
               Text(
                 value,
-                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w400, color: Colors.black),
+                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: Colors.black),
               ),
             ],
           ),
@@ -138,6 +173,50 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
       ],
     );
   }
+
+Widget _buildStatusRow({required IconData icon, required String label, required String status}) {
+  Color statusColor;
+  if (status.toLowerCase() == 'completed') {
+    statusColor = Colors.green;
+  } else if (status.toLowerCase() == 'ongoing') {
+    statusColor = Colors.blue;
+  } else if (status.toLowerCase() == 'pending') {
+    statusColor = Colors.orange;
+  } else {
+    statusColor = Colors.red; // Default color for unknown statuses
+  }
+
+  return Row(
+    children: [
+      Icon(icon, color: Colors.teal, size: 24),
+      const SizedBox(width: 12),
+      Expanded(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              label,
+              style: const TextStyle(fontSize: 14, color: Colors.grey, fontWeight: FontWeight.w600),
+            ),
+            const SizedBox(height: 4),
+            Container(
+              padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+              decoration: BoxDecoration(
+                color: statusColor.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(
+                status,
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: statusColor),
+              ),
+            ),
+          ],
+        ),
+      ),
+    ],
+  );
+}
+
 
   Widget _buildDivider() {
     return Padding(
@@ -152,7 +231,10 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
   Widget _buildCleanersList() {
     final cleaners = taskDetails!['assigned_cleaners'] as List<dynamic>;
     if (cleaners.isEmpty) {
-      return const Text('No cleaners assigned.', style: TextStyle(fontSize: 14, color: Colors.black));
+      return const Text(
+        'No cleaners assigned.',
+        style: TextStyle(fontSize: 14, color: Colors.black),
+      );
     }
 
     return Column(
@@ -166,7 +248,7 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
           ),
           child: Row(
             children: [
-              const Icon(Icons.person, color: Colors.black),
+              const Icon(Icons.person, color: Colors.teal),
               const SizedBox(width: 12),
               Expanded(
                 child: Text(

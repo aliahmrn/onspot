@@ -1,26 +1,28 @@
 import 'package:flutter/material.dart';
 import 'login.dart';
-import '../service/auth_service.dart'; 
+import '../service/auth_service.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:logger/logger.dart';
 
 class RegistrationScreen extends StatefulWidget {
   const RegistrationScreen({super.key});
 
   @override
-  _RegistrationScreenState createState() => _RegistrationScreenState();
+  RegistrationScreenState createState() => RegistrationScreenState(); // Made public
 }
 
-class _RegistrationScreenState extends State<RegistrationScreen> {
+class RegistrationScreenState extends State<RegistrationScreen> {
   final TextEditingController _fullNameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController = TextEditingController();
   final TextEditingController _phoneNumberController = TextEditingController();
+  final Logger _logger = Logger(); // Initialize Logger
+  final AuthService _authService = AuthService();
+
   String _errorMessage = '';
   bool _isLoading = false;
-
-  final AuthService _authService = AuthService();
   bool _isDisposed = false;
 
   void setStateIfMounted(f) {
@@ -59,18 +61,18 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
       await _authService.register(fullName, username, email, password, phoneNumber);
       if (!mounted || _isDisposed) return;
 
-    Navigator.of(context).pushReplacement(
-      PageRouteBuilder(
-        pageBuilder: (context, animation, secondaryAnimation) => const LoginScreen(),
-        transitionDuration: Duration.zero,
-        reverseTransitionDuration: Duration.zero,
-      ),
-    );
+      Navigator.of(context).pushReplacement(
+        PageRouteBuilder(
+          pageBuilder: (context, animation, secondaryAnimation) => const LoginScreen(),
+          transitionDuration: Duration.zero,
+          reverseTransitionDuration: Duration.zero,
+        ),
+      );
     } catch (e) {
       setStateIfMounted(() {
         _errorMessage = 'Failed to register: ${e.toString()}';
       });
-      print('Error: $e');
+      _logger.e('Error: $e'); // Log error instead of printing
     } finally {
       setStateIfMounted(() {
         _isLoading = false;

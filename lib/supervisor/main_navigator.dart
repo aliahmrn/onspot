@@ -7,13 +7,13 @@ import '../supervisor/search.dart';
 import '../supervisor/navbar.dart';
 
 class MainNavigator extends StatefulWidget {
-  const MainNavigator({Key? key}) : super(key: key);
+  const MainNavigator({super.key}); // Use super.key here
 
   @override
-  _MainNavigatorState createState() => _MainNavigatorState();
+  MainNavigatorState createState() => MainNavigatorState(); // Made public
 }
 
-class _MainNavigatorState extends State<MainNavigator> {
+class MainNavigatorState extends State<MainNavigator> {
   int _currentIndex = 0;
 
   final List<Widget> _pages = [
@@ -21,7 +21,7 @@ class _MainNavigatorState extends State<MainNavigator> {
     const SearchPage(),
     const ComplaintPage(),
     const HistoryPage(),
-    const SVProfilePage(),
+    const SVProfileScreen(),
   ];
 
   @override

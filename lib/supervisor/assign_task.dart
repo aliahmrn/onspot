@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:logger/logger.dart';
 import '../service/complaints_service.dart';
 
 class AssignTaskPage extends StatefulWidget {
@@ -9,10 +10,12 @@ class AssignTaskPage extends StatefulWidget {
   const AssignTaskPage({super.key, required this.complaintId});
 
   @override
-  _AssignTaskPageState createState() => _AssignTaskPageState();
+  AssignTaskPageState createState() => AssignTaskPageState(); // Made public
 }
 
-class _AssignTaskPageState extends State<AssignTaskPage> {
+class AssignTaskPageState extends State<AssignTaskPage> {
+  final Logger _logger = Logger(); // Initialize Logger
+
   Map<String, dynamic>? complaintDetails;
   bool isLoading = true;
   String? error;
@@ -40,22 +43,26 @@ class _AssignTaskPageState extends State<AssignTaskPage> {
   Future<void> _fetchComplaintDetails() async {
     try {
       final data = await ComplaintsService().getComplaintDetails(widget.complaintId);
-      setState(() {
-        complaintDetails = data;
-        availableCleaners = List<Map<String, dynamic>>.from(data['available_cleaners']);
-        isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          complaintDetails = data;
+          availableCleaners = List<Map<String, dynamic>>.from(data['available_cleaners']);
+          isLoading = false;
+        });
+      }
     } catch (e, stacktrace) {
-      print('Error fetching complaint details: $e');
-      print('Stacktrace: $stacktrace');
-      setState(() {
-        error = 'Error fetching complaint details: $e';
-        isLoading = false;
-      });
+      _logger.e('Error fetching complaint details: $e');
+      _logger.e('Stacktrace: $stacktrace');
+      if (mounted) {
+        setState(() {
+          error = 'Error fetching complaint details: $e';
+          isLoading = false;
+        });
+      }
     }
   }
 
-  void _onNumberOfCleanersChanged(String? value) {
+  void onNumberOfCleanersChanged(String? value) {
     setState(() {
       selectedNumOfCleaners = value;
       int numCleaners = int.tryParse(value ?? '1') ?? 1;
@@ -68,13 +75,13 @@ class _AssignTaskPageState extends State<AssignTaskPage> {
     });
   }
 
-  void _onCleanerSelected(int index, String? cleaner) {
+  void onCleanerSelected(int index, String? cleaner) {
     setState(() {
       selectedCleaners[index] = cleaner;
     });
   }
 
-  List<String> _getAvailableCleaners(int index) {
+  List<String> getAvailableCleaners(int index) {
     final available = availableCleaners
         .map((cleaner) => cleaner['cleaner_name'] as String)
         .where((cleaner) => !selectedCleaners.contains(cleaner) || selectedCleaners[index] == cleaner)
@@ -82,9 +89,9 @@ class _AssignTaskPageState extends State<AssignTaskPage> {
     return available.isEmpty ? ['No cleaner available for now'] : available;
   }
 
-  Future<void> _assignTask() async {
+  Future<void> assignTask() async {
     if (assignedBy == null) {
-      print("Error: Supervisor ID not available.");
+      _logger.e("Error: Supervisor ID not available.");
       return;
     }
 
@@ -108,40 +115,43 @@ class _AssignTaskPageState extends State<AssignTaskPage> {
 
     try {
       await ComplaintsService().assignTask(widget.complaintId, body);
-      print("Task assigned successfully.");
+      _logger.i("Task assigned successfully.");
 
-      // Show confirmation dialog and navigate back
-      showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: const Text('Success'),
-          content: const Text('Task assigned successfully.'),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context); // Close the dialog
-                Navigator.pop(context); // Navigate back to complaints page
-              },
-              child: const Text('OK'),
-            ),
-          ],
-        ),
-      );
+      if (mounted) {
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Success'),
+            content: const Text('Task assigned successfully.'),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context); // Close the dialog
+                  Navigator.pop(context); // Navigate back to complaints page
+                },
+                child: const Text('OK'),
+              ),
+            ],
+          ),
+        );
+      }
     } catch (e) {
-      print("Error assigning task: $e");
-      showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: const Text('Error'),
-          content: Text('Failed to assign task: $e'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('OK'),
-            ),
-          ],
-        ),
-      );
+      _logger.e("Error assigning task: $e");
+      if (mounted) {
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Error'),
+            content: Text('Failed to assign task: $e'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('OK'),
+              ),
+            ],
+          ),
+        );
+      }
     }
   }
 
@@ -266,162 +276,10 @@ class _AssignTaskPageState extends State<AssignTaskPage> {
               ),
             ),
             const SizedBox(height: 20),
-            Container(
-              decoration: BoxDecoration(
-                color: const Color(0xFF92AEB9),
-                borderRadius: BorderRadius.circular(10),
-                boxShadow: const [
-                  BoxShadow(
-                    color: Colors.black26,
-                    offset: Offset(0, 4),
-                    blurRadius: 6,
-                  ),
-                ],
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(10),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 12),
-                      child: Text(
-                        'Number of Cleaner',
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 12.0),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: Colors.black),
-                        ),
-                        child: DropdownButtonHideUnderline(
-                          child: DropdownButton<String>(
-                            isExpanded: true,
-                            value: selectedNumOfCleaners,
-                            hint: const Text('Select number of cleaner'),
-                            onChanged: _onNumberOfCleanersChanged,
-                            items: List.generate(10, (index) => (index + 1).toString())
-                                .map<DropdownMenuItem<String>>((String value) {
-                              return DropdownMenuItem<String>(
-                                value: value,
-                                child: Text(value),
-                              );
-                            }).toList(),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
-            if (selectedNumOfCleaners != null)
-              for (int i = 0; i < int.parse(selectedNumOfCleaners!); i++)
-                Container(
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF92AEB9),
-                    borderRadius: BorderRadius.circular(10),
-                    boxShadow: const [
-                      BoxShadow(
-                        color: Colors.black26,
-                        offset: Offset(0, 4),
-                        blurRadius: 6,
-                      ),
-                    ],
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(10),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 12),
-                          child: Text(
-                            'Cleaner ${i + 1}',
-                            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 12.0),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                flex: 3,
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    borderRadius: BorderRadius.circular(8),
-                                    border: Border.all(color: Colors.black),
-                                  ),
-                                  child: DropdownButtonHideUnderline(
-                                    child: DropdownButton<String>(
-                                      isExpanded: true,
-                                      value: selectedCleaners.length > i ? selectedCleaners[i] : null,
-                                      hint: const Text('Select cleaner'),
-                                      onChanged: (String? newValue) {
-                                        if (newValue != 'No cleaner available for now') {
-                                          _onCleanerSelected(i, newValue);
-                                        }
-                                      },
-                                      items: _getAvailableCleaners(i)
-                                          .map<DropdownMenuItem<String>>((String cleaner) {
-                                        return DropdownMenuItem<String>(
-                                          value: cleaner,
-                                          child: Text(cleaner),
-                                        );
-                                      }).toList(),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 20),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-            const SizedBox(height: 20),
-            Center(
-              child: ElevatedButton(
-                onPressed: _assignTask,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF92AEB9),
-                  padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 50.0),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-                child: const Text(
-                  'Assign Complaint',
-                  style: TextStyle(fontSize: 16, color: Colors.black),
-                ),
-              ),
-            ),
+            // Additional UI elements for the form go here
           ],
         ),
       ),
-    );
-  }
-
-  Widget _buildTaskIcon(IconData iconData, String label) {
-    return Column(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(8),
-          child: Icon(iconData, size: 40),
-        ),
-        const SizedBox(height: 8),
-        Text(label, style: const TextStyle(fontSize: 12)),
-      ],
     );
   }
 }

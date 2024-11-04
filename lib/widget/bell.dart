@@ -7,10 +7,10 @@ class BellProfileWidget extends StatefulWidget {
   const BellProfileWidget({super.key, required this.onBellTap});
 
   @override
-  _BellProfileWidgetState createState() => _BellProfileWidgetState();
+  BellProfileWidgetState createState() => BellProfileWidgetState(); // Made public
 }
 
-class _BellProfileWidgetState extends State<BellProfileWidget> {
+class BellProfileWidgetState extends State<BellProfileWidget> {
   bool _isHovered = false; // Track hover state
   bool _isClicked = false; // Track click state for animation
 

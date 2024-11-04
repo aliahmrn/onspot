@@ -7,13 +7,13 @@ class ResetPasswordScreen extends StatefulWidget {
   final String email;
   final String code;
 
-  const ResetPasswordScreen({required this.email, required this.code, Key? key}) : super(key: key);
+  const ResetPasswordScreen({required this.email, required this.code, super.key});
 
   @override
-  _ResetPasswordScreenState createState() => _ResetPasswordScreenState();
+  ResetPasswordScreenState createState() => ResetPasswordScreenState(); // Made public
 }
 
-class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
+class ResetPasswordScreenState extends State<ResetPasswordScreen> {
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController = TextEditingController();
   final AuthService _authService = AuthService();
@@ -21,55 +21,54 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
   String _message = '';
   bool _isLoading = false;
 
-Future<void> _resetPassword() async {
-  setState(() {
-    _isLoading = true;
-    _message = '';
-  });
-
-  if (_passwordController.text != _confirmPasswordController.text) {
+  Future<void> _resetPassword() async {
     setState(() {
-      _message = 'Passwords do not match.';
-      _isLoading = false;
-    });
-    return;
-  }
-
-  try {
-    await _authService.resetPassword(
-      widget.email,
-      widget.code,
-      _passwordController.text,
-      _confirmPasswordController.text,
-    );
-
-    setState(() {
-      _message = 'Your password has been reset successfully.';
+      _isLoading = true;
+      _message = '';
     });
 
-    // Wait for 3 seconds to show the success message before redirecting
-    Future.delayed(const Duration(seconds: 3), () {
-      // Navigate back to the login screen without animation
-      Navigator.of(context).pushAndRemoveUntil(
-        PageRouteBuilder(
-          pageBuilder: (context, animation, secondaryAnimation) => const LoginScreen(),
-          transitionDuration: Duration.zero,
-          reverseTransitionDuration: Duration.zero,
-        ),
-        (route) => false,
+    if (_passwordController.text != _confirmPasswordController.text) {
+      setState(() {
+        _message = 'Passwords do not match.';
+        _isLoading = false;
+      });
+      return;
+    }
+
+    try {
+      await _authService.resetPassword(
+        widget.email,
+        widget.code,
+        _passwordController.text,
+        _confirmPasswordController.text,
       );
-    });
-  } catch (e) {
-    setState(() {
-      _message = 'Error: ${e.toString()}';
-    });
-  } finally {
-    setState(() {
-      _isLoading = false;
-    });
-  }
-}
 
+      setState(() {
+        _message = 'Your password has been reset successfully.';
+      });
+
+      Future.delayed(const Duration(seconds: 3), () {
+        if (mounted) {
+          Navigator.of(context).pushAndRemoveUntil(
+            PageRouteBuilder(
+              pageBuilder: (context, animation, secondaryAnimation) => const LoginScreen(),
+              transitionDuration: Duration.zero,
+              reverseTransitionDuration: Duration.zero,
+            ),
+            (route) => false,
+          );
+        }
+      });
+    } catch (e) {
+      setState(() {
+        _message = 'Error: ${e.toString()}';
+      });
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {

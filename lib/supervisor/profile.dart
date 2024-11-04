@@ -1,100 +1,80 @@
 import 'package:flutter/material.dart';
-import '../supervisor/profileedit.dart';
-import '../login.dart';
-import 'package:onspot_supervisor/service/auth_service.dart';
+import 'package:logger/logger.dart';
+import '../service/auth_service.dart'; // Import your AuthService
+import '../service/profile_service.dart'; // Import ProfileService
+import 'profileedit.dart'; // Import CleanerProfileEditScreen
+import 'package:shared_preferences/shared_preferences.dart';
 
-class SVProfilePage extends StatelessWidget {
-  const SVProfilePage({super.key});
+class SVProfileScreen extends StatefulWidget {
+  const SVProfileScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Column(
-        children: [
-          const Expanded(
-            child: ProfilePage(
-              name: 'Supervisor Name', // Replace with actual data if needed
-              username: 'supervisor.username',
-              email: 'supervisor@gmail.com',
-              phoneNumber: '0123456789',
-            ),
-          ),
-          _buildButtonSection(context),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildButtonSection(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        ElevatedButton.icon(
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const SVProfileEditPage()),
-            );
-          },
-          icon: const Icon(Icons.edit, color: Colors.black),
-          label: const Text(
-            'Edit Information',
-            style: TextStyle(color: Colors.black),
-          ),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFF92AEB9),
-            elevation: 5, // Add shadow
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(30), // More curved
-            ),
-            minimumSize: const Size(200, 50), 
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-          ),
-        ),
-        const SizedBox(height: 30),
-      ],
-    );
-  }
+  SVProfileScreenState createState() => SVProfileScreenState(); // Made public
 }
 
-class ProfilePage extends StatelessWidget {
-  final String name;
-  final String username;
-  final String email;
-  final String phoneNumber;
+class SVProfileScreenState extends State<SVProfileScreen> {
+  Map<String, dynamic>? cleanerInfo;
+  String? token;
+  final Logger _logger = Logger(); // Use Logger instead of print
 
-  const ProfilePage({
-    super.key,
-    required this.name,
-    required this.username,
-    required this.email,
-    required this.phoneNumber,
-  });
+  @override
+  void initState() {
+    super.initState();
+    _initializeTokenAndLoadProfile();
+  }
+
+  Future<void> _initializeTokenAndLoadProfile() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    token = prefs.getString('token');
+
+    if (token != null) {
+      await _loadProfile();
+    } else {
+      _logger.w('No token found');
+      if (mounted) {
+        if (context.mounted) {  // Guarding with `context.mounted`
+          Navigator.pushReplacementNamed(context, '/');
+        }
+      }
+    }
+  }
+
+  Future<void> _loadProfile() async {
+    ProfileService profileService = ProfileService();
+
+    try {
+      cleanerInfo = await profileService.fetchProfile(token!);
+    } catch (e) {
+      _logger.e('Error fetching profile: $e');
+    } finally {
+      if (mounted) {
+        setState(() {});
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Color(0xFF4C7D90),
         elevation: 0,
-        backgroundColor: Colors.transparent,
-        automaticallyImplyLeading: false,
-        title: const Center(
-          child: Text(
-            'Information',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-            ),
+        title: const Text(
+          'Profile',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
           ),
         ),
+        centerTitle: true,
+        automaticallyImplyLeading: false,
       ),
-      extendBodyBehindAppBar: true,
       body: Stack(
         children: [
           Container(
             decoration: const BoxDecoration(
-              color: Color.fromARGB(255, 255, 255, 255), // Change background color to #fef7ff
+              color: Color.fromARGB(255, 255, 255, 255),
             ),
           ),
           Positioned(
@@ -115,25 +95,29 @@ class ProfilePage extends StatelessWidget {
               ),
             ),
           ),
-          SingleChildScrollView(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 16.0, vertical: 20.0),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 20.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                const SizedBox(height: 100),
+                const SizedBox(height: 20),
                 CircleAvatar(
                   radius: 50,
                   backgroundColor: Colors.white,
-                  child: Icon(
-                    Icons.person,
-                    size: 50,
-                    color: Colors.grey[600],
-                  ),
+                  backgroundImage: (cleanerInfo?['profile_pic'] != null)
+                      ? NetworkImage(cleanerInfo!['profile_pic'])
+                      : null,
+                  child: (cleanerInfo?['profile_pic'] == null)
+                      ? Icon(
+                          Icons.person,
+                          size: 50,
+                          color: Colors.grey[600],
+                        )
+                      : null,
                 ),
                 const SizedBox(height: 10),
                 Text(
-                  name,
+                  cleanerInfo?['name'] ?? 'Cleaner Name',
                   style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -141,30 +125,15 @@ class ProfilePage extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  username,
+                  cleanerInfo?['username'] ?? 'Username',
                   style: const TextStyle(color: Color.fromARGB(176, 0, 0, 0)),
                 ),
                 const SizedBox(height: 40),
-                _buildTextField('Email', email),
+                _buildTextField('Email', cleanerInfo?['email'] ?? ''),
                 const SizedBox(height: 30),
-                _buildTextField('Phone Number', phoneNumber),
-                const SizedBox(height: 35), 
-                ElevatedButton(
-                  onPressed: () => _logout(context), // Call logout method
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF92AEB9),
-                    elevation: 5, // Add shadow
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(30), // More curved
-                    ),
-                    minimumSize: const Size(200, 50), // Reduced width
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-                  ),
-                  child: const Text(
-                    "Logout",
-                    style: TextStyle(color: Colors.black),
-                  ),
-                ),
+                _buildTextField('Phone Number', cleanerInfo?['phone_no'] ?? ''),
+                const SizedBox(height: 30),
+                _buildButtonSection(context),
               ],
             ),
           ),
@@ -194,8 +163,7 @@ class ProfilePage extends StatelessWidget {
             child: SizedBox(
               width: 300,
               child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 15),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 15),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   border: Border.all(color: Colors.grey),
@@ -219,12 +187,62 @@ class ProfilePage extends StatelessWidget {
     );
   }
 
+  Widget _buildButtonSection(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        ElevatedButton.icon(
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => SVProfileEditScreen()),
+            );
+          },
+          icon: const Icon(Icons.edit, color: Colors.black),
+          label: const Text(
+            'Edit Information',
+            style: TextStyle(color: Colors.black),
+          ),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFFFEF7FF),
+            side: const BorderSide(color: Colors.black),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(5),
+            ),
+            minimumSize: const Size(250, 50),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+          ),
+        ),
+        const SizedBox(height: 10),
+        ElevatedButton(
+          onPressed: () {
+            _logout(context);
+          },
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFFFEF7FF),
+            side: const BorderSide(color: Colors.black),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(5),
+            ),
+            minimumSize: const Size(250, 50),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+          ),
+          child: const Text(
+            'Logout',
+            style: TextStyle(color: Colors.black),
+          ),
+        ),
+      ],
+    );
+  }
+
   void _logout(BuildContext context) async {
     final AuthService authService = AuthService();
-    await authService.clearUserDetails(); // Clear the token
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => const LoginScreen()), // Navigate back to the login screen
-    );
+    await authService.logout();
+    if (mounted) {
+      if (context.mounted) { // Guarding with `context.mounted`
+        Navigator.pushReplacementNamed(context, '/');
+      }
+    }
   }
 }

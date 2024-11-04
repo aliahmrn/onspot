@@ -8,10 +8,10 @@ class ComplaintPage extends StatefulWidget {
   const ComplaintPage({super.key});
 
   @override
-  _ComplaintPageState createState() => _ComplaintPageState();
+  ComplaintPageState createState() => ComplaintPageState(); // Made public
 }
 
-class _ComplaintPageState extends State<ComplaintPage> {
+class ComplaintPageState extends State<ComplaintPage> {
   final ComplaintsService complaintsService = ComplaintsService();
 
   Future<void> _refreshComplaints() async {

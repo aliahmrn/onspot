@@ -8,10 +8,10 @@ class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({super.key});
 
   @override
-  _ForgotPasswordScreenState createState() => _ForgotPasswordScreenState();
+  ForgotPasswordScreenState createState() => ForgotPasswordScreenState(); // Made public
 }
 
-class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
+class ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   final TextEditingController _emailController = TextEditingController();
   final AuthService _authService = AuthService();
   String _message = '';
@@ -29,17 +29,19 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         _message = 'A reset code has been sent to your email.';
       });
 
-      // Wait for 5 seconds before navigating to EnterCodeScreen
+      // Wait for 3 seconds before navigating to EnterCodeScreen
       await Future.delayed(const Duration(seconds: 3));
 
-      Navigator.push(
-        context,
-        PageRouteBuilder(
-          pageBuilder: (context, animation, secondaryAnimation) => EnterCodeScreen(email: _emailController.text),
-          transitionDuration: Duration.zero,
-          reverseTransitionDuration: Duration.zero,
-        ),
-      );
+      if (mounted) {
+        Navigator.push(
+          context,
+          PageRouteBuilder(
+            pageBuilder: (context, animation, secondaryAnimation) => EnterCodeScreen(email: _emailController.text),
+            transitionDuration: Duration.zero,
+            reverseTransitionDuration: Duration.zero,
+          ),
+        );
+      }
     } catch (e) {
       setState(() {
         _message = 'Error: ${e.toString()}';
