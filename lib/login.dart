@@ -59,7 +59,7 @@ class LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF92AEB9),
+      backgroundColor: const Color(0xFF2E5675),
       body: Center(
         child: SingleChildScrollView(
           child: Padding(
@@ -76,7 +76,7 @@ class LoginScreenState extends State<LoginScreen> {
                       style: GoogleFonts.poppins(
                         fontSize: 32,
                         fontWeight: FontWeight.w800,
-                        color: Color.fromARGB(255, 0, 0, 0),
+                        color: Colors.white,
                       ),
                     ),
                     Text(
@@ -84,7 +84,7 @@ class LoginScreenState extends State<LoginScreen> {
                       style: GoogleFonts.poppins(
                         fontSize: 32,
                         fontWeight: FontWeight.w800,
-                        color: Color.fromARGB(255, 0, 0, 0),
+                        color:  Colors.white,
                       ),
                     ),
                   ],
