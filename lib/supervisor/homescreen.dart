@@ -1,225 +1,257 @@
 import 'package:flutter/material.dart';
-import 'history.dart';
 import 'profile.dart';
-import 'navbar.dart'; // Import the SupervisorBottomNavBar widget
-import '../bell.dart';
+import '../widget/bell.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../service/complaints_service.dart';
+import 'complaints.dart';
 
 class SupervisorHomeScreen extends StatefulWidget {
   const SupervisorHomeScreen({super.key});
 
   @override
-  _SupervisorHomeScreenState createState() => _SupervisorHomeScreenState();
+  SupervisorHomeScreenState createState() => SupervisorHomeScreenState();
 }
 
-class _SupervisorHomeScreenState extends State<SupervisorHomeScreen> {
+class SupervisorHomeScreenState extends State<SupervisorHomeScreen> {
+  String userName = '';
+  Map<String, dynamic>? latestComplaint;
+  bool isLoading = true;
+  String? error;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserName();
+    _fetchUnassignedComplaints();
+  }
+
+  Future<void> _loadUserName() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      userName = prefs.getString('name') ?? 'Supervisor';
+    });
+  }
+
+  Future<void> _fetchUnassignedComplaints() async {
+    try {
+      final complaints = await ComplaintsService().fetchComplaints();
+      setState(() {
+        latestComplaint = complaints.isNotEmpty ? complaints.first : null;
+        isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        error = 'Failed to load complaints: $e';
+        isLoading = false;
+      });
+    }
+  }
+
   void _navigateToProfile() {
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => SVProfilePage()),
+      MaterialPageRoute(builder: (context) => SVProfileScreen()),
     );
   }
 
-  void _navigateToHistory() {
+  void _navigateToComplaintsPage() {
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => const HistoryPage()),
-    );
-  }
-
-  void _navigateToHistoryFromCard() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const HistoryPage()),
+      MaterialPageRoute(builder: (context) => ComplaintPage()),
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+
+    final primaryColor = Theme.of(context).primaryColor;
+    final secondaryColor = Theme.of(context).colorScheme.secondary;
+    final onPrimaryColor = Theme.of(context).colorScheme.onPrimary;
+    final onSecondaryColor = Theme.of(context).colorScheme.onSecondary;
+
     return Scaffold(
-      backgroundColor: const Color(0xFFFEF7FF), // Change background color to #FEF7FF
-      appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(kToolbarHeight),
-        child: Container(
-          decoration: BoxDecoration(
-            color: const Color(0xFFFEF7FF), // Change app bar background color to #FEF7FF
-            boxShadow: [
-              BoxShadow(
-                color: Colors.grey.withOpacity(0.5), // Shadow color
-                spreadRadius: 2, // Spread radius of the shadow
-                blurRadius: 5, // Blur radius of the shadow for smooth effect
-                offset: const Offset(0, 3), // Offset the shadow to create depth
-              ),
-            ],
-            border: Border(
-              bottom: BorderSide(
-                color: Colors.grey.shade300, // Light grey border color
-                width: 1.0, // Thickness of the border
-              ),
-            ),
-          ),
-          child: AppBar(
-            elevation: 0, // No internal elevation
-            backgroundColor: Colors.transparent, // Transparent to show the container's background
-            automaticallyImplyLeading: false, // Remove the back button
-            title: const Text(
-              'Home',
-              style: TextStyle(
-                color: Colors.black,
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            centerTitle: true,
+      backgroundColor: primaryColor,
+      appBar: AppBar(
+        backgroundColor: primaryColor,
+        elevation: 0,
+        automaticallyImplyLeading: false,
+        title: Text(
+          'Home',
+          style: TextStyle(
+            color: onPrimaryColor,
+            fontSize: screenWidth * 0.05,
+            fontWeight: FontWeight.bold,
           ),
         ),
+        centerTitle: true,
       ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: 10),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      body: Stack(
+        children: [
+          // Background color with rounded corners at the top
+          Positioned(
+            top: screenHeight * 0.01,
+            left: 0,
+            right: 0,
+            bottom: screenHeight * 0.08, // Space for bottom navigation
+            child: Container(
+              decoration: BoxDecoration(
+                color: secondaryColor,
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(screenWidth * 0.06),
+                  topRight: Radius.circular(screenWidth * 0.06),
+                ),
+              ),
+              padding: EdgeInsets.all(screenWidth * 0.04),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Welcome, Supervisor',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
+                  // Welcome message with profile and bell icons
                   Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      BellProfileWidget(
-                        onBellTap:
-                            _navigateToHistory, // Navigate to history on bell tap
-                      ),
-                      GestureDetector(
-                        onTap:
-                            _navigateToProfile, // Navigate to ProfilePage on tap
-                        child: const CircleAvatar(
-                          backgroundImage:
-                              AssetImage('assets/images/profile.jpg'),
-                          radius: 20,
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                    ],
-                  ),
-                ],
-              ),
-              const SizedBox(height: 20),
-              Container(
-                width: double.infinity,
-                height: 180,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
-                  image: const DecorationImage(
-                    image: AssetImage('assets/images/welcome_vacuum.png'),
-                    fit: BoxFit.cover,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 30),
-              const Text(
-                'Complaint',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const SizedBox(height: 10),
-              GestureDetector(
-                onTap: _navigateToHistoryFromCard,
-                child: Container(
-                  padding: const EdgeInsets.all(16.0),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF92AEB9), // Color for the complaint card
-                    borderRadius: BorderRadius.circular(12),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.grey.withOpacity(0.5),
-                        spreadRadius: 2,
-                        blurRadius: 5,
-                        offset: const Offset(0, 3), // Shadow effect
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Stack(
-                        alignment: Alignment.topRight, // Align the time to the top right
-                        children: [
-                          Row(
-                            children: [
-                              Icon(
-                                Icons.place,
-                                size: 30,
-                                color: Colors.black, // Icon color
-                              ),
-                              SizedBox(width: 5),
-                              Text(
-                                'Floor 2',
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w500,
-                                  color: Colors.white, // Matching the white text color
-                                ),
-                              ),
-                            ],
-                          ),
-                          Positioned(
-                            right: 0,
-                            child: Text(
-                              '9:41 AM', // Static time
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: Color(0xFF3c6576), // Time color
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 5),
-                      const Text(
-                        'Room Cleaning',
+                      Text(
+                        'Welcome, $userName!',
                         style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold, // Bold text for Room Cleaning
+                          fontSize: screenWidth * 0.05,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black87,
                         ),
                       ),
-                      const SizedBox(height: 5),
                       Row(
                         children: [
-                          SvgPicture.asset(
-                            'assets/images/calendar.svg', // Ensure the path is correct
-                            height: 24, // Adjust icon size as needed
-                            color: Colors.black, // Makes the icon black
+                          BellProfileWidget(
+                            onBellTap: _navigateToComplaintsPage,
                           ),
-                          const SizedBox(width: 8), // Space between icon and text
-                          const Text(
-                            'Today',
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Colors.white, // Matching white text color
+                          SizedBox(width: screenWidth * 0.025),
+                          GestureDetector(
+                            onTap: _navigateToProfile,
+                            child: const CircleAvatar(
+                              backgroundImage: AssetImage('assets/images/profile.jpg'),
+                              radius: 20,
                             ),
                           ),
                         ],
                       ),
                     ],
                   ),
-                ),
+                  SizedBox(height: screenHeight * 0.02),
+                  // Welcome image
+                  Center(
+                    child: Container(
+                      width: double.infinity,
+                      height: screenHeight * 0.25,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(screenWidth * 0.03),
+                        image: const DecorationImage(
+                          image: AssetImage('assets/images/welcome_vacuum.png'),
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: screenHeight * 0.02),
+                  // Complaints section
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Complaints',
+                        style: TextStyle(
+                          fontSize: screenWidth * 0.05,
+                          fontWeight: FontWeight.bold,
+                          color: onSecondaryColor,
+                        ),
+                      ),
+                      Text(
+                        'See All',
+                        style: TextStyle(
+                          fontSize: screenWidth * 0.035,
+                          fontWeight: FontWeight.w400,
+                          color: onSecondaryColor.withOpacity(0.6),
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: screenHeight * 0.01),
+                  // Latest complaint section with shadow and rounded corners
+                  isLoading
+                      ? const Center(child: CircularProgressIndicator())
+                      : error != null
+                          ? Center(child: Text(error!))
+                          : latestComplaint != null
+                              ? GestureDetector(
+                                  onTap: _navigateToComplaintsPage,
+                                  child: Container(
+                                    padding: EdgeInsets.all(screenWidth * 0.04),
+                                    decoration: BoxDecoration(
+                                      color: primaryColor,
+                                      borderRadius: BorderRadius.circular(screenWidth * 0.03),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.grey.withOpacity(0.5),
+                                          spreadRadius: screenWidth * 0.005,
+                                          blurRadius: screenWidth * 0.03,
+                                          offset: Offset(0, screenHeight * 0.005),
+                                        ),
+                                      ],
+                                    ),
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Row(
+                                          children: [
+                                            Icon(Icons.location_on, size: screenWidth * 0.06, color: onPrimaryColor),
+                                            SizedBox(width: screenWidth * 0.02),
+                                            Text(
+                                              latestComplaint!['comp_location'] ?? 'No Location',
+                                              style: TextStyle(
+                                                fontSize: screenWidth * 0.045,
+                                                fontWeight: FontWeight.w500,
+                                                color: onPrimaryColor,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        SizedBox(height: screenHeight * 0.005),
+                                        Text(
+                                          latestComplaint!['comp_desc'] ?? 'No Description',
+                                          style: TextStyle(
+                                            fontSize: screenWidth * 0.04,
+                                            fontWeight: FontWeight.bold,
+                                            color: onPrimaryColor,
+                                          ),
+                                        ),
+                                        SizedBox(height: screenHeight * 0.005),
+                                        Row(
+                                          children: [
+                                            SvgPicture.asset(
+                                              'assets/images/calendar.svg',
+                                              height: screenWidth * 0.06,
+                                              color: onPrimaryColor,
+                                            ),
+                                            SizedBox(width: screenWidth * 0.02),
+                                            Text(
+                                              latestComplaint!['comp_date'] ?? 'N/A',
+                                              style: TextStyle(
+                                                fontSize: screenWidth * 0.035,
+                                                color: onPrimaryColor,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                )
+                              : const Center(child: Text('No unassigned complaints available.')),
+                ],
               ),
-            ],
+            ),
           ),
-        ),
-      ),
-      bottomNavigationBar: const SupervisorBottomNavBar(
-        currentIndex: 0, // Set current index to 0 for Home screen
+        ],
       ),
     );
   }

@@ -1,287 +1,309 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../service/complaints_service.dart';
 
-class AssignTaskPage extends StatelessWidget {
-  const AssignTaskPage({super.key});
+class AssignTaskPage extends StatefulWidget {
+  final String complaintId;
+
+  const AssignTaskPage({super.key, required this.complaintId});
+
+  @override
+  _AssignTaskPageState createState() => _AssignTaskPageState();
+}
+
+class _AssignTaskPageState extends State<AssignTaskPage> {
+  Map<String, dynamic>? complaintDetails;
+  bool isLoading = true;
+  String? error;
+  String? selectedNumOfCleaners;
+  List<Map<String, dynamic>> availableCleaners = [];
+  List<String?> selectedCleaners = [];
+  String? assignedBy;
+
+  @override
+  void initState() {
+    super.initState();
+    _initializePage();
+  }
+
+  Future<void> _initializePage() async {
+    await _fetchSupervisorId();
+    await _fetchComplaintDetails();
+  }
+
+  Future<void> _fetchSupervisorId() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    assignedBy = prefs.getString('supervisorId');
+  }
+
+  Future<void> _fetchComplaintDetails() async {
+    try {
+      final data = await ComplaintsService().getComplaintDetails(widget.complaintId);
+      setState(() {
+        complaintDetails = data;
+        availableCleaners = List<Map<String, dynamic>>.from(data['available_cleaners']);
+        isLoading = false;
+      });
+    } catch (e, stacktrace) {
+      print('Error fetching complaint details: $e');
+      print('Stacktrace: $stacktrace');
+      setState(() {
+        error = 'Error fetching complaint details: $e';
+        isLoading = false;
+      });
+    }
+  }
+
+  void _onNumberOfCleanersChanged(String? value) {
+    setState(() {
+      selectedNumOfCleaners = value;
+      int numCleaners = int.tryParse(value ?? '1') ?? 1;
+
+      if (numCleaners > selectedCleaners.length) {
+        selectedCleaners.addAll(List<String?>.filled(numCleaners - selectedCleaners.length, null));
+      } else {
+        selectedCleaners = selectedCleaners.sublist(0, numCleaners);
+      }
+    });
+  }
+
+  void _onCleanerSelected(int index, String? cleaner) {
+    setState(() {
+      selectedCleaners[index] = cleaner;
+    });
+  }
+
+  List<String> _getAvailableCleaners(int index) {
+    final available = availableCleaners
+        .map((cleaner) => cleaner['cleaner_name'] as String)
+        .where((cleaner) => !selectedCleaners.contains(cleaner) || selectedCleaners[index] == cleaner)
+        .toList();
+    return available.isEmpty ? ['No cleaner available for now'] : available;
+  }
+
+  Future<void> _assignTask() async {
+    if (assignedBy == null) {
+      print("Error: Supervisor ID not available.");
+      return;
+    }
+
+    final cleanerIds = selectedCleaners
+        .where((cleanerName) => cleanerName != null)
+        .map((cleanerName) {
+          final cleaner = availableCleaners.firstWhere(
+            (element) => element['cleaner_name'] == cleanerName,
+            orElse: () => {},
+          );
+          return cleaner['cleaner_id'];
+        })
+        .where((id) => id != null)
+        .toList();
+
+    final body = {
+      'cleaner_ids': cleanerIds,
+      'no_of_cleaners': int.parse(selectedNumOfCleaners ?? '1'),
+      'assigned_by': assignedBy,
+    };
+
+    try {
+      await ComplaintsService().assignTask(widget.complaintId, body);
+      print("Task assigned successfully.");
+
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Success'),
+          content: const Text('Task assigned successfully.'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+                Navigator.pop(context);
+              },
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
+    } catch (e) {
+      print("Error assigning task: $e");
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Error'),
+          content: Text('Failed to assign task: $e'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+    final primaryColor = Theme.of(context).primaryColor;
+    final secondaryColor = Theme.of(context).colorScheme.secondary;
+    final onPrimaryColor = Theme.of(context).colorScheme.onPrimary;
+
     return Scaffold(
+      backgroundColor: primaryColor,
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: const Color(0xFFFEF7FF), // Changed AppBar color
-        foregroundColor: Colors.black, // Adjusted foreground color for contrast
+        backgroundColor: primaryColor,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            Navigator.pop(context);
-          },
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => Navigator.pop(context),
         ),
-        title: const SizedBox(
-          width: double.infinity, // Make it take the full width
-          child: Center(
-            // Center the title
-            child: Text(
-              'Assign Task',
-              style: TextStyle(
-                fontWeight: FontWeight.bold, // Make it bold
-                fontSize: 20, // Set font size to 20
-              ),
-            ),
+        centerTitle: true,
+        title: Text(
+          'Assign Task',
+          style: TextStyle(
+            color: onPrimaryColor,
+            fontSize: screenWidth * 0.05,
+            fontWeight: FontWeight.bold,
           ),
         ),
       ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Image Box
-              Container(
-                width: double.infinity,
-                height: 200,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(10),
-                  boxShadow: const [
-                    BoxShadow(
-                      color: Colors.black26,
-                      offset: Offset(0, 4),
-                      blurRadius: 6,
-                    ),
-                  ],
-                ),
-                child: Center(
-                  child: Icon(Icons.image, size: 50, color: Colors.grey[300]),
-                ),
-              ),
-              const SizedBox(height: 20),
-              // Location and Date Row with Correct Styling
-              const Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Row(
-                    children: [
-                      Text(
-                        "Location: ",
-                        style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black),
-                      ),
-                      Text(
-                        "Floor 2",
-                        style: TextStyle(
-                            fontSize: 16,
-                            color: Colors.white, // Gray text for content
-                            fontWeight: FontWeight.normal),
-                      ),
-                    ],
-                  ),
-                  Row(
-                    children: [
-                      Text(
-                        "Date: ",
-                        style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black),
-                      ),
-                      Text(
-                        "17/09/2024",
-                        style: TextStyle(
-                            fontSize: 16,
-                            color: Colors.white, // Gray text for content
-                            fontWeight: FontWeight.normal),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-              const SizedBox(height: 20),
-              // Task Description with White Background
-              Container(
-                decoration: BoxDecoration(
-                  color: Colors.white, // White background
-                  borderRadius: BorderRadius.circular(8),
-                  boxShadow: const [
-                    BoxShadow(
-                      color: Colors.black26,
-                      offset: Offset(0, 4),
-                      blurRadius: 6,
-                    ),
-                  ],
-                ),
-                child: const TextField(
-                  maxLines: 4,
-                  decoration: InputDecoration(
-                    border: InputBorder.none,
-                    hintText: 'Task description...',
-                    contentPadding: EdgeInsets.all(16),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 20),
-              // Task Included Header
-              const Text(
-                "Task Included",
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 10),
-              // Task Included Icons with Shadows
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(10),
-                  boxShadow: const [
-                    BoxShadow(
-                      color: Colors.black26,
-                      offset: Offset(0, 4),
-                      blurRadius: 6,
-                    ),
-                  ],
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    _buildTaskIcon(
-                        Icons.cleaning_services, 'Mopping & Cleaning'),
-                    _buildTaskIcon(Icons.wash, 'Vacuuming'),
-                    _buildTaskIcon(Icons.wash, 'Wiping'),
-                    _buildTaskIcon(Icons.storage, 'Organizing'),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 20),
-
-              // Number of Cleaners Header and Input
-              _buildInputContainer(
-                context,
-                title: 'Number of Cleaner',
-                hint: 'Number of cleaner',
-                buttonText: 'Confirm',
-                buttonAction: () {},
-              ),
-              const SizedBox(height: 20),
-
-              // Cleaner Name Header and Input
-              _buildInputContainer(
-                context,
-                title: 'Cleaner Name',
-                hint: 'Select cleaner',
-                buttonText: 'Assign',
-                buttonAction: () {},
-                isReadOnly: true,
-                suffixIcon: const Icon(Icons.person_search,
-                    color: Colors.black), // Search icon black
-              ),
-            ],
+      body: Container(
+        decoration: BoxDecoration(
+          color: secondaryColor,
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(screenWidth * 0.06),
+            topRight: Radius.circular(screenWidth * 0.06),
           ),
         ),
+        padding: EdgeInsets.all(screenWidth * 0.04),
+        child: isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : error != null
+                ? Center(child: Text(error!))
+                : complaintDetails != null
+                    ? _buildComplaintDetailsContent(screenWidth, screenHeight)
+                    : const Center(child: Text('No data available')),
       ),
-      backgroundColor: const Color(0xFF92AEB9), // Set background color
     );
   }
 
-  // Helper method to build each task icon button
-  Widget _buildTaskIcon(IconData iconData, String label) {
-    return Column(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(8),
-          child: Icon(iconData, size: 40),
-        ),
-        const SizedBox(height: 8),
-        Text(label, style: const TextStyle(fontSize: 12)),
-      ],
-    );
-  }
+  Widget _buildComplaintDetailsContent(double screenWidth, double screenHeight) {
+    final formattedDate = DateFormat.yMMMMd().format(DateTime.parse(complaintDetails!['comp_date']));
 
-  // Method to build an input container with header and button
-  Widget _buildInputContainer(
-    BuildContext context, {
-    required String title,
-    required String hint,
-    required String buttonText,
-    required VoidCallback buttonAction,
-    bool isReadOnly = false,
-    Widget? suffixIcon,
-  }) {
     return Container(
+      width: double.infinity,
+      height: screenHeight * 0.9, // Set fixed height for consistent padding
       decoration: BoxDecoration(
-        color: Colors.white, // Keep the input container background white
-        borderRadius: BorderRadius.circular(10),
-        boxShadow: const [
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(screenWidth * 0.03),
+        boxShadow: [
           BoxShadow(
-            color: Colors.black26,
-            offset: Offset(0, 4),
-            blurRadius: 6,
+            color: Colors.grey.withOpacity(0.5),
+            spreadRadius: screenWidth * 0.005,
+            blurRadius: screenWidth * 0.03,
+            offset: Offset(0, screenWidth * 0.005),
           ),
         ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      padding: EdgeInsets.all(screenWidth * 0.04),
+      child: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              width: double.infinity,
+              height: 200,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(10),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Colors.black26,
+                    offset: Offset(0, 4),
+                    blurRadius: 6,
+                  ),
+                ],
+              ),
+              child: Center(
+                child: Icon(Icons.image, size: 50, color: Colors.grey[300]),
+              ),
+            ),
+            const SizedBox(height: 20),
+            _buildDetailRow(Icons.location_on, 'Location', complaintDetails!['comp_location'] ?? 'No Location'),
+            _buildDetailRow(Icons.date_range, 'Date', formattedDate),
+            _buildDetailRow(Icons.description, 'Description', complaintDetails!['comp_desc']),
+            const SizedBox(height: 20),
+            Text(
+              'Number of Cleaners',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black),
+            ),
+            const SizedBox(height: 10),
+            DropdownButton<String>(
+              isExpanded: true,
+              value: selectedNumOfCleaners,
+              hint: const Text('Select number'),
+              onChanged: _onNumberOfCleanersChanged,
+              items: List.generate(10, (index) => (index + 1).toString())
+                  .map<DropdownMenuItem<String>>((String value) {
+                return DropdownMenuItem<String>(
+                  value: value,
+                  child: Text(value),
+                );
+              }).toList(),
+            ),
+            const SizedBox(height: 10),
+            for (int i = 0; i < int.parse(selectedNumOfCleaners ?? '1'); i++)
+              DropdownButton<String>(
+                isExpanded: true,
+                value: selectedCleaners.length > i ? selectedCleaners[i] : null,
+                hint: const Text('Select cleaner'),
+                onChanged: (String? newValue) {
+                  if (newValue != 'No cleaner available for now') {
+                    _onCleanerSelected(i, newValue);
+                  }
+                },
+                items: _getAvailableCleaners(i).map<DropdownMenuItem<String>>((String cleaner) {
+                  return DropdownMenuItem<String>(
+                    value: cleaner,
+                    child: Text(cleaner),
+                  );
+                }).toList(),
+              ),
+            const SizedBox(height: 20),
+            Center(
+              child: ElevatedButton(
+                onPressed: _assignTask,
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 16),
+                  backgroundColor: Colors.white,
+                  foregroundColor: Theme.of(context).primaryColor,
+                ),
+                child: const Text('Assign Task'),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDetailRow(IconData icon, String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Row(
         children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 12),
-            child: Text(
-              title,
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
+          Icon(icon, color: Colors.black),
+          const SizedBox(width: 16),
+          Text(
+            '$label: $value',
+            style: const TextStyle(fontSize: 16, color: Colors.black),
           ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12.0),
-            child: Row(
-              children: [
-                Expanded(
-                  flex: 3, // Adjust this to control the width of the textbox
-                  child: TextField(
-                    readOnly: isReadOnly,
-                    decoration: InputDecoration(
-                      hintText: hint,
-                      filled: true,
-                      fillColor: Colors.white,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: const BorderSide(
-                            color: Colors.black, width: 1), // Black outline
-                      ),
-                      contentPadding:
-                          const EdgeInsets.symmetric(vertical: 15, horizontal: 16),
-                    ),
-                  ),
-                ),
-                const SizedBox(
-                    width: 20), // Add more spacing between textbox and button
-                ElevatedButton(
-                  onPressed: buttonAction,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white, // Button background color
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      side: const BorderSide(
-                          color: Colors.black, width: 1), // Black outline
-                    ),
-                    shadowColor: Colors.black54, // Button shadow color
-                    elevation: 6, // Button shadow elevation
-                  ),
-                  child: suffixIcon ?? Text(buttonText,
-                          style: const TextStyle(
-                              color: Colors.black, // Text color is black
-                              fontSize: 16)),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 10), // Add some padding below the row
         ],
       ),
     );
   }
 }
-
-void main() => runApp(const MaterialApp(
-      home: AssignTaskPage(),
-    ));
