@@ -108,28 +108,40 @@ class ComplaintsService {
     }
   }
 
-  Future<Map<String, dynamic>> fetchAssignedTaskDetails(String complaintId) async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? token = prefs.getString('token');
+Future<Map<String, dynamic>> fetchAssignedTaskDetails(String complaintId) async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  String? token = prefs.getString('token');
 
-    try {
-      final response = await http.get(
-        Uri.parse('$baseUrl/supervisor/history/$complaintId'),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Content-Type': 'application/json',
-        },
-      );
+  if (token == null) {
+    _logger.e('Token not found. Please ensure the user is logged in.');
+    throw Exception('Authentication token is missing.');
+  }
 
-      if (response.statusCode == 200) {
-        return jsonDecode(response.body);
-      } else {
-        _logger.w('Failed to fetch task details: ${response.statusCode} - ${response.body}');
-        throw Exception('Failed to load task details');
-      }
-    } catch (e) {
-      _logger.e('Error fetching task details: $e');
+  final url = '$baseUrl/supervisor/history/$complaintId';
+  _logger.i('Fetching task details from URL: $url with token: $token');
+
+  try {
+    final response = await http.get(
+      Uri.parse(url),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+    );
+
+    _logger.i('Response Status: ${response.statusCode}');
+    _logger.i('Response Body: ${response.body}');
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      _logger.w('Failed to fetch task details: ${response.statusCode} - ${response.body}');
       throw Exception('Failed to load task details');
     }
+  } catch (e) {
+    _logger.e('Error fetching task details: $e');
+    throw Exception('Failed to load task details');
   }
+}
+
 }

@@ -8,7 +8,7 @@ class ComplaintPage extends StatefulWidget {
   const ComplaintPage({super.key});
 
   @override
-  ComplaintPageState createState() => ComplaintPageState(); // Made public
+  ComplaintPageState createState() => ComplaintPageState();
 }
 
 class ComplaintPageState extends State<ComplaintPage> {
@@ -20,137 +20,162 @@ class ComplaintPageState extends State<ComplaintPage> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+
+    final primaryColor = Theme.of(context).primaryColor;
+    final secondaryColor = Theme.of(context).colorScheme.secondary;
+    final onPrimaryColor = Theme.of(context).colorScheme.onPrimary;
+
     return Scaffold(
+      backgroundColor: primaryColor,
       appBar: AppBar(
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () {
             Navigator.of(context).pushAndRemoveUntil(
               MaterialPageRoute(
                 builder: (context) => const MainNavigator(),
-                settings: RouteSettings(arguments: 0), // Indicate the home tab
+                settings: RouteSettings(arguments: 0),
               ),
               (route) => false,
             );
           },
         ),
         centerTitle: true,
-        title: const Text(
+        title: Text(
           'Complaints',
           style: TextStyle(
             fontWeight: FontWeight.bold,
-            fontSize: 18,
-            color: Colors.black,
+            fontSize: screenWidth * 0.05,
+            color: onPrimaryColor,
           ),
         ),
-        backgroundColor: Colors.white,
+        backgroundColor: primaryColor,
+        elevation: 0,
       ),
-      body: FutureBuilder<List<Map<String, dynamic>>>(
-        future: complaintsService.fetchComplaints(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(child: Text('No complaints yet.'));
-          }
+      body: Container(
+        decoration: BoxDecoration(
+          color: secondaryColor,
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(screenWidth * 0.06),
+            topRight: Radius.circular(screenWidth * 0.06),
+          ),
+        ),
+        padding: EdgeInsets.all(screenWidth * 0.04),
+        child: FutureBuilder<List<Map<String, dynamic>>>(
+          future: complaintsService.fetchComplaints(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            } else if (snapshot.hasError) {
+              return Center(child: Text('Error: ${snapshot.error}'));
+            } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+              return const Center(child: Text('No complaints yet.'));
+            }
 
-          final complaints = snapshot.data!;
-          return ListView.builder(
-            itemCount: complaints.length,
-            itemBuilder: (context, index) {
-              final complaint = complaints[index];
-              final timeString = complaint['comp_time']!;
-              final DateTime time = DateTime.parse('1970-01-01 $timeString');
-              final String formattedTime = DateFormat('HH:mm').format(time);
+            final complaints = snapshot.data!;
+            return ListView.builder(
+              itemCount: complaints.length,
+              itemBuilder: (context, index) {
+                final complaint = complaints[index];
+                final timeString = complaint['comp_time']!;
+                final DateTime time = DateTime.parse('1970-01-01 $timeString');
+                final String formattedTime = DateFormat('HH:mm').format(time);
 
-              return Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Card(
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(15.0),
-                  ),
-                  elevation: 4,
-                  color: const Color(0xFF92AEB9),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
+                return Padding(
+                  padding: EdgeInsets.symmetric(vertical: screenHeight * 0.01),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: primaryColor,
+                      borderRadius: BorderRadius.circular(screenWidth * 0.03),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.grey.withOpacity(0.5),
+                          spreadRadius: screenWidth * 0.005,
+                          blurRadius: screenWidth * 0.03,
+                          offset: Offset(0, screenHeight * 0.005),
+                        ),
+                      ],
+                    ),
+                    padding: EdgeInsets.all(screenWidth * 0.04),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            const Text(
+                            Text(
                               'Complaint',
                               style: TextStyle(
-                                fontSize: 16,
+                                fontSize: screenWidth * 0.045,
                                 fontWeight: FontWeight.bold,
-                                color: Colors.black87,
+                                color: onPrimaryColor,
                               ),
                             ),
                             Text(
                               formattedTime,
-                              style: const TextStyle(
-                                fontSize: 14,
-                                color: Colors.black54,
+                              style: TextStyle(
+                                fontSize: screenWidth * 0.035,
+                                color: onPrimaryColor.withOpacity(0.7),
                               ),
                             ),
                           ],
                         ),
-                        const SizedBox(height: 8),
+                        SizedBox(height: screenHeight * 0.01),
                         Text(
                           complaint['comp_desc']!,
-                          style: const TextStyle(
-                            fontSize: 16,
-                            color: Colors.black87,
+                          style: TextStyle(
+                            fontSize: screenWidth * 0.04,
+                            color: onPrimaryColor,
                           ),
                         ),
-                        const SizedBox(height: 8),
+                        SizedBox(height: screenHeight * 0.01),
                         Text(
                           'Date: ${complaint['comp_date']!}',
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: Colors.black54,
+                          style: TextStyle(
+                            fontSize: screenWidth * 0.035,
+                            color: onPrimaryColor.withOpacity(0.7),
                           ),
                         ),
-                        const SizedBox(height: 16),
-                        Row(
-                          children: [
-                            const Spacer(),
-                            ElevatedButton(
-                              onPressed: () async {
-                                await Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => AssignTaskPage(complaintId: complaint['id'].toString()),
-                                  ),
-                                );
-                                _refreshComplaints(); // Refresh the list after task assignment
-                              },
-                              style: ElevatedButton.styleFrom(
-                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                                backgroundColor: Colors.white,
-                                foregroundColor: Colors.black,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(20.0),
+                        SizedBox(height: screenHeight * 0.02),
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: ElevatedButton(
+                            onPressed: () async {
+                              await Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => AssignTaskPage(complaintId: complaint['id'].toString())
                                 ),
-                              ),
-                              child: const Text(
-                                'Assign Complaint',
-                                style: TextStyle(fontSize: 14),
+                              );
+                              _refreshComplaints();
+                            },
+                            style: ElevatedButton.styleFrom(
+                              padding: EdgeInsets.symmetric(
+                                  horizontal: screenWidth * 0.04, vertical: screenHeight * 0.015),
+                              backgroundColor: onPrimaryColor,
+                              foregroundColor: primaryColor,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(screenWidth * 0.03),
                               ),
                             ),
-                          ],
+                            child: Text(
+                              'Assign',
+                              style: TextStyle(
+                                fontSize: screenWidth * 0.04,
+                              ),
+                            ),
+                          ),
                         ),
                       ],
                     ),
                   ),
-                ),
-              );
-            },
-          );
-        },
+                );
+              },
+            );
+          },
+        ),
       ),
     );
   }

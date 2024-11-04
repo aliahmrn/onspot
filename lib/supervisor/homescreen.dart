@@ -82,7 +82,7 @@ class SupervisorHomeScreenState extends State<SupervisorHomeScreen> {
           'Home',
           style: TextStyle(
             color: onPrimaryColor,
-            fontSize: 20,
+            fontSize: screenWidth * 0.05,
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -90,12 +90,12 @@ class SupervisorHomeScreenState extends State<SupervisorHomeScreen> {
       ),
       body: Stack(
         children: [
-          Container(color: primaryColor),
+          // Background color with rounded corners at the top
           Positioned(
             top: screenHeight * 0.01,
             left: 0,
             right: 0,
-            bottom: screenHeight * 0.08,
+            bottom: screenHeight * 0.08, // Space for bottom navigation
             child: Container(
               decoration: BoxDecoration(
                 color: secondaryColor,
@@ -108,13 +108,14 @@ class SupervisorHomeScreenState extends State<SupervisorHomeScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Welcome message with profile and bell icons
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
                         'Welcome, $userName!',
                         style: TextStyle(
-                          fontSize: 18, // Font size same as "Task"
+                          fontSize: screenWidth * 0.05,
                           fontWeight: FontWeight.bold,
                           color: Colors.black87,
                         ),
@@ -137,6 +138,7 @@ class SupervisorHomeScreenState extends State<SupervisorHomeScreen> {
                     ],
                   ),
                   SizedBox(height: screenHeight * 0.02),
+                  // Welcome image
                   Center(
                     child: Container(
                       width: double.infinity,
@@ -151,13 +153,14 @@ class SupervisorHomeScreenState extends State<SupervisorHomeScreen> {
                     ),
                   ),
                   SizedBox(height: screenHeight * 0.02),
+                  // Complaints section
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
                         'Complaints',
                         style: TextStyle(
-                          fontSize: 18, // Font size same as "Task"
+                          fontSize: screenWidth * 0.05,
                           fontWeight: FontWeight.bold,
                           color: onSecondaryColor,
                         ),
@@ -165,7 +168,7 @@ class SupervisorHomeScreenState extends State<SupervisorHomeScreen> {
                       Text(
                         'See All',
                         style: TextStyle(
-                          fontSize: 14,
+                          fontSize: screenWidth * 0.035,
                           fontWeight: FontWeight.w400,
                           color: onSecondaryColor.withOpacity(0.6),
                         ),
@@ -173,6 +176,7 @@ class SupervisorHomeScreenState extends State<SupervisorHomeScreen> {
                     ],
                   ),
                   SizedBox(height: screenHeight * 0.01),
+                  // Latest complaint section with shadow and rounded corners
                   isLoading
                       ? const Center(child: CircularProgressIndicator())
                       : error != null

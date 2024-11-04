@@ -199,12 +199,12 @@ class SearchPageState extends State<SearchPage> {
                             margin: const EdgeInsets.symmetric(vertical: 8.0),
                             child: ListTile(
                               leading: CircleAvatar(
-                                backgroundColor: const Color(0xFF92AEB9),
+                                backgroundColor: const Color(0xFF2E5675),
                                 child: Text(
                                   filteredCleaners[index]['name']![0],
                                   style: const TextStyle(
                                     fontWeight: FontWeight.bold,
-                                    color: Colors.black,
+                                    color: Colors.white,
                                   ),
                                 ),
                               ),
