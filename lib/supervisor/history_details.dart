@@ -267,17 +267,29 @@ class TaskDetailsPageState extends State<TaskDetailsPage> {
     );
   }
 
-  Widget _buildCleanersList(double screenWidth) {
-    final cleaners = taskDetails!['assigned_cleaners'] as List<dynamic>;
-    if (cleaners.isEmpty) {
-      return Text(
-        'No cleaners assigned.',
-        style: TextStyle(fontSize: screenWidth * 0.04, color: Colors.grey[700]),
-      );
-    }
+Widget _buildCleanersList(double screenWidth) {
+  final cleaners = taskDetails!['assigned_cleaners'] as List<dynamic>;
+  if (cleaners.isEmpty) {
+    return Text(
+      'No cleaners assigned.',
+      style: TextStyle(fontSize: screenWidth * 0.04, color: Colors.grey[700]),
+    );
+  }
 
-    return Column(
-      children: cleaners.map<Widget>((cleaner) {
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start, // Align items to the start
+    children: [
+      // New text added for "Assigned Cleaners"
+      Text(
+        'Assigned Cleaners',
+        style: TextStyle(
+          fontSize: screenWidth * 0.05,
+          fontWeight: FontWeight.bold,
+          color: Colors.black87,
+        ),
+      ),
+      SizedBox(height: screenWidth * 0.03),
+      ...cleaners.map<Widget>((cleaner) {
         return Container(
           margin: EdgeInsets.symmetric(vertical: screenWidth * 0.02),
           padding: EdgeInsets.symmetric(vertical: screenWidth * 0.03, horizontal: screenWidth * 0.04),
@@ -299,6 +311,8 @@ class TaskDetailsPageState extends State<TaskDetailsPage> {
           ),
         );
       }).toList(),
-    );
-  }
+    ],
+  );
 }
+}
+

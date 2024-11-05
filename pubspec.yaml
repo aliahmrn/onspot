@@ -86,6 +86,7 @@ flutter:
     - assets/images/ear.svg
     - assets/images/thumbs_up.svg
     - assets/images/search.svg
+    - assets/images/homeicon.svg
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see
