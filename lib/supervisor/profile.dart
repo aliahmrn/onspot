@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
-import '../service/auth_service.dart'; // Import your AuthService
-import '../service/profile_service.dart'; // Import ProfileService
-import 'profileedit.dart'; // Import CleanerProfileEditScreen
+import '../service/auth_service.dart';
+import '../service/profile_service.dart';
+import 'profileedit.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SVProfileScreen extends StatefulWidget {
@@ -15,7 +15,7 @@ class SVProfileScreen extends StatefulWidget {
 class SVProfileScreenState extends State<SVProfileScreen> {
   Map<String, dynamic>? cleanerInfo;
   String? token;
-  final Logger _logger = Logger(); // Use Logger instead of print
+  final Logger _logger = Logger();
 
   @override
   void initState() {
@@ -31,10 +31,8 @@ class SVProfileScreenState extends State<SVProfileScreen> {
       await _loadProfile();
     } else {
       _logger.w('No token found');
-      if (mounted) {
-        if (context.mounted) {  // Guarding with `context.mounted`
-          Navigator.pushReplacementNamed(context, '/');
-        }
+      if (mounted && context.mounted) {
+        Navigator.pushReplacementNamed(context, '/');
       }
     }
   }
@@ -60,23 +58,25 @@ class SVProfileScreenState extends State<SVProfileScreen> {
     final onPrimaryColor = Theme.of(context).colorScheme.onPrimary;
     final screenWidth = MediaQuery.of(context).size.width;
 
-     
     return Scaffold(
       backgroundColor: primaryColor,
-        appBar: AppBar(
-          backgroundColor: primaryColor,
-          elevation: 0,
-          centerTitle: true,
-          title: Text(
-            'Profile',
-            style: TextStyle(
-              color: onPrimaryColor,
-              fontSize: screenWidth * 0.05,
-              fontWeight: FontWeight.bold,
-            ),
+      appBar: AppBar(
+        backgroundColor: primaryColor,
+        elevation: 0,
+        centerTitle: true,
+        title: Text(
+          'Profile',
+          style: TextStyle(
+            color: onPrimaryColor,
+            fontSize: screenWidth * 0.05,
+            fontWeight: FontWeight.bold,
           ),
-          automaticallyImplyLeading: false, // Remove back button
         ),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white), // Back arrow with white color
+          onPressed: () => Navigator.pop(context), // Navigate back on press
+        ),
+      ),
       body: Stack(
         children: [
           Positioned(
@@ -158,7 +158,7 @@ class SVProfileScreenState extends State<SVProfileScreen> {
                   const SizedBox(height: 20),
                   _buildTextField('Phone Number', cleanerInfo?['phone_no'] ?? ''),
                   const SizedBox(height: 30),
-                  _buildButtonSection(context),
+                  _buildButtonSection(context, primaryColor, secondaryColor),
                 ],
               ),
             ),
@@ -201,65 +201,56 @@ class SVProfileScreenState extends State<SVProfileScreen> {
     );
   }
 
-Widget _buildButtonSection(BuildContext context) {
-  return Column(
-    crossAxisAlignment: CrossAxisAlignment.center,
-    children: [
-      ElevatedButton.icon(
-        onPressed: () {
-          Navigator.push(
-            context,
-            PageRouteBuilder(
-              pageBuilder: (context, animation, secondaryAnimation) => SVProfileEditScreen(),
-              transitionDuration: Duration.zero, // Disables animation
-              reverseTransitionDuration: Duration.zero,
+  Widget _buildButtonSection(BuildContext context, Color primaryColor, Color secondaryColor) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        ElevatedButton.icon(
+          onPressed: () {
+            Navigator.push(
+              context,
+              PageRouteBuilder(
+                pageBuilder: (context, animation, secondaryAnimation) => SVProfileEditScreen(),
+                transitionDuration: Duration.zero, // Disables animation
+                reverseTransitionDuration: Duration.zero,
+              ),
+            );
+          },
+          icon: const Icon(Icons.edit),
+          label: const Text('Edit Information'),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: primaryColor,     // Use primary color for background
+            foregroundColor: secondaryColor,   // Use secondary color for text
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
             ),
-          );
-        },
-        icon: const Icon(Icons.edit, color: Colors.black),
-        label: const Text(
-          'Edit Information',
-          style: TextStyle(color: Colors.black),
-        ),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFFFEF7FF),
-          side: const BorderSide(color: Colors.black),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            minimumSize: const Size(250, 50),
           ),
-          minimumSize: const Size(250, 50),
         ),
-      ),
-      const SizedBox(height: 10),
-      ElevatedButton(
-        onPressed: () {
-          _logout(context);
-        },
-        style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFFFEF7FF),
-          side: const BorderSide(color: Colors.black),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+        const SizedBox(height: 10),
+        ElevatedButton(
+          onPressed: () {
+            _logout(context);
+          },
+          style: ElevatedButton.styleFrom(
+            backgroundColor: primaryColor,     // Use primary color for background
+            foregroundColor: secondaryColor,   // Use secondary color for text
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            minimumSize: const Size(250, 50),
           ),
-          minimumSize: const Size(250, 50),
+          child: const Text('Logout'),
         ),
-        child: const Text(
-          'Logout',
-          style: TextStyle(color: Colors.black),
-        ),
-      ),
-    ],
-  );
-}
-
+      ],
+    );
+  }
 
   void _logout(BuildContext context) async {
     final AuthService authService = AuthService();
     await authService.logout();
-    if (mounted) {
-      if (context.mounted) {
-        Navigator.pushReplacementNamed(context, '/');
-      }
+    if (mounted && context.mounted) {
+      Navigator.pushReplacementNamed(context, '/');
     }
   }
 }

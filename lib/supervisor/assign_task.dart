@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:logger/logger.dart';
 import '../service/complaints_service.dart';
 
 class AssignTaskPage extends StatefulWidget {
@@ -9,10 +10,10 @@ class AssignTaskPage extends StatefulWidget {
   const AssignTaskPage({super.key, required this.complaintId});
 
   @override
-  _AssignTaskPageState createState() => _AssignTaskPageState();
+  AssignTaskPageState createState() => AssignTaskPageState();
 }
 
-class _AssignTaskPageState extends State<AssignTaskPage> {
+class AssignTaskPageState extends State<AssignTaskPage> {
   Map<String, dynamic>? complaintDetails;
   bool isLoading = true;
   String? error;
@@ -20,6 +21,7 @@ class _AssignTaskPageState extends State<AssignTaskPage> {
   List<Map<String, dynamic>> availableCleaners = [];
   List<String?> selectedCleaners = [];
   String? assignedBy;
+  final Logger _logger = Logger();
 
   @override
   void initState() {
@@ -33,25 +35,28 @@ class _AssignTaskPageState extends State<AssignTaskPage> {
   }
 
   Future<void> _fetchSupervisorId() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
     assignedBy = prefs.getString('supervisorId');
   }
 
   Future<void> _fetchComplaintDetails() async {
     try {
       final data = await ComplaintsService().getComplaintDetails(widget.complaintId);
-      setState(() {
-        complaintDetails = data;
-        availableCleaners = List<Map<String, dynamic>>.from(data['available_cleaners']);
-        isLoading = false;
-      });
-    } catch (e, stacktrace) {
-      print('Error fetching complaint details: $e');
-      print('Stacktrace: $stacktrace');
-      setState(() {
-        error = 'Error fetching complaint details: $e';
-        isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          complaintDetails = data;
+          availableCleaners = List<Map<String, dynamic>>.from(data['available_cleaners']);
+          isLoading = false;
+        });
+      }
+    } catch (e) {
+      _logger.e('Error fetching complaint details: $e');
+      if (mounted) {
+        setState(() {
+          error = 'Error fetching complaint details: $e';
+          isLoading = false;
+        });
+      }
     }
   }
 
@@ -84,7 +89,7 @@ class _AssignTaskPageState extends State<AssignTaskPage> {
 
   Future<void> _assignTask() async {
     if (assignedBy == null) {
-      print("Error: Supervisor ID not available.");
+      _logger.e("Error: Supervisor ID not available.");
       return;
     }
 
@@ -108,39 +113,43 @@ class _AssignTaskPageState extends State<AssignTaskPage> {
 
     try {
       await ComplaintsService().assignTask(widget.complaintId, body);
-      print("Task assigned successfully.");
+      _logger.i("Task assigned successfully.");
 
-      showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: const Text('Success'),
-          content: const Text('Task assigned successfully.'),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-                Navigator.pop(context);
-              },
-              child: const Text('OK'),
-            ),
-          ],
-        ),
-      );
+      if (mounted) {
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Success'),
+            content: const Text('Task assigned successfully.'),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  Navigator.pop(context);
+                },
+                child: const Text('OK'),
+              ),
+            ],
+          ),
+        );
+      }
     } catch (e) {
-      print("Error assigning task: $e");
-      showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: const Text('Error'),
-          content: Text('Failed to assign task: $e'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('OK'),
-            ),
-          ],
-        ),
-      );
+      _logger.e("Error assigning task: $e");
+      if (mounted) {
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Error'),
+            content: Text('Failed to assign task: $e'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('OK'),
+              ),
+            ],
+          ),
+        );
+      }
     }
   }
 
@@ -185,18 +194,19 @@ class _AssignTaskPageState extends State<AssignTaskPage> {
             : error != null
                 ? Center(child: Text(error!))
                 : complaintDetails != null
-                    ? _buildComplaintDetailsContent(screenWidth, screenHeight)
+                    ? _buildComplaintDetailsContent(screenWidth, screenHeight, primaryColor, secondaryColor)
                     : const Center(child: Text('No data available')),
       ),
     );
   }
 
-  Widget _buildComplaintDetailsContent(double screenWidth, double screenHeight) {
+  Widget _buildComplaintDetailsContent(double screenWidth, double screenHeight, Color primaryColor, Color secondaryColor) {
     final formattedDate = DateFormat.yMMMMd().format(DateTime.parse(complaintDetails!['comp_date']));
+    final String? imageUrl = complaintDetails!['comp_image_url'];
 
     return Container(
       width: double.infinity,
-      height: screenHeight * 0.9, // Set fixed height for consistent padding
+      height: screenHeight * 0.9,
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(screenWidth * 0.03),
@@ -227,10 +237,18 @@ class _AssignTaskPageState extends State<AssignTaskPage> {
                     blurRadius: 6,
                   ),
                 ],
+                image: imageUrl != null
+                    ? DecorationImage(
+                        image: NetworkImage(imageUrl),
+                        fit: BoxFit.cover,
+                      )
+                    : null,
               ),
-              child: Center(
-                child: Icon(Icons.image, size: 50, color: Colors.grey[300]),
-              ),
+              child: imageUrl == null
+                  ? Center(
+                      child: Icon(Icons.image, size: 50, color: Colors.grey[300]),
+                    )
+                  : null,
             ),
             const SizedBox(height: 20),
             _buildDetailRow(Icons.location_on, 'Location', complaintDetails!['comp_location'] ?? 'No Location'),
@@ -279,12 +297,12 @@ class _AssignTaskPageState extends State<AssignTaskPage> {
                 onPressed: _assignTask,
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 16),
-                  backgroundColor: Colors.white,
-                  foregroundColor: Theme.of(context).primaryColor,
+                  backgroundColor: primaryColor,  // Primary color as background
+                  foregroundColor: secondaryColor, // Secondary color as text color
                 ),
                 child: const Text('Assign Task'),
               ),
-            ),
+            )
           ],
         ),
       ),

@@ -48,19 +48,28 @@ class SupervisorHomeScreenState extends State<SupervisorHomeScreen> {
     }
   }
 
-  void _navigateToProfile() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => SVProfileScreen()),
-    );
-  }
+void _navigateToProfile() {
+  Navigator.push(
+    context,
+    PageRouteBuilder(
+      pageBuilder: (context, animation, secondaryAnimation) => SVProfileScreen(),
+      transitionDuration: Duration.zero, // Disable animation
+      reverseTransitionDuration: Duration.zero, // Disable reverse animation
+    ),
+  );
+}
 
-  void _navigateToComplaintsPage() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => ComplaintPage()),
-    );
-  }
+void _navigateToComplaintsPage() {
+  Navigator.push(
+    context,
+    PageRouteBuilder(
+      pageBuilder: (context, animation, secondaryAnimation) => ComplaintPage(),
+      transitionDuration: Duration.zero, // Disable animation
+      reverseTransitionDuration: Duration.zero, // Disable reverse animation
+    ),
+  );
+}
+
 
   @override
   Widget build(BuildContext context) {
@@ -158,12 +167,15 @@ class SupervisorHomeScreenState extends State<SupervisorHomeScreen> {
                           color: onSecondaryColor,
                         ),
                       ),
-                      Text(
-                        'See All',
-                        style: TextStyle(
-                          fontSize: screenWidth * 0.035,
-                          fontWeight: FontWeight.w400,
-                          color: onSecondaryColor.withOpacity(0.6),
+                      GestureDetector(
+                        onTap: _navigateToComplaintsPage,
+                        child: Text(
+                          'See All',
+                          style: TextStyle(
+                            fontSize: screenWidth * 0.035,
+                            fontWeight: FontWeight.w400,
+                            color: onSecondaryColor.withOpacity(0.6),
+                          ),
                         ),
                       ),
                     ],
@@ -220,11 +232,12 @@ class SupervisorHomeScreenState extends State<SupervisorHomeScreen> {
                                         SizedBox(height: screenHeight * 0.005),
                                         Row(
                                           children: [
-                                            SvgPicture.asset(
-                                              'assets/images/calendar.svg',
-                                              height: screenWidth * 0.06,
-                                              color: onPrimaryColor,
-                                            ),
+                                          SvgPicture.asset(
+                                            'assets/images/calendar.svg',
+                                            height: screenWidth * 0.06,
+                                            colorFilter: ColorFilter.mode(onPrimaryColor, BlendMode.srcIn),
+                                          ),
+
                                             SizedBox(width: screenWidth * 0.02),
                                             Text(
                                               latestComplaint!['comp_date'] ?? 'N/A',
