@@ -5,7 +5,6 @@ import 'navbar.dart';
 import 'complaintdetails.dart';
 import 'package:onspot_officer/widget/date.dart';
 
-
 class HistoryPage extends StatefulWidget {
   const HistoryPage({super.key});
 
@@ -56,126 +55,138 @@ class HistoryPageState extends State<HistoryPage> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+
+    final primaryColor = Theme.of(context).primaryColor;
+    final secondaryColor = Theme.of(context).colorScheme.secondary;
+    final onPrimaryColor = Theme.of(context).colorScheme.onPrimary;
+
     return Scaffold(
+      backgroundColor: primaryColor,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: primaryColor,
         elevation: 0,
         automaticallyImplyLeading: false,
-        title: const Center(
-          child: Text(
-            'History',
-            style: TextStyle(
-              color: Colors.black,
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-            ),
+        centerTitle: true,
+        title: Text(
+          'History',
+          style: TextStyle(
+            color: onPrimaryColor,
+            fontSize: screenWidth * 0.05,
+            fontWeight: FontWeight.bold,
           ),
         ),
-        iconTheme: const IconThemeData(color: Colors.black),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            const SizedBox(height: 16),
-            Expanded(
-              child: hasFetchedData
-                  ? (historyData.isEmpty
-                      ? const Center(child: Text('No complaints found'))
-                      : ListView.builder(
-                          itemCount: historyData.length,
-                          itemBuilder: (context, index) {
-                            final complaint = historyData[index];
-                            final complaintId = complaint['id'];  // Extracting complaint ID
+      body: Container(
+        decoration: BoxDecoration(
+          color: secondaryColor,
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(screenWidth * 0.06),
+            topRight: Radius.circular(screenWidth * 0.06),
+          ),
+        ),
+        padding: EdgeInsets.all(screenWidth * 0.04),
+        child: hasFetchedData
+            ? (historyData.isEmpty
+                ? const Center(child: Text('No complaints found'))
+                : ListView.builder(
+                    itemCount: historyData.length,
+                    itemBuilder: (context, index) {
+                      final complaint = historyData[index];
+                      final complaintId = complaint['id'];
 
-                            return Padding(
-                              padding: const EdgeInsets.only(bottom: 16.0),
-                              child: Stack(
+                      return Padding(
+                        padding: EdgeInsets.only(bottom: screenHeight * 0.015),
+                        child: Stack(
+                          children: [
+                            Container(
+                              decoration: BoxDecoration(
+                                color: primaryColor,
+                                borderRadius: BorderRadius.circular(screenWidth * 0.04),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.grey.withOpacity(0.5),
+                                    spreadRadius: screenWidth * 0.005,
+                                    blurRadius: screenWidth * 0.03,
+                                    offset: Offset(0, screenHeight * 0.005),
+                                  ),
+                                ],
+                              ),
+                              padding: EdgeInsets.all(screenWidth * 0.05),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Container(
-                                    decoration: BoxDecoration(
-                                      color: const Color(0xFFC3D2D7),
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(16.0),
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Row(
                                         children: [
-                                          Row(
-                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                            children: [
-                                              const Row(
-                                                children: [
-                                                  Icon(
-                                                    Icons.history,
-                                                    size: 24,
-                                                    color: Colors.black,
-                                                  ),
-                                                  SizedBox(width: 8),
-                                                  Text(
-                                                    'Complaint sent!',
-                                                    style: TextStyle(
-                                                      fontWeight: FontWeight.bold,
-                                                      fontSize: 16,
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                              Text(
-                                                formatTime(complaint['comp_time']),
-                                                style: const TextStyle(
-                                                  color: Colors.black45,
-                                                  fontSize: 12,
-                                                ),
-                                              ),
-                                            ],
+                                          Icon(
+                                            Icons.history,
+                                            color: onPrimaryColor.withOpacity(0.7),
+                                            size: screenWidth * 0.05,
                                           ),
-                                          const SizedBox(height: 8),
+                                          SizedBox(width: screenWidth * 0.025),
                                           Text(
-                                            complaint['comp_desc'] ?? '',
-                                            style: const TextStyle(
-                                              color: Colors.black,
-                                              fontSize: 14,
-                                            ),
-                                          ),
-                                          const SizedBox(height: 8),
-                                          Text(
-                                            formatDate(complaint['comp_date']),
-                                            style: const TextStyle(
-                                              color: Colors.black45,
-                                              fontSize: 12,
+                                            'Complaint sent!',
+                                            style: TextStyle(
+                                              fontSize: screenWidth * 0.045,
+                                              fontWeight: FontWeight.bold,
+                                              color: onPrimaryColor,
                                             ),
                                           ),
                                         ],
                                       ),
+                                      Text(
+                                        formatTime(complaint['comp_time']),
+                                        style: TextStyle(
+                                          color: onPrimaryColor.withOpacity(0.7),
+                                          fontSize: screenWidth * 0.035,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  SizedBox(height: screenHeight * 0.01),
+                                  Text(
+                                    complaint['comp_desc'] ?? '',
+                                    style: TextStyle(
+                                      fontSize: screenWidth * 0.04,
+                                      color: onPrimaryColor,
                                     ),
                                   ),
-                                  Positioned(
-                                    bottom: 8,
-                                    right: 8,
-                                    child: IconButton(
-                                      icon: const Icon(Icons.arrow_forward, color: Colors.black),
-                                      onPressed: () {
-                                        // Pass the complaint ID to ComplaintDetailsPage
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (context) => ComplaintDetailsPage(complaintId: complaintId),
-                                          ),
-                                        );
-                                      },
+                                  SizedBox(height: screenHeight * 0.005),
+                                  Text(
+                                    formatDate(complaint['comp_date']),
+                                    style: TextStyle(
+                                      color: onPrimaryColor.withOpacity(0.7),
+                                      fontSize: screenWidth * 0.035,
                                     ),
                                   ),
                                 ],
                               ),
-                            );
-                          },
-                        ))
-                  : const Center(child: CircularProgressIndicator()),
-            ),
-          ],
-        ),
+                            ),
+                            Positioned(
+                              bottom: screenHeight * 0.01,
+                              right: screenWidth * 0.02,
+                              child: IconButton(
+                                icon: Icon(Icons.arrow_forward, color: onPrimaryColor),
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => ComplaintDetailsPage(complaintId: complaintId),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ))
+            : const Center(child: CircularProgressIndicator()),
       ),
       bottomNavigationBar: const OfficerNavBar(currentIndex: 2),
     );

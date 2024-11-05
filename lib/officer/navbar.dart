@@ -19,7 +19,7 @@ class OfficerNavBar extends StatelessWidget {
       PageRouteBuilder(
         pageBuilder: (context, animation, secondaryAnimation) => page,
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
-          const begin = Offset(1.0, 0.0); // Slide in from the right
+          const begin = Offset(1.0, 0.0);
           const end = Offset.zero;
           const curve = Curves.easeInOut;
 
@@ -36,7 +36,7 @@ class OfficerNavBar extends StatelessWidget {
   }
 
   void _onItemTapped(BuildContext context, int index) {
-    if (index == currentIndex) return; // Prevent navigating to the same page
+    if (index == currentIndex) return;
 
     switch (index) {
       case 0:
@@ -56,57 +56,65 @@ class OfficerNavBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+    final primaryColor = Theme.of(context).colorScheme.primary;
+    final secondaryColor = Theme.of(context).colorScheme.secondary;
+    final tertiaryColor = Theme.of(context).colorScheme.tertiary;
+
     return Padding(
-      padding: const EdgeInsets.only(bottom: 16, left: 24, right: 24),
+      padding: EdgeInsets.only(
+        bottom: screenHeight * 0.02,
+        left: screenWidth * 0.06,
+        right: screenWidth * 0.06,
+      ),
       child: Stack(
         clipBehavior: Clip.none,
         children: [
-          // Shadow Container with Rounded Corners
           Positioned(
-            bottom: 6,
+            bottom: screenHeight * 0.005,
             left: 0,
             right: 0,
             child: Container(
-              height: 60,
+              height: screenHeight * 0.08,
               decoration: BoxDecoration(
                 color: Colors.transparent,
-                borderRadius: BorderRadius.circular(24), // Rounded corners for shadow
+                borderRadius: BorderRadius.circular(screenWidth * 0.06),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.2),
-                    blurRadius: 12,
-                    offset: Offset(0, 6), // Position the shadow below the container
+                    color: Colors.black.withOpacity(0.15),
+                    blurRadius: screenWidth * 0.02,
+                    offset: Offset(0, screenHeight * 0.005),
                   ),
                 ],
               ),
             ),
           ),
-          // Main Navigation Bar Container
           ClipRRect(
-            borderRadius: BorderRadius.circular(24),
+            borderRadius: BorderRadius.circular(screenWidth * 0.06),
             child: Container(
-              color: const Color(0xFFFEF7FF), // Same background color as the original OfficerNavBar
+              color: secondaryColor,
               child: BottomNavigationBar(
-                backgroundColor: Colors.white,
-                selectedItemColor: Colors.black, // Black for selected icons
-                unselectedItemColor: Colors.grey, // Grey for unselected icons
-                currentIndex: currentIndex, // Highlight the current tab
+                backgroundColor: secondaryColor,
+                selectedItemColor: primaryColor,
+                unselectedItemColor: tertiaryColor,
+                currentIndex: currentIndex,
                 onTap: (index) => _onItemTapped(context, index),
                 items: <BottomNavigationBarItem>[
                   BottomNavigationBarItem(
                     icon: ImageIcon(
                       AssetImage('assets/images/home.png'),
-                      color: currentIndex == 0 ? Colors.black : Colors.grey,
+                      color: currentIndex == 0 ? primaryColor : tertiaryColor,
                     ),
                     label: 'Home',
                   ),
                   BottomNavigationBarItem(
                     icon: SvgPicture.asset(
                       'assets/images/plus.svg',
-                      width: 24,
-                      height: 24,
+                      width: screenWidth * 0.06,
+                      height: screenWidth * 0.06,
                       colorFilter: ColorFilter.mode(
-                        currentIndex == 1 ? Colors.black : Colors.grey,
+                        currentIndex == 1 ? primaryColor : tertiaryColor,
                         BlendMode.srcIn,
                       ),
                     ),
@@ -115,10 +123,10 @@ class OfficerNavBar extends StatelessWidget {
                   BottomNavigationBarItem(
                     icon: SvgPicture.asset(
                       'assets/images/history.svg',
-                      width: 24,
-                      height: 24,
+                      width: screenWidth * 0.06,
+                      height: screenWidth * 0.06,
                       colorFilter: ColorFilter.mode(
-                        currentIndex == 2 ? Colors.black : Colors.grey,
+                        currentIndex == 2 ? primaryColor : tertiaryColor,
                         BlendMode.srcIn,
                       ),
                     ),
@@ -127,17 +135,17 @@ class OfficerNavBar extends StatelessWidget {
                   BottomNavigationBarItem(
                     icon: SvgPicture.asset(
                       'assets/images/user.svg',
-                      width: 24,
-                      height: 24,
+                      width: screenWidth * 0.06,
+                      height: screenWidth * 0.06,
                       colorFilter: ColorFilter.mode(
-                        currentIndex == 3 ? Colors.black : Colors.grey,
+                        currentIndex == 3 ? primaryColor : tertiaryColor,
                         BlendMode.srcIn,
                       ),
                     ),
                     label: 'Profile',
                   ),
                 ],
-                type: BottomNavigationBarType.fixed, // Ensures all icons are visible
+                type: BottomNavigationBarType.fixed,
               ),
             ),
           ),

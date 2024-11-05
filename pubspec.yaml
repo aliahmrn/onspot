@@ -41,7 +41,9 @@ dependencies:
   permission_handler: ^11.3.1 
   logger: ^2.4.0
   image: ^4.3.0
-  google_fonts: ^6.2.1  
+  google_fonts: ^6.2.1
+  web_socket_channel: ^3.0.1
+  flutter_local_notifications: ^18.0.0
 
 
   # The following adds the Cupertino Icons font to your application.
@@ -92,6 +94,7 @@ flutter:
     - assets/images/wipe.svg
     - assets/images/window.svg
     - assets/images/toilet.svg
+    - assets/images/officer.svg
     
   #   - images/a_dot_ham.jpeg
 

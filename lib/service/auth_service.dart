@@ -4,7 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:logger/logger.dart'; // Import logger package
 
 class AuthService {
-  final String baseUrl = 'http://10.0.2.2:8000/api'; // Android Emulator
+  final String baseUrl = 'http://192.168.1.121:8000/api'; // Android Emulator
   var logger = Logger(); // Create a logger instance
 
   // Login function for officers
@@ -42,7 +42,6 @@ class AuthService {
         throw Exception('Invalid login credentials.');
       }
     } catch (e) {
-      logger.e('Error during login', error: e); // Correct logging
       throw Exception('Error during login: ${e.toString()}');
     }
   }

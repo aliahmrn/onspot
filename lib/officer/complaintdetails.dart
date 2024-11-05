@@ -10,10 +10,10 @@ class ComplaintDetailsPage extends StatefulWidget {
   const ComplaintDetailsPage({Key? key, required this.complaintId}) : super(key: key);
 
   @override
-  _ComplaintDetailsPageState createState() => _ComplaintDetailsPageState();
+  ComplaintDetailsPageState createState() => ComplaintDetailsPageState();
 }
 
-class _ComplaintDetailsPageState extends State<ComplaintDetailsPage> {
+class ComplaintDetailsPageState extends State<ComplaintDetailsPage> {
   Map<String, dynamic>? complaintDetails;
   bool isLoading = true;
 

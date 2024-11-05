@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:logger/logger.dart';
 
 class ProfileService {
-  final String baseUrl = 'http://10.0.2.2:8000/api';
+  final String baseUrl = 'http://192.168.1.121:8000/api';
   final Logger _logger = Logger(); // Initialize the logger
 
   Future<Map<String, dynamic>> fetchProfile(String token) async {
