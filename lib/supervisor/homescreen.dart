@@ -239,10 +239,35 @@ class SupervisorHomeScreenState extends State<SupervisorHomeScreen> {
                                     ),
                                   ),
                                 )
-                    : const Center(child: Text('No unassigned complaints available.')),
-                   ],
-                ),
-             ),
+                              // No complaints available message wrapped in a card
+                              : Container(
+                                  padding: EdgeInsets.all(screenWidth * 0.04),
+                                  decoration: BoxDecoration(
+                                    color: primaryColor,
+                                    borderRadius: BorderRadius.circular(screenWidth * 0.03),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.grey.withOpacity(0.5),
+                                        spreadRadius: screenWidth * 0.005,
+                                        blurRadius: screenWidth * 0.03,
+                                        offset: Offset(0, screenHeight * 0.005),
+                                      ),
+                                    ],
+                                  ),
+                                  child: Center(
+                                    child: Text(
+                                      'No unassigned complaints available.',
+                                      style: TextStyle(
+                                        fontSize: screenWidth * 0.04,
+                                        fontWeight: FontWeight.bold,
+                                        color: onPrimaryColor,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                ],
+              ),
+            ),
           ),
         ],
       ),
