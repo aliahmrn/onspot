@@ -201,52 +201,57 @@ class SVProfileScreenState extends State<SVProfileScreen> {
     );
   }
 
-  Widget _buildButtonSection(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        ElevatedButton.icon(
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => SVProfileEditScreen()),
-            );
-          },
-          icon: const Icon(Icons.edit, color: Colors.black),
-          label: const Text(
-            'Edit Information',
-            style: TextStyle(color: Colors.black),
-          ),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFFFEF7FF),
-            side: const BorderSide(color: Colors.black),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
+Widget _buildButtonSection(BuildContext context) {
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.center,
+    children: [
+      ElevatedButton.icon(
+        onPressed: () {
+          Navigator.push(
+            context,
+            PageRouteBuilder(
+              pageBuilder: (context, animation, secondaryAnimation) => SVProfileEditScreen(),
+              transitionDuration: Duration.zero, // Disables animation
+              reverseTransitionDuration: Duration.zero,
             ),
-            minimumSize: const Size(250, 50),
-          ),
+          );
+        },
+        icon: const Icon(Icons.edit, color: Colors.black),
+        label: const Text(
+          'Edit Information',
+          style: TextStyle(color: Colors.black),
         ),
-        const SizedBox(height: 10),
-        ElevatedButton(
-          onPressed: () {
-            _logout(context);
-          },
-          style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFFFEF7FF),
-            side: const BorderSide(color: Colors.black),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-            minimumSize: const Size(250, 50),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: const Color(0xFFFEF7FF),
+          side: const BorderSide(color: Colors.black),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
           ),
-          child: const Text(
-            'Logout',
-            style: TextStyle(color: Colors.black),
-          ),
+          minimumSize: const Size(250, 50),
         ),
-      ],
-    );
-  }
+      ),
+      const SizedBox(height: 10),
+      ElevatedButton(
+        onPressed: () {
+          _logout(context);
+        },
+        style: ElevatedButton.styleFrom(
+          backgroundColor: const Color(0xFFFEF7FF),
+          side: const BorderSide(color: Colors.black),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          minimumSize: const Size(250, 50),
+        ),
+        child: const Text(
+          'Logout',
+          style: TextStyle(color: Colors.black),
+        ),
+      ),
+    ],
+  );
+}
+
 
   void _logout(BuildContext context) async {
     final AuthService authService = AuthService();

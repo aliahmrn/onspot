@@ -52,8 +52,9 @@ class TaskDetailsPageState extends State<TaskDetailsPage> {
         backgroundColor: primaryColor,
         elevation: 0,
         centerTitle: true,
+        iconTheme: const IconThemeData(color: Colors.white),
         title: Text(
-          'Complaint Details',
+          'History Details',
           style: TextStyle(
             color: onPrimaryColor,
             fontSize: screenWidth * 0.05,
@@ -62,16 +63,30 @@ class TaskDetailsPageState extends State<TaskDetailsPage> {
         ),
       ),
       body: isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? Center(
+              child: Container(
+                decoration: BoxDecoration(
+                  color: secondaryColor,
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(screenWidth * 0.06),
+                    topRight: Radius.circular(screenWidth * 0.06),
+                  ),
+                ),
+                width: screenWidth,
+                height: screenHeight,
+                alignment: Alignment.center,
+                child: const CircularProgressIndicator(),
+              ),
+            )
           : error != null
-              ? Center(child: Text(error!))
+              ? Center(child: Text(error!, style: const TextStyle(color: Colors.black)))
               : taskDetails != null
-                  ? _buildTaskDetailsContent(screenWidth, screenHeight, primaryColor, secondaryColor, onPrimaryColor)
-                  : const Center(child: Text('No data available')),
+                  ? _buildTaskDetailsContent(screenWidth, screenHeight, primaryColor, secondaryColor)
+                  : const Center(child: Text('No data available', style: TextStyle(color: Colors.black))),
     );
   }
 
-  Widget _buildTaskDetailsContent(double screenWidth, double screenHeight, Color primaryColor, Color secondaryColor, Color onPrimaryColor) {
+  Widget _buildTaskDetailsContent(double screenWidth, double screenHeight, Color primaryColor, Color secondaryColor) {
     final formattedDate = DateFormat.yMMMMd().format(DateTime.parse(taskDetails!['comp_date']));
     final formattedTime = DateFormat.jm().format(DateTime.parse("1970-01-01 ${taskDetails!['comp_time']}"));
 
@@ -88,89 +103,68 @@ class TaskDetailsPageState extends State<TaskDetailsPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              decoration: BoxDecoration(
-                color: primaryColor,
-                borderRadius: BorderRadius.circular(screenWidth * 0.03),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.grey.withOpacity(0.5),
-                    spreadRadius: screenWidth * 0.005,
-                    blurRadius: screenWidth * 0.03,
-                    offset: Offset(0, screenHeight * 0.005),
+            // Task details displayed without a card container
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildInfoRow(
+                  icon: Icons.description,
+                  label: 'Description',
+                  value: taskDetails!['comp_desc'] ?? 'No Description',
+                  screenWidth: screenWidth,
+                ),
+                _buildDivider(screenWidth),
+                _buildInfoRow(
+                  icon: Icons.location_on,
+                  label: 'Location',
+                  value: taskDetails!['comp_location'] ?? 'No Location',
+                  screenWidth: screenWidth,
+                ),
+                _buildDivider(screenWidth),
+                _buildInfoRow(
+                  icon: Icons.person,
+                  label: 'Complaint by',
+                  value: taskDetails!['officer_name'] ?? 'Unknown Officer',
+                  screenWidth: screenWidth,
+                ),
+                _buildDivider(screenWidth),
+                _buildInfoRow(
+                  icon: Icons.date_range,
+                  label: 'Date Of Complaint',
+                  value: formattedDate,
+                  screenWidth: screenWidth,
+                ),
+                _buildDivider(screenWidth),
+                _buildInfoRow(
+                  icon: Icons.access_time,
+                  label: 'Complaint Time',
+                  value: formattedTime,
+                  screenWidth: screenWidth,
+                ),
+                _buildDivider(screenWidth),
+                _buildInfoRow(
+                  icon: Icons.people,
+                  label: 'Number of Cleaners',
+                  value: '${taskDetails!['no_of_cleaners']}',
+                  screenWidth: screenWidth,
+                ),
+                _buildDivider(screenWidth),
+                _buildStatusRow(
+                  icon: Icons.assignment_turned_in,
+                  label: 'Status',
+                  status: taskDetails!['comp_status'] ?? 'Unknown',
+                  screenWidth: screenWidth,
+                ),
+                _buildDivider(screenWidth),
+                _buildInfoRow(
+                  icon: Icons.calendar_today,
+                  label: 'Assigned Date',
+                  value: DateFormat.yMMMMd().format(
+                    DateTime.parse(taskDetails!['assigned_date'] ?? DateTime.now().toString()),
                   ),
-                ],
-              ),
-              padding: EdgeInsets.all(screenWidth * 0.04),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildInfoRow(
-                    icon: Icons.description,
-                    label: 'Description',
-                    value: taskDetails!['comp_desc'] ?? 'No Description',
-                    screenWidth: screenWidth,
-                    onPrimaryColor: onPrimaryColor,
-                  ),
-                  _buildDivider(screenWidth),
-                  _buildInfoRow(
-                    icon: Icons.location_on,
-                    label: 'Location',
-                    value: taskDetails!['comp_location'] ?? 'No Location',
-                    screenWidth: screenWidth,
-                    onPrimaryColor: onPrimaryColor,
-                  ),
-                  _buildDivider(screenWidth),
-                  _buildInfoRow(
-                    icon: Icons.person,
-                    label: 'Complaint by',
-                    value: taskDetails!['officer_name'] ?? 'Unknown Officer',
-                    screenWidth: screenWidth,
-                    onPrimaryColor: onPrimaryColor,
-                  ),
-                  _buildDivider(screenWidth),
-                  _buildInfoRow(
-                    icon: Icons.date_range,
-                    label: 'Date Of Complaint',
-                    value: formattedDate,
-                    screenWidth: screenWidth,
-                    onPrimaryColor: onPrimaryColor,
-                  ),
-                  _buildDivider(screenWidth),
-                  _buildInfoRow(
-                    icon: Icons.access_time,
-                    label: 'Complaint Time',
-                    value: formattedTime,
-                    screenWidth: screenWidth,
-                    onPrimaryColor: onPrimaryColor,
-                  ),
-                  _buildDivider(screenWidth),
-                  _buildInfoRow(
-                    icon: Icons.people,
-                    label: 'Number of Cleaners',
-                    value: '${taskDetails!['no_of_cleaners']}',
-                    screenWidth: screenWidth,
-                    onPrimaryColor: onPrimaryColor,
-                  ),
-                  _buildDivider(screenWidth),
-                  _buildStatusRow(
-                    icon: Icons.assignment_turned_in,
-                    label: 'Status',
-                    status: taskDetails!['comp_status'] ?? 'Unknown',
-                    screenWidth: screenWidth,
-                  ),
-                  _buildDivider(screenWidth),
-                  _buildInfoRow(
-                    icon: Icons.calendar_today,
-                    label: 'Assigned Date',
-                    value: DateFormat.yMMMMd().format(
-                      DateTime.parse(taskDetails!['assigned_date'] ?? DateTime.now().toString()),
-                    ),
-                    screenWidth: screenWidth,
-                    onPrimaryColor: onPrimaryColor,
-                  ),
-                ],
-              ),
+                  screenWidth: screenWidth,
+                ),
+              ],
             ),
             SizedBox(height: screenHeight * 0.03),
             Text(
@@ -178,7 +172,7 @@ class TaskDetailsPageState extends State<TaskDetailsPage> {
               style: TextStyle(
                 fontSize: screenWidth * 0.05,
                 fontWeight: FontWeight.bold,
-                color: onPrimaryColor,
+                color: Colors.black,
               ),
             ),
             SizedBox(height: screenHeight * 0.01),
@@ -189,10 +183,10 @@ class TaskDetailsPageState extends State<TaskDetailsPage> {
     );
   }
 
-  Widget _buildInfoRow({required IconData icon, required String label, required String value, required double screenWidth, required Color onPrimaryColor}) {
+  Widget _buildInfoRow({required IconData icon, required String label, required String value, required double screenWidth}) {
     return Row(
       children: [
-        Icon(icon, color: onPrimaryColor.withOpacity(0.7), size: screenWidth * 0.05),
+        Icon(icon, color: Colors.black.withOpacity(0.7), size: screenWidth * 0.05),
         SizedBox(width: screenWidth * 0.025),
         Expanded(
           child: Column(
@@ -200,12 +194,12 @@ class TaskDetailsPageState extends State<TaskDetailsPage> {
             children: [
               Text(
                 label,
-                style: TextStyle(fontSize: screenWidth * 0.04, color: onPrimaryColor.withOpacity(0.7), fontWeight: FontWeight.w600),
+                style: TextStyle(fontSize: screenWidth * 0.04, color: Colors.black.withOpacity(0.7), fontWeight: FontWeight.w600),
               ),
               SizedBox(height: screenWidth * 0.01),
               Text(
                 value,
-                style: TextStyle(fontSize: screenWidth * 0.045, fontWeight: FontWeight.w500, color: onPrimaryColor),
+                style: TextStyle(fontSize: screenWidth * 0.045, fontWeight: FontWeight.w500, color: Colors.black),
               ),
             ],
           ),
@@ -267,29 +261,18 @@ class TaskDetailsPageState extends State<TaskDetailsPage> {
     );
   }
 
-Widget _buildCleanersList(double screenWidth) {
-  final cleaners = taskDetails!['assigned_cleaners'] as List<dynamic>;
-  if (cleaners.isEmpty) {
-    return Text(
-      'No cleaners assigned.',
-      style: TextStyle(fontSize: screenWidth * 0.04, color: Colors.grey[700]),
-    );
-  }
+  Widget _buildCleanersList(double screenWidth) {
+    final cleaners = taskDetails!['assigned_cleaners'] as List<dynamic>;
+    if (cleaners.isEmpty) {
+      return Text(
+        'No cleaners assigned.',
+        style: TextStyle(fontSize: screenWidth * 0.04, color: Colors.black),
+      );
+    }
 
-  return Column(
-    crossAxisAlignment: CrossAxisAlignment.start, // Align items to the start
-    children: [
-      // New text added for "Assigned Cleaners"
-      Text(
-        'Assigned Cleaners',
-        style: TextStyle(
-          fontSize: screenWidth * 0.05,
-          fontWeight: FontWeight.bold,
-          color: Colors.black87,
-        ),
-      ),
-      SizedBox(height: screenWidth * 0.03),
-      ...cleaners.map<Widget>((cleaner) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: cleaners.map<Widget>((cleaner) {
         return Container(
           margin: EdgeInsets.symmetric(vertical: screenWidth * 0.02),
           padding: EdgeInsets.symmetric(vertical: screenWidth * 0.03, horizontal: screenWidth * 0.04),
@@ -311,8 +294,6 @@ Widget _buildCleanersList(double screenWidth) {
           ),
         );
       }).toList(),
-    ],
-  );
+    );
+  }
 }
-}
-
