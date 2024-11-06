@@ -8,13 +8,13 @@ class EnterCodeScreen extends StatefulWidget {
   const EnterCodeScreen({required this.email, super.key});
 
   @override
-  EnterCodeScreenState createState() => EnterCodeScreenState(); // Made public
+  EnterCodeScreenState createState() => EnterCodeScreenState();
 }
 
 class EnterCodeScreenState extends State<EnterCodeScreen> {
   final TextEditingController _codeController = TextEditingController();
-  final String _message = ''; // Left mutable as it changes based on validation
-  final bool _isLoading = false; // Left mutable as it changes when loading state updates
+  String _message = '';
+  bool _isLoading = false;
 
   void _navigateToResetPassword() {
     Navigator.push(
@@ -32,8 +32,10 @@ class EnterCodeScreenState extends State<EnterCodeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context); // Access theme colors
+
     return Scaffold(
-      backgroundColor: const Color(0xFF92AEB9),
+      backgroundColor: theme.primaryColor, // Set background color to primary color
       body: Center(
         child: SingleChildScrollView(
           child: Padding(
@@ -41,7 +43,14 @@ class EnterCodeScreenState extends State<EnterCodeScreen> {
             child: Column(
               children: <Widget>[
                 const SizedBox(height: 60),
-                Text('Enter Code', style: GoogleFonts.poppins(fontSize: 22, fontWeight: FontWeight.w600)),
+                Text(
+                  'Enter Code',
+                  style: GoogleFonts.poppins(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w600,
+                    color: theme.colorScheme.secondary, // Use secondary color
+                  ),
+                ),
                 const SizedBox(height: 20),
                 Card(
                   elevation: 5,
@@ -65,7 +74,11 @@ class EnterCodeScreenState extends State<EnterCodeScreen> {
                           child: const Text('Verify Code', style: TextStyle(color: Colors.white)),
                         ),
                         const SizedBox(height: 10),
-                        if (_message.isNotEmpty) Text(_message, style: TextStyle(color: Colors.red)),
+                        if (_message.isNotEmpty)
+                          Text(
+                            _message,
+                            style: TextStyle(color: Colors.red),
+                          ),
                       ],
                     ),
                   ),
@@ -82,7 +95,10 @@ class EnterCodeScreenState extends State<EnterCodeScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+        Text(
+          label,
+          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+        ),
         const SizedBox(height: 6),
         SizedBox(
           width: 350,

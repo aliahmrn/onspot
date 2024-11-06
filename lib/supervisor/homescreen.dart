@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
-import 'profile.dart';
 import '../widget/bell.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../service/complaints_service.dart';
-import 'complaints.dart';
 
 class SupervisorHomeScreen extends StatefulWidget {
   const SupervisorHomeScreen({super.key});
@@ -49,25 +47,12 @@ class SupervisorHomeScreenState extends State<SupervisorHomeScreen> {
   }
 
 void _navigateToProfile() {
-  Navigator.push(
-    context,
-    PageRouteBuilder(
-      pageBuilder: (context, animation, secondaryAnimation) => SVProfileScreen(),
-      transitionDuration: Duration.zero, // Disable animation
-      reverseTransitionDuration: Duration.zero, // Disable reverse animation
-    ),
-  );
+  Navigator.pushNamed(context, '/main-navigator', arguments: 4); // 4 is the index for the Profile screen
 }
 
+
 void _navigateToComplaintsPage() {
-  Navigator.push(
-    context,
-    PageRouteBuilder(
-      pageBuilder: (context, animation, secondaryAnimation) => ComplaintPage(),
-      transitionDuration: Duration.zero, // Disable animation
-      reverseTransitionDuration: Duration.zero, // Disable reverse animation
-    ),
-  );
+  Navigator.pushNamed(context, '/main-navigator', arguments: 2); // 2 is the index for Complaints
 }
 
 

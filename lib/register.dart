@@ -94,8 +94,10 @@ class RegistrationScreenState extends State<RegistrationScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context); // Get the theme context
+
     return Scaffold(
-      backgroundColor: const Color(0xFF92AEB9),
+      backgroundColor:  theme.primaryColor,
       body: Center(
         child: SingleChildScrollView(
           child: Padding(
@@ -109,7 +111,7 @@ class RegistrationScreenState extends State<RegistrationScreen> {
                   style: GoogleFonts.poppins(
                     fontSize: 28,
                     fontWeight: FontWeight.w600,
-                    color: const Color.fromARGB(255, 0, 0, 0),
+                    color:theme.colorScheme.secondary,
                   ),
                 ),
                 const SizedBox(height: 20),

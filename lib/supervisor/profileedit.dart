@@ -4,6 +4,7 @@ import 'package:logger/logger.dart';
 import '../service/profile_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+
 class SVProfileEditScreen extends StatefulWidget {
   const SVProfileEditScreen({super.key});
 
@@ -142,12 +143,12 @@ class SVProfileEditScreenState extends State<SVProfileEditScreen> {
           ),
         ),
         centerTitle: true,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () {
-            Navigator.pop(context);
-          },
-        ),
+      leading: IconButton(
+        icon: const Icon(Icons.arrow_back, color: Colors.white),
+        onPressed: () {
+          Navigator.pop(context); // This returns to the previous screen without replacing the stack
+        },
+      ),
       ),
       body: Stack(
         children: [

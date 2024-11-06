@@ -5,6 +5,8 @@ import '../service/profile_service.dart';
 import 'profileedit.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+
+
 class SVProfileScreen extends StatefulWidget {
   const SVProfileScreen({super.key});
 
@@ -71,10 +73,6 @@ class SVProfileScreenState extends State<SVProfileScreen> {
             fontSize: screenWidth * 0.05,
             fontWeight: FontWeight.bold,
           ),
-        ),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white), // Back arrow with white color
-          onPressed: () => Navigator.pop(context), // Navigate back on press
         ),
       ),
       body: Stack(
