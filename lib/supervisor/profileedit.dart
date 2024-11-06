@@ -4,6 +4,7 @@ import 'package:logger/logger.dart';
 import '../service/profile_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+
 class SVProfileEditScreen extends StatefulWidget {
   const SVProfileEditScreen({super.key});
 
@@ -125,6 +126,7 @@ class SVProfileEditScreenState extends State<SVProfileEditScreen> {
   @override
   Widget build(BuildContext context) {
     final primaryColor = Theme.of(context).colorScheme.primary;
+    final secondaryColor = Theme.of(context).colorScheme.secondary;
     final screenWidth = MediaQuery.of(context).size.width;
 
     return Scaffold(
@@ -141,12 +143,12 @@ class SVProfileEditScreenState extends State<SVProfileEditScreen> {
           ),
         ),
         centerTitle: true,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () {
-            Navigator.pop(context);
-          },
-        ),
+      leading: IconButton(
+        icon: const Icon(Icons.arrow_back, color: Colors.white),
+        onPressed: () {
+          Navigator.pop(context); // This returns to the previous screen without replacing the stack
+        },
+      ),
       ),
       body: Stack(
         children: [
@@ -224,22 +226,20 @@ class SVProfileEditScreenState extends State<SVProfileEditScreen> {
                     _buildTextField('Phone Number', _phoneController, screenWidth),
                     const SizedBox(height: 30),
                     Center(
-                      child: SizedBox(
-                        width: screenWidth * 0.9,
-                        height: 50,
-                        child: ElevatedButton(
-                          onPressed: _updateProfile,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFFFEF7FF),
-                            side: const BorderSide(color: Colors.black),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
+                      child: ElevatedButton(
+                        onPressed: _updateProfile,
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 16),
+                          backgroundColor: primaryColor,     // Use primary color for background
+                          foregroundColor: secondaryColor,   // Use secondary color for text
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
                           ),
-                          child: const Text(
-                            'Save',
-                            style: TextStyle(color: Colors.black, fontSize: 16),
-                          ),
+                          minimumSize: const Size(250, 50),   // Consistent width with other buttons
+                        ),
+                        child: const Text(
+                          'Save',
+                          style: TextStyle(fontSize: 16),
                         ),
                       ),
                     ),

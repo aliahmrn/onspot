@@ -51,7 +51,8 @@ class ComplaintsService {
     );
 
     if (response.statusCode == 200) {
-      return json.decode(response.body);
+      final responseData = json.decode(response.body);
+      return responseData;
     } else {
       throw Exception('Failed to load complaint details');
     }

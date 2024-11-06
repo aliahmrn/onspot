@@ -10,7 +10,7 @@ class ResetPasswordScreen extends StatefulWidget {
   const ResetPasswordScreen({required this.email, required this.code, super.key});
 
   @override
-  ResetPasswordScreenState createState() => ResetPasswordScreenState(); // Made public
+  ResetPasswordScreenState createState() => ResetPasswordScreenState();
 }
 
 class ResetPasswordScreenState extends State<ResetPasswordScreen> {
@@ -72,8 +72,10 @@ class ResetPasswordScreenState extends State<ResetPasswordScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context); // Access theme colors
+
     return Scaffold(
-      backgroundColor: const Color(0xFF92AEB9),
+      backgroundColor: theme.primaryColor, // Set background color to primary color
       body: Center(
         child: SingleChildScrollView(
           child: Padding(
@@ -83,7 +85,11 @@ class ResetPasswordScreenState extends State<ResetPasswordScreen> {
                 const SizedBox(height: 60),
                 Text(
                   'Reset Password',
-                  style: GoogleFonts.poppins(fontSize: 22, fontWeight: FontWeight.w600),
+                  style: GoogleFonts.poppins(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w600,
+                    color: theme.colorScheme.secondary, // Use secondary color
+                  ),
                 ),
                 const SizedBox(height: 20),
                 Card(

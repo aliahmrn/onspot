@@ -8,7 +8,7 @@ class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({super.key});
 
   @override
-  ForgotPasswordScreenState createState() => ForgotPasswordScreenState(); // Made public
+  ForgotPasswordScreenState createState() => ForgotPasswordScreenState();
 }
 
 class ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
@@ -55,8 +55,10 @@ class ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context); // Access theme colors
+
     return Scaffold(
-      backgroundColor: const Color(0xFF92AEB9),
+      backgroundColor: theme.primaryColor, // Set background color to primary color
       body: Center(
         child: SingleChildScrollView(
           child: Padding(
@@ -70,6 +72,7 @@ class ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                   style: GoogleFonts.poppins(
                     fontSize: 22,
                     fontWeight: FontWeight.w600,
+                    color: theme.colorScheme.secondary, // Use secondary color
                   ),
                 ),
                 const SizedBox(height: 20),
@@ -121,9 +124,12 @@ class ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                       (route) => false,
                     );
                   },
-                  child: const Text(
+                  child: Text(
                     'Back to Login',
-                    style: TextStyle(color: Colors.black),
+                    style: TextStyle(
+                      color: theme.colorScheme.secondary, // Use secondary color
+                      decoration: TextDecoration.underline,
+                    ),
                   ),
                 ),
               ],

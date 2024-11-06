@@ -78,15 +78,17 @@ class HistoryPage extends StatelessWidget {
                 return Padding(
                   padding: EdgeInsets.symmetric(vertical: screenHeight * 0.01),
                   child: InkWell(
-                    onTap: () {
-                      logger.i("Selected Complaint ID: ${task['id']}");
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => TaskDetailsPage(complaintId: task['id'].toString()),
-                        ),
-                      );
-                    },
+                  onTap: () {
+                    logger.i("Selected Complaint ID: ${task['id']}");
+                    Navigator.push(
+                      context,
+                      PageRouteBuilder(
+                        pageBuilder: (context, animation, secondaryAnimation) => TaskDetailsPage(complaintId: task['id'].toString()),
+                        transitionDuration: Duration.zero, // Disables the animation
+                        reverseTransitionDuration: Duration.zero,
+                      ),
+                    );
+                  },
                     child: Container(
                       decoration: BoxDecoration(
                         color: primaryColor,

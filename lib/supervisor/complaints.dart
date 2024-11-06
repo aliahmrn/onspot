@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'assign_task.dart';
 import '../service/complaints_service.dart';
-import 'main_navigator.dart';
+
 
 class ComplaintPage extends StatefulWidget {
   const ComplaintPage({super.key});
@@ -30,18 +30,7 @@ class ComplaintPageState extends State<ComplaintPage> {
     return Scaffold(
       backgroundColor: primaryColor,
       appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () {
-            Navigator.of(context).pushAndRemoveUntil(
-              MaterialPageRoute(
-                builder: (context) => const MainNavigator(),
-                settings: RouteSettings(arguments: 0),
-              ),
-              (route) => false,
-            );
-          },
-        ),
+        automaticallyImplyLeading: false, // Removes the back arrow
         centerTitle: true,
         title: Text(
           'Complaints',
@@ -145,8 +134,10 @@ class ComplaintPageState extends State<ComplaintPage> {
                             onPressed: () async {
                               await Navigator.push(
                                 context,
-                                MaterialPageRoute(
-                                  builder: (context) => AssignTaskPage(complaintId: complaint['id'].toString())
+                                PageRouteBuilder(
+                                  pageBuilder: (context, animation, secondaryAnimation) => AssignTaskPage(complaintId: complaint['id'].toString()),
+                                  transitionDuration: Duration.zero, // No transition animation
+                                  reverseTransitionDuration: Duration.zero, // No reverse transition animation
                                 ),
                               );
                               _refreshComplaints();

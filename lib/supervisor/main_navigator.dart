@@ -24,15 +24,17 @@ class MainNavigatorState extends State<MainNavigator> {
     const SVProfileScreen(),
   ];
 
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    // Update index if arguments are passed (e.g., from ComplaintPage back arrow)
-    final args = ModalRoute.of(context)?.settings.arguments as int?;
-    if (args != null) {
-      _currentIndex = args; // Set _currentIndex to argument (0 for home)
-    }
+@override
+void didChangeDependencies() {
+  super.didChangeDependencies();
+  final args = ModalRoute.of(context)?.settings.arguments as int?;
+  if (args != null) {
+    setState(() {
+      _currentIndex = args; // Set _currentIndex to the passed argument
+    });
   }
+}
+
 
   void _onItemTapped(int index) {
     setState(() {
