@@ -17,6 +17,8 @@ class CleanerHomeScreen extends StatefulWidget {
 class _CleanerHomeScreenState extends State<CleanerHomeScreen> {
   bool isChecked = false;
   Map<String, dynamic>? latestTask;
+  String? error;
+  bool isLoading = true; // Loading state
   final TaskService taskService = TaskService();
 
   @override
@@ -26,10 +28,18 @@ class _CleanerHomeScreenState extends State<CleanerHomeScreen> {
   }
 
   Future<void> _fetchLatestTask() async {
-    final task = await taskService.getLatestTask(69); // Replace 69 with the cleaner's actual ID
-    setState(() {
-      latestTask = task;
-    });
+    try {
+      final tasks = await taskService.getCleanerTasks(69); // Replace 69 with the actual cleaner ID
+      setState(() {
+        latestTask = tasks != null && tasks.isNotEmpty ? tasks.first : null;
+        isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        error = 'Failed to load latest task: $e';
+        isLoading = false;
+      });
+    }
   }
 
   void _handleBellTap(BuildContext context) {
@@ -58,7 +68,6 @@ class _CleanerHomeScreenState extends State<CleanerHomeScreen> {
     final primaryColor = Theme.of(context).primaryColor;
     final secondaryColor = Theme.of(context).colorScheme.secondary;
     final onPrimaryColor = Theme.of(context).colorScheme.onPrimary;
-    final outlineColor = Theme.of(context).colorScheme.outline;
     final onSecondaryColor = Theme.of(context).colorScheme.onSecondary;
 
     return Scaffold(
@@ -84,7 +93,7 @@ class _CleanerHomeScreenState extends State<CleanerHomeScreen> {
             top: screenHeight * 0.01,
             left: 0,
             right: 0,
-            bottom: screenHeight * 0.08,
+            bottom: 0,
             child: Container(
               decoration: BoxDecoration(
                 color: secondaryColor,
@@ -105,7 +114,7 @@ class _CleanerHomeScreenState extends State<CleanerHomeScreen> {
                         style: TextStyle(
                           fontSize: screenWidth * 0.05,
                           fontWeight: FontWeight.bold,
-                          color: Colors.black87,
+                          color: onSecondaryColor,
                         ),
                       ),
                       Row(
@@ -134,137 +143,96 @@ class _CleanerHomeScreenState extends State<CleanerHomeScreen> {
                   ),
                   SizedBox(height: screenHeight * 0.02),
                   Text(
-                    'Attendance',
+                    'Task',
                     style: TextStyle(
                       fontSize: screenWidth * 0.05,
                       fontWeight: FontWeight.bold,
-                      color: Colors.black87,
+                      color: onSecondaryColor,
                     ),
-                  ),
-                  SizedBox(height: screenHeight * 0.02),
-                  Container(
-                    padding: EdgeInsets.all(screenWidth * 0.03),
-                    decoration: BoxDecoration(
-                      border: Border.all(color: outlineColor, width: screenWidth * 0.005),
-                      borderRadius: BorderRadius.circular(screenWidth * 0.03),
-                    ),
-                    child: Row(
-                      children: [
-                        IconButton(
-                          icon: Icon(
-                            isChecked ? Icons.check_box : Icons.check_box_outline_blank,
-                            color: isChecked ? Colors.green : Colors.grey,
-                          ),
-                          iconSize: screenWidth * 0.07,
-                          onPressed: () {
-                            setState(() {
-                              isChecked = !isChecked;
-                            });
-                          },
-                        ),
-                        SizedBox(width: screenWidth * 0.04),
-                        Text(
-                          'Name',
-                          style: TextStyle(
-                            fontSize: screenWidth * 0.045,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  SizedBox(height: screenHeight * 0.02),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Task',
-                        style: TextStyle(
-                          fontSize: screenWidth * 0.05,
-                          fontWeight: FontWeight.bold,
-                          color: onSecondaryColor,
-                        ),
-                      ),
-                      Text(
-                        'see all',
-                        style: TextStyle(
-                          fontSize: screenWidth * 0.035,
-                          fontWeight: FontWeight.w400,
-                          color: onSecondaryColor.withOpacity(0.6),
-                        ),
-                      ),
-                    ],
                   ),
                   SizedBox(height: screenHeight * 0.01),
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => CleanerTasksScreen()),
-                      );
-                    },
-                    child: Container(
-                      padding: EdgeInsets.all(screenWidth * 0.04),
-                      decoration: BoxDecoration(
-                        color: primaryColor,
-                        borderRadius: BorderRadius.circular(screenWidth * 0.03),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.grey.withOpacity(0.5),
-                            spreadRadius: screenWidth * 0.005,
-                            blurRadius: screenWidth * 0.03,
-                            offset: Offset(0, screenHeight * 0.005),
-                          ),
-                        ],
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Icon(Icons.location_on, size: screenWidth * 0.06, color: onPrimaryColor),
-                              SizedBox(width: screenWidth * 0.02),
-                              Text(
-                                latestTask != null ? latestTask!['comp_location'] : 'Location',
-                                style: TextStyle(
-                                  fontSize: screenWidth * 0.045,
-                                  fontWeight: FontWeight.w500,
-                                  color: onPrimaryColor,
+                  isLoading
+                      ? Center(child: CircularProgressIndicator())
+                      : error != null
+                          ? Center(child: Text(error!))
+                          : latestTask != null
+                              ? GestureDetector(
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => CleanerTasksScreen(),
+                                      ),
+                                    );
+                                  },
+                                  child: Container(
+                                    padding: EdgeInsets.all(screenWidth * 0.04),
+                                    decoration: BoxDecoration(
+                                      color: primaryColor,
+                                      borderRadius: BorderRadius.circular(screenWidth * 0.03),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.grey.withOpacity(0.5),
+                                          spreadRadius: screenWidth * 0.005,
+                                          blurRadius: screenWidth * 0.03,
+                                          offset: Offset(0, screenHeight * 0.005),
+                                        ),
+                                      ],
+                                    ),
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Row(
+                                          children: [
+                                            Icon(Icons.location_on, size: screenWidth * 0.06, color: onPrimaryColor),
+                                            SizedBox(width: screenWidth * 0.02),
+                                            Text(
+                                              latestTask!['comp_location'] ?? 'No Location',
+                                              style: TextStyle(
+                                                fontSize: screenWidth * 0.045,
+                                                fontWeight: FontWeight.w500,
+                                                color: onPrimaryColor,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        SizedBox(height: screenHeight * 0.005),
+                                        Text(
+                                          latestTask!['comp_desc'] ?? 'No Description',
+                                          style: TextStyle(
+                                            fontSize: screenWidth * 0.04,
+                                            fontWeight: FontWeight.bold,
+                                            color: onPrimaryColor,
+                                          ),
+                                        ),
+                                        SizedBox(height: screenHeight * 0.005),
+                                        Row(
+                                          children: [
+                                            Icon(Icons.calendar_today, size: screenWidth * 0.05, color: onPrimaryColor),
+                                            SizedBox(width: screenWidth * 0.02),
+                                            Text(
+                                              latestTask!['comp_date'] ?? 'N/A',
+                                              style: TextStyle(
+                                                fontSize: screenWidth * 0.035,
+                                                color: onPrimaryColor,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                )
+                              : Center(
+                                  child: Text(
+                                    'No recent tasks available.',
+                                    style: TextStyle(
+                                      fontSize: screenWidth * 0.04,
+                                      fontWeight: FontWeight.bold,
+                                      color: onPrimaryColor,
+                                    ),
+                                  ),
                                 ),
-                              ),
-                            ],
-                          ),
-                          SizedBox(height: screenHeight * 0.005),
-                          Text(
-                            latestTask != null ? latestTask!['comp_desc'] : 'Task Description',
-                            style: TextStyle(
-                              fontSize: screenWidth * 0.04,
-                              fontWeight: FontWeight.bold,
-                              color: onPrimaryColor,
-                            ),
-                          ),
-                          SizedBox(height: screenHeight * 0.005),
-                          Row(
-                            children: [
-                              SvgPicture.asset(
-                                'assets/images/calendar.svg',
-                                height: screenWidth * 0.06,
-                                color: onPrimaryColor,
-                              ),
-                              SizedBox(width: screenWidth * 0.02),
-                              Text(
-                                latestTask != null ? latestTask!['comp_date'] : 'Date',
-                                style: TextStyle(
-                                  fontSize: screenWidth * 0.035,
-                                  color: onPrimaryColor,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
                 ],
               ),
             ),
@@ -275,7 +243,7 @@ class _CleanerHomeScreenState extends State<CleanerHomeScreen> {
             right: 0,
             child: SafeArea(
               child: Container(
-                color: Colors.white,
+                color: secondaryColor,
                 child: CleanerBottomNavBar(currentIndex: 0),
               ),
             ),

@@ -4,7 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:logger/logger.dart';
 
 class TaskService {
-  final String baseUrl = 'http://10.0.2.2:8000/api';
+  final String baseUrl = 'http://192.168.1.121:8000/api';
   final Logger logger = Logger();
 
   Future<String?> _getToken() async {
@@ -75,34 +75,35 @@ class TaskService {
   }
 
   // Fetch the latest task assigned to a specific cleaner
-  Future<Map<String, dynamic>?> getLatestTask(int cleanerId) async {
-    String? token = await _getToken();
+Future<Map<String, dynamic>?> getLatestTask(int cleanerId) async {
+  String? token = await _getToken();
 
-    if (token == null) {
-      logger.w('User not authenticated.');
-      return null;
-    }
-
-    try {
-      final response = await http.get(
-        Uri.parse('$baseUrl/cleaner/$cleanerId/tasks/latest'),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Accept': 'application/json',
-        },
-      );
-
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        return data['task'];
-      } else {
-        logger.e('Failed to fetch latest task. Status code: ${response.statusCode}');
-        return null;
-      }
-    } catch (e) {
-      logger.e('Error fetching latest task', error: e);
-      return null;
-    }
+  if (token == null) {
+    logger.w('User not authenticated.');
+    return null;
   }
+
+  try {
+    final response = await http.get(
+      Uri.parse('$baseUrl/cleaner/$cleanerId/tasks/latest'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Accept': 'application/json',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return data['task']; // Ensure this key exists in the response.
+    } else {
+      logger.e('Failed to fetch latest task. Status code: ${response.statusCode}');
+      return null;
+    }
+  } catch (e) {
+    logger.e('Error fetching latest task', error: e);
+    return null;
+  }
+}
+
 
 }

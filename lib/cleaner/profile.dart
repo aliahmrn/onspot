@@ -10,7 +10,6 @@ class CleanerProfileScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final primaryColor = Theme.of(context).colorScheme.primary;
     final secondaryColor = Theme.of(context).colorScheme.secondary;
-    final onPrimaryColor = Theme.of(context).colorScheme.onPrimary;
     final screenWidth = MediaQuery.of(context).size.width;
 
     return Scaffold(

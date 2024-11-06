@@ -7,7 +7,7 @@ import 'package:onspot_cleaner/widget/cleanericons.dart';
 class DesignPage extends StatelessWidget {
   const DesignPage({super.key});
 
-  void _handleBellTap(BuildContext context) {
+  void handleBellTap(BuildContext context) {
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -16,7 +16,7 @@ class DesignPage extends StatelessWidget {
     );
   }
 
-  void _handleProfileTap(BuildContext context) {
+  void handleProfileTap(BuildContext context) {
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -117,7 +117,7 @@ class DesignPage extends StatelessWidget {
     );
   }
 
-  Widget _buildTaskCard(
+  Widget buildTaskCard(
     BuildContext context,
     String title,
     String subtitle,

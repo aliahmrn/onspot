@@ -2,7 +2,8 @@
     <application
         android:label="onspot_cleaner"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/ic_launcher"
+        android:usesCleartextTraffic="true"> <!-- Allow HTTP requests -->
         <activity
             android:name=".MainActivity"
             android:exported="true"

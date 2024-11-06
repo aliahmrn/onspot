@@ -2,9 +2,13 @@ import 'package:flutter/material.dart';
 import 'login.dart';
 import 'cleaner/homescreen.dart'; // Import the cleaner home screen
 import 'package:google_fonts/google_fonts.dart';
+import 'package:firebase_core/firebase_core.dart';
 
 
-void main() {
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
   runApp(OnspotCleanerApp());
 }
 
