@@ -3,7 +3,6 @@ import 'package:intl/intl.dart';
 import 'assign_task.dart';
 import '../service/complaints_service.dart';
 
-
 class ComplaintPage extends StatefulWidget {
   const ComplaintPage({super.key});
 
@@ -63,7 +62,14 @@ class ComplaintPageState extends State<ComplaintPage> {
               return const Center(child: Text('No complaints yet.'));
             }
 
+            // Sort complaints by date in descending order
             final complaints = snapshot.data!;
+            complaints.sort((a, b) {
+              DateTime dateA = DateTime.parse(a['comp_date']);
+              DateTime dateB = DateTime.parse(b['comp_date']);
+              return dateB.compareTo(dateA);
+            });
+
             return ListView.builder(
               itemCount: complaints.length,
               itemBuilder: (context, index) {

@@ -51,7 +51,7 @@ class SearchPageState extends State<SearchPage> {
               'building': cleaner['building'] as String? ?? '',
             };
           }).toList();
-          filteredCleaners = List.from(allCleaners);
+          _filterNames(''); // Apply the initial filter based on selected status
           isLoading = false;
         });
       } else {
@@ -108,7 +108,7 @@ class SearchPageState extends State<SearchPage> {
             top: 0,
             left: 0,
             right: 0,
-            height: 180,
+            height: 120,
             child: Container(
               decoration: BoxDecoration(
                 color: primaryColor,
@@ -188,7 +188,7 @@ class SearchPageState extends State<SearchPage> {
           ),
           // Main content section
           Positioned(
-            top: 160,
+            top: 100,
             left: 0,
             right: 0,
             bottom: 0,
@@ -203,79 +203,92 @@ class SearchPageState extends State<SearchPage> {
               ),
               child: isLoading
                   ? const Center(child: CircularProgressIndicator())
-                  : ListView.builder(
-                      itemCount: filteredCleaners.length,
-                      itemBuilder: (context, index) {
-                        final cleaner = filteredCleaners[index];
-                        return Padding(
-                          padding: EdgeInsets.symmetric(
-                              vertical: MediaQuery.of(context).size.height * 0.01),
-                          child: InkWell(
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => CleanerDetailPage(
-                                    cleanerName: cleaner['name']!,
-                                    cleanerStatus: cleaner['status']!,
-                                    profilePic: cleaner['profile_pic']!,
-                                    cleanerPhoneNo: cleaner['phone_no']!,
-                                    building: cleaner['building']!,
-                                  ),
-                                ),
-                              );
-                            },
-                            child: Container(
-                              decoration: BoxDecoration(
-                                color: primaryColor,
-                                borderRadius: BorderRadius.circular(
-                                    MediaQuery.of(context).size.width * 0.03),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.grey.withOpacity(0.5),
-                                    spreadRadius:
-                                        MediaQuery.of(context).size.width * 0.005,
-                                    blurRadius:
-                                        MediaQuery.of(context).size.width * 0.03,
-                                    offset: Offset(0,
-                                        MediaQuery.of(context).size.height * 0.005),
-                                  ),
-                                ],
-                              ),
-                              padding: EdgeInsets.all(
-                                  MediaQuery.of(context).size.width * 0.04),
-                              child: Row(
-                                children: [
-                                  CircleAvatar(
-                                    backgroundColor: const Color.fromARGB(255, 255, 255, 255),
-                                    child: Text(
-                                      cleaner['name']![0],
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        color: Color(0xFF2E5675),
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 10),
-                                  Expanded(
-                                    child: Text(
-                                      cleaner['name']!,
-                                      style: TextStyle(
-                                        fontSize:
-                                            MediaQuery.of(context).size.width * 0.045,
-                                        fontWeight: FontWeight.w600,
-                                        color: onPrimaryColor,
-                                      ),
-                                    ),
-                                  ),
-                                  const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
-                                ],
-                              ),
+                  : filteredCleaners.isEmpty
+                      ? Center(
+                          child: Text(
+                            selectedStatus == 'available'
+                                ? 'No available cleaners.'
+                                : 'No unavailable cleaners.',
+                            style: TextStyle(
+                              color: Colors.black,
+                              fontSize: screenWidth * 0.05,
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
-                        );
-                      },
-                    ),
+                        )
+                      : ListView.builder(
+                          itemCount: filteredCleaners.length,
+                          itemBuilder: (context, index) {
+                            final cleaner = filteredCleaners[index];
+                            return Padding(
+                              padding: EdgeInsets.symmetric(
+                                  vertical: MediaQuery.of(context).size.height * 0.01),
+                              child: InkWell(
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => CleanerDetailPage(
+                                        cleanerName: cleaner['name']!,
+                                        cleanerStatus: cleaner['status']!,
+                                        profilePic: cleaner['profile_pic']!,
+                                        cleanerPhoneNo: cleaner['phone_no']!,
+                                        building: cleaner['building']!,
+                                      ),
+                                    ),
+                                  );
+                                },
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    color: primaryColor,
+                                    borderRadius: BorderRadius.circular(
+                                        MediaQuery.of(context).size.width * 0.03),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.grey.withOpacity(0.5),
+                                        spreadRadius:
+                                            MediaQuery.of(context).size.width * 0.005,
+                                        blurRadius:
+                                            MediaQuery.of(context).size.width * 0.03,
+                                        offset: Offset(0,
+                                            MediaQuery.of(context).size.height * 0.005),
+                                      ),
+                                    ],
+                                  ),
+                                  padding: EdgeInsets.all(
+                                      MediaQuery.of(context).size.width * 0.04),
+                                  child: Row(
+                                    children: [
+                                      CircleAvatar(
+                                        backgroundColor: const Color.fromARGB(255, 255, 255, 255),
+                                        child: Text(
+                                          cleaner['name']![0],
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            color: Color(0xFF2E5675),
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 10),
+                                      Expanded(
+                                        child: Text(
+                                          cleaner['name']!,
+                                          style: TextStyle(
+                                            fontSize:
+                                                MediaQuery.of(context).size.width * 0.045,
+                                            fontWeight: FontWeight.w600,
+                                            color: onPrimaryColor,
+                                          ),
+                                        ),
+                                      ),
+                                      const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
+                        ),
             ),
           ),
         ],

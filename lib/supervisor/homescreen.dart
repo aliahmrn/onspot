@@ -31,20 +31,37 @@ class SupervisorHomeScreenState extends State<SupervisorHomeScreen> {
     });
   }
 
-  Future<void> _fetchUnassignedComplaints() async {
-    try {
-      final complaints = await ComplaintsService().fetchComplaints();
+Future<void> _fetchUnassignedComplaints() async {
+  try {
+    final complaints = await ComplaintsService().fetchComplaints();
+    
+    if (complaints.isNotEmpty) {
+      // Sort complaints by date in descending order
+      complaints.sort((a, b) {
+        DateTime dateA = DateTime.parse(a['comp_date']);
+        DateTime dateB = DateTime.parse(b['comp_date']);
+        return dateB.compareTo(dateA);
+      });
+
+      // Set the latest complaint as the first item in the sorted list
       setState(() {
-        latestComplaint = complaints.isNotEmpty ? complaints.first : null;
+        latestComplaint = complaints.first;
         isLoading = false;
       });
-    } catch (e) {
+    } else {
       setState(() {
-        error = 'Failed to load complaints: $e';
+        latestComplaint = null;
         isLoading = false;
       });
     }
+  } catch (e) {
+    setState(() {
+      error = 'Failed to load complaints: $e';
+      isLoading = false;
+    });
   }
+}
+
 
 void _navigateToProfile() {
   Navigator.pushNamed(context, '/main-navigator', arguments: 4); // 4 is the index for the Profile screen

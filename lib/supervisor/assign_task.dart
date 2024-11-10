@@ -124,8 +124,8 @@ class AssignTaskPageState extends State<AssignTaskPage> {
             actions: [
               TextButton(
                 onPressed: () {
-                  Navigator.pop(context);
-                  Navigator.pop(context);
+                  Navigator.pop(context); // Close the dialog
+                  Navigator.pop(context, true); // Pass `true` as the result when navigating back
                 },
                 child: const Text('OK'),
               ),
@@ -204,6 +204,8 @@ class AssignTaskPageState extends State<AssignTaskPage> {
     final formattedDate = DateFormat.yMMMMd().format(DateTime.parse(complaintDetails!['comp_date']));
     final String? imageUrl = complaintDetails!['comp_image_url'];
 
+    final bool isAssignButtonEnabled = availableCleaners.isNotEmpty;
+
     return Container(
       width: double.infinity,
       height: screenHeight * 0.9,
@@ -264,7 +266,7 @@ class AssignTaskPageState extends State<AssignTaskPage> {
               isExpanded: true,
               value: selectedNumOfCleaners,
               hint: const Text('Select number'),
-              onChanged: _onNumberOfCleanersChanged,
+              onChanged: isAssignButtonEnabled ? _onNumberOfCleanersChanged : null,
               items: List.generate(10, (index) => (index + 1).toString())
                   .map<DropdownMenuItem<String>>((String value) {
                 return DropdownMenuItem<String>(
@@ -279,11 +281,11 @@ class AssignTaskPageState extends State<AssignTaskPage> {
                 isExpanded: true,
                 value: selectedCleaners.length > i ? selectedCleaners[i] : null,
                 hint: const Text('Select cleaner'),
-                onChanged: (String? newValue) {
+                onChanged: isAssignButtonEnabled ? (String? newValue) {
                   if (newValue != 'No cleaner available for now') {
                     _onCleanerSelected(i, newValue);
                   }
-                },
+                } : null,
                 items: _getAvailableCleaners(i).map<DropdownMenuItem<String>>((String cleaner) {
                   return DropdownMenuItem<String>(
                     value: cleaner,
@@ -294,15 +296,20 @@ class AssignTaskPageState extends State<AssignTaskPage> {
             const SizedBox(height: 20),
             Center(
               child: ElevatedButton(
-                onPressed: _assignTask,
+                onPressed: isAssignButtonEnabled ? _assignTask : null,
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 16),
-                  backgroundColor: primaryColor,  // Primary color as background
-                  foregroundColor: secondaryColor, // Secondary color as text color
+                  backgroundColor: isAssignButtonEnabled ? primaryColor : Colors.grey, // Change color based on availability
+                  foregroundColor: secondaryColor,
                 ),
-                child: const Text('Assign Task'),
+                child: Text(
+                  isAssignButtonEnabled ? 'Assign Task' : 'No Cleaners Available',
+                  style: TextStyle(
+                    color: isAssignButtonEnabled ? Theme.of(context).colorScheme.onPrimary : Colors.black54,
+                  ),
+                ),
               ),
-            )
+            ),
           ],
         ),
       ),

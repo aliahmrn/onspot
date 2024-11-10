@@ -3,13 +3,31 @@ import 'package:logger/logger.dart';
 import '../service/complaints_service.dart';
 import 'history_details.dart';
 
-class HistoryPage extends StatelessWidget {
+class HistoryPage extends StatefulWidget {
   const HistoryPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final Logger logger = Logger(); // Initialize Logger
+  _HistoryPageState createState() => _HistoryPageState();
+}
 
+class _HistoryPageState extends State<HistoryPage> {
+  final Logger logger = Logger();
+  late Future<List<Map<String, dynamic>>> _assignedTasksHistory;
+
+  @override
+  void initState() {
+    super.initState();
+    _assignedTasksHistory = ComplaintsService().fetchAssignedTasksHistory();
+  }
+
+  Future<void> _refreshHistory() async {
+    setState(() {
+      _assignedTasksHistory = ComplaintsService().fetchAssignedTasksHistory();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
 
@@ -43,14 +61,14 @@ class HistoryPage extends StatelessWidget {
         ),
         padding: EdgeInsets.all(screenWidth * 0.04),
         child: FutureBuilder<List<Map<String, dynamic>>>(
-          future: ComplaintsService().fetchAssignedTasksHistory(),
+          future: _assignedTasksHistory,
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const Center(child: CircularProgressIndicator());
             } else if (snapshot.hasError) {
               return Center(child: Text('Error: ${snapshot.error}'));
             } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-              return const Center(child: Text('No assigned tasks history.'));
+              return const Center(child: Text('No assigned complaints history.'));
             }
 
             final tasks = snapshot.data!;
@@ -78,17 +96,20 @@ class HistoryPage extends StatelessWidget {
                 return Padding(
                   padding: EdgeInsets.symmetric(vertical: screenHeight * 0.01),
                   child: InkWell(
-                  onTap: () {
-                    logger.i("Selected Complaint ID: ${task['id']}");
-                    Navigator.push(
-                      context,
-                      PageRouteBuilder(
-                        pageBuilder: (context, animation, secondaryAnimation) => TaskDetailsPage(complaintId: task['id'].toString()),
-                        transitionDuration: Duration.zero, // Disables the animation
-                        reverseTransitionDuration: Duration.zero,
-                      ),
-                    );
-                  },
+                    onTap: () async {
+                      logger.i("Selected Complaint ID: ${task['id']}");
+                      final result = await Navigator.push(
+                        context,
+                        PageRouteBuilder(
+                          pageBuilder: (context, animation, secondaryAnimation) => TaskDetailsPage(complaintId: task['id'].toString()),
+                          transitionDuration: Duration.zero, // Disables the animation
+                          reverseTransitionDuration: Duration.zero,
+                        ),
+                      );
+                      if (result == true) {
+                        _refreshHistory();
+                      }
+                    },
                     child: Container(
                       decoration: BoxDecoration(
                         color: primaryColor,

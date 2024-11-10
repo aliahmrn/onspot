@@ -19,42 +19,40 @@ class LoginScreenState extends State<LoginScreen> {
   String _errorMessage = '';
   bool _isLoading = false;
 
-  Future<void> _login() async {
-    final String input = _inputController.text;
-    final String password = _passwordController.text;
+Future<void> _login() async {
+  final String input = _inputController.text;
+  final String password = _passwordController.text;
 
-    if (input.isEmpty || password.isEmpty) {
-      setState(() {
-        _errorMessage = 'Please enter both username/email and password';
-      });
-      return;
-    }
-
+  if (input.isEmpty || password.isEmpty) {
     setState(() {
-      _isLoading = true;
+      _errorMessage = 'Please enter both username/email and password';
     });
-
-    try {
-      await _authService.login(input, password);
-
-      if (mounted) {
-        Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (context) => const MainNavigator()),
-          (route) => false, // Remove all previous routes
-        );
-      }
-    } catch (e) {
-      setState(() {
-        _errorMessage = e.toString() == 'Exception: Invalid login credentials.'
-            ? 'Invalid login credentials.'
-            : 'Failed to login: ${e.toString()}';
-      });
-    } finally {
-      setState(() {
-        _isLoading = false;
-      });
-    }
+    return;
   }
+
+  setState(() {
+    _isLoading = true;
+  });
+
+  try {
+    await _authService.login(input, password);
+
+    if (mounted) {
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (context) => const MainNavigator()),
+        (route) => false, // Remove all previous routes
+      );
+    }
+  } catch (e) {
+    setState(() {
+      _errorMessage = e.toString(); // Directly display error message
+    });
+  } finally {
+    setState(() {
+      _isLoading = false;
+    });
+  }
+}
 
   @override
   Widget build(BuildContext context) {

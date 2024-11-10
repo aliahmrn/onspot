@@ -63,6 +63,7 @@ class SVProfileScreenState extends State<SVProfileScreen> {
     return Scaffold(
       backgroundColor: primaryColor,
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         backgroundColor: primaryColor,
         elevation: 0,
         centerTitle: true,

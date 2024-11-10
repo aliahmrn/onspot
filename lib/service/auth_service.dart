@@ -7,44 +7,42 @@ class AuthService {
   final String baseUrl = 'http://127.0.0.1:8000/api'; // Android Emulator
   final Logger _logger = Logger(); // Initialize Logger
 
-  // Login function for supervisors
-  Future<void> login(String input, String password) async {
-    try {
-      final requestBody = jsonEncode({
-        'login': input,
-        'password': password,
-      });
+// Login function for supervisors
+Future<void> login(String input, String password) async {
+  final requestBody = jsonEncode({
+    'login': input,
+    'password': password,
+  });
 
-      final response = await http.post(
-        Uri.parse('$baseUrl/flutterlogin'),
-        headers: {'Content-Type': 'application/json'},
-        body: requestBody,
-      );
+  final response = await http.post(
+    Uri.parse('$baseUrl/flutterlogin'),
+    headers: {'Content-Type': 'application/json'},
+    body: requestBody,
+  );
 
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        _logger.i("Login Response: $data");
+  if (response.statusCode == 200) {
+    final data = jsonDecode(response.body);
+    _logger.i("Login Response: $data");
 
-        final String token = data['token'];
-        final String role = data['user']['role'];
-        final String svId = data['user']['id'].toString();
-        final String email = data['user']['email'];
-        final String username = data['user']['username'];
-        final String name = data['user']['name'];
-        final String phoneNo = data['user']['phone_no'];
+    final String token = data['token'];
+    final String role = data['user']['role'];
+    final String svId = data['user']['id'].toString();
+    final String email = data['user']['email'];
+    final String username = data['user']['username'];
+    final String name = data['user']['name'];
+    final String phoneNo = data['user']['phone_no'];
 
-        if (role == 'supervisor') {
-          await saveUserDetails(token, role, svId, email, username, name, phoneNo);
-        } else {
-          throw Exception('Access denied: User is not a supervisor');
-        }
-      } else if (response.statusCode == 401) {
-        throw Exception('Invalid login credentials.');
-      }
-    } catch (e) {
-      throw Exception('Error during login: ${e.toString()}');
+    if (role == 'supervisor') {
+      await saveUserDetails(token, role, svId, email, username, name, phoneNo);
+    } else {
+      throw 'Access denied. User is not a supervisor.';
     }
+  } else if (response.statusCode == 401) {
+    throw 'Incorrect username or password';
+  } else {
+    throw 'Login failed. Please try again.';
   }
+}
 
   Future<void> saveUserDetails(String token, String role, String svId, String email, String username, String name, String phoneNo) async {
     final prefs = await SharedPreferences.getInstance();
