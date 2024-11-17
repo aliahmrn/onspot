@@ -26,7 +26,7 @@ class SearchPageState extends State<SearchPage> {
   }
 
   Future<void> fetchCleaners({String? status}) async {
-    final url = 'http://127.0.0.1:8000/api/supervisor/cleaners';
+    final url = 'http://10.0.2.2:8000/api/supervisor/cleaners';
     try {
       SharedPreferences prefs = await SharedPreferences.getInstance();
       String? token = prefs.getString('token');

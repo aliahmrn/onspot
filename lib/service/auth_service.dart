@@ -2,49 +2,57 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:logger/logger.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+
 
 class AuthService {
-  final String baseUrl = 'http://127.0.0.1:8000/api'; // Android Emulator
+  final String baseUrl = 'http://10.0.2.2:8000/api'; // Android Emulator
   final Logger _logger = Logger(); // Initialize Logger
 
   // Login function for supervisors
-  Future<void> login(String input, String password) async {
-    try {
-      final requestBody = jsonEncode({
-        'login': input,
-        'password': password,
-      });
+Future<void> login(String input, String password) async {
+  try {
+    final requestBody = jsonEncode({
+      'login': input,
+      'password': password,
+    });
 
-      final response = await http.post(
-        Uri.parse('$baseUrl/flutterlogin'),
-        headers: {'Content-Type': 'application/json'},
-        body: requestBody,
-      );
+    final response = await http.post(
+      Uri.parse('$baseUrl/flutterlogin'),
+      headers: {'Content-Type': 'application/json'},
+      body: requestBody,
+    );
 
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        _logger.i("Login Response: $data");
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      _logger.i("Login Response: $data");
 
-        final String token = data['token'];
-        final String role = data['user']['role'];
-        final String svId = data['user']['id'].toString();
-        final String email = data['user']['email'];
-        final String username = data['user']['username'];
-        final String name = data['user']['name'];
-        final String phoneNo = data['user']['phone_no'];
+      final String token = data['token'];
+      final String role = data['user']['role'];
+      final String svId = data['user']['id'].toString();
+      final String email = data['user']['email'];
+      final String username = data['user']['username'];
+      final String name = data['user']['name'];
+      final String phoneNo = data['user']['phone_no'];
 
-        if (role == 'supervisor') {
-          await saveUserDetails(token, role, svId, email, username, name, phoneNo);
-        } else {
-          throw Exception('Access denied: User is not a supervisor');
+      if (role == 'supervisor') {
+        await saveUserDetails(token, role, svId, email, username, name, phoneNo);
+        
+        // Store the notification token after login
+        final String? deviceToken = await FirebaseMessaging.instance.getToken();
+        if (deviceToken != null) {
+          await storeNotificationToken(deviceToken, "device_id_placeholder", "android"); // Replace "device_id_placeholder" with actual device ID if needed
         }
-      } else if (response.statusCode == 401) {
-        throw Exception('Invalid login credentials.');
+      } else {
+        throw Exception('Access denied: User is not a supervisor');
       }
-    } catch (e) {
-      throw Exception('Error during login: ${e.toString()}');
+    } else if (response.statusCode == 401) {
+      throw Exception('Invalid login credentials.');
     }
+  } catch (e) {
+    throw Exception('Error during login: ${e.toString()}');
   }
+}
 
   Future<void> saveUserDetails(String token, String role, String svId, String email, String username, String name, String phoneNo) async {
     final prefs = await SharedPreferences.getInstance();
@@ -120,34 +128,41 @@ class AuthService {
     }
   }
 
-  Future<void> register(String name, String username, String email, String password, String phoneNo) async {
-    try {
-      final response = await http.post(
-        Uri.parse('$baseUrl/flutterregister'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        body: jsonEncode({
-          'username': username,
-          'name': name,
-          'email': email,
-          'password': password,
-          'password_confirmation': password,
-          'phone_no': phoneNo,
-          'role': 'supervisor',
-        }),
-      );
+Future<void> register(String name, String username, String email, String password, String phoneNo) async {
+  try {
+    final response = await http.post(
+      Uri.parse('$baseUrl/flutterregister'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      body: jsonEncode({
+        'username': username,
+        'name': name,
+        'email': email,
+        'password': password,
+        'password_confirmation': password,
+        'phone_no': phoneNo,
+        'role': 'supervisor',
+      }),
+    );
 
-      if (response.statusCode != 201) {
-        _logger.w('Registration failed: ${response.statusCode} - ${response.body}');
-        throw Exception('Failed to register user: ${response.body}');
+    if (response.statusCode == 201) {
+      // Assuming successful registration, get the notification token and store it
+      final String? deviceToken = await FirebaseMessaging.instance.getToken();
+      if (deviceToken != null) {
+        await storeNotificationToken(deviceToken, "device_id_placeholder", "android"); // Replace "device_id_placeholder" with actual device ID if needed
       }
-    } catch (e) {
-      _logger.e('Error during registration: $e');
-      throw Exception('Error during registration: $e');
+    } else {
+      _logger.w('Registration failed: ${response.statusCode} - ${response.body}');
+      throw Exception('Failed to register user: ${response.body}');
     }
+  } catch (e) {
+    _logger.e('Error during registration: $e');
+    throw Exception('Error during registration: $e');
   }
+}
+
 
   Future<void> sendResetCode(String email) async {
     try {
@@ -191,4 +206,37 @@ class AuthService {
       throw Exception('Error during password reset: ${e.toString()}');
     }
   }
+
+ Future<void> storeNotificationToken(String deviceToken, String deviceId, String deviceType) async {
+  final prefs = await SharedPreferences.getInstance();
+  final token = prefs.getString('token'); // Retrieve the stored token
+
+  if (token == null) {
+    Logger().e('Error: No token found. User might not be logged in.');
+    return; // Exit the function if no token is found
+  }
+
+  final response = await http.post(
+    Uri.parse('$baseUrl/store-token'), // Fixed URL based on your base URL
+    headers: {
+      'Authorization': 'Bearer $token',
+      'Content-Type': 'application/json',
+    },
+    body: jsonEncode({
+      'device_token': deviceToken,
+      'device_id': deviceId,
+      'device_type': deviceType,
+    }),
+  );
+
+  if (response.statusCode == 200) {
+    _logger.i('Device token saved successfully');
+  } else {
+    _logger.e('Failed to save device token: ${response.body}');
+  }
 }
+
+
+}
+
+
