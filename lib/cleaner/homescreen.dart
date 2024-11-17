@@ -126,8 +126,8 @@ class _CleanerHomeScreenState extends State<CleanerHomeScreen> {
                           GestureDetector(
                             onTap: () => _handleProfileTap(context),
                             child: CircleAvatar(
-                              child: Icon(Icons.person, size: screenWidth * 0.05),
                               radius: screenWidth * 0.04,
+                              child: Icon(Icons.person, size: screenWidth * 0.05),
                             ),
                           ),
                         ],

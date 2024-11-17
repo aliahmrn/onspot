@@ -4,7 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:logger/logger.dart';
 
 class TaskService {
-  final String baseUrl = 'http://192.168.1.121:8000/api';
+  final String baseUrl = 'http://10.0.2.2:8000/api';
   final Logger logger = Logger();
 
   Future<String?> _getToken() async {

@@ -1,8 +1,8 @@
 plugins {
-    id "com.android.application"
-    id "kotlin-android"
-    id "dev.flutter.flutter-gradle-plugin"
-    id 'com.google.gms.google-services' 
+    id 'com.android.application'
+    id 'kotlin-android'
+    id 'dev.flutter.flutter-gradle-plugin'
+    id 'com.google.gms.google-services' // Apply Google Services Plugin
 }
 
 android {
@@ -34,10 +34,21 @@ android {
     }
 }
 
+flutter {
+    source = "../.."
+}
+
 dependencies {
+    // Firebase BOM to manage versions of Firebase libraries
     implementation platform('com.google.firebase:firebase-bom:33.5.1')
+
+    // Firebase Analytics
     implementation 'com.google.firebase:firebase-analytics'
-    //AndroidX dependencies
+
+    // Firebase Messaging (required for push notifications)
+    implementation 'com.google.firebase:firebase-messaging'
+
+    // AndroidX dependencies
     implementation 'androidx.annotation:annotation:1.2.0'
     implementation 'androidx.core:core:1.7.0'
     implementation 'androidx.appcompat:appcompat:1.4.0'
