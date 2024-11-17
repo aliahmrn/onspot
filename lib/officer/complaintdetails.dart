@@ -7,7 +7,7 @@ import 'package:onspot_officer/widget/localhost.dart';
 class ComplaintDetailsPage extends StatefulWidget {
   final int complaintId;
 
-  const ComplaintDetailsPage({Key? key, required this.complaintId}) : super(key: key);
+  const ComplaintDetailsPage({super.key, required this.complaintId});
 
   @override
   ComplaintDetailsPageState createState() => ComplaintDetailsPageState();

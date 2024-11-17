@@ -12,7 +12,7 @@ Future<Map<String, dynamic>?> fetchMostRecentComplaint() async {
   }
 
   final response = await http.get(
-    Uri.parse('http://192.168.1.121:8000/api/complaints-history'),
+    Uri.parse('http://10.0.2.2:8000/api/complaints-history'),
     headers: {
       'Authorization': 'Bearer $token', // Pass token in Authorization header
     },
@@ -38,7 +38,7 @@ Future<List<Map<String, dynamic>>> fetchComplaintHistory() async {
   }
 
   final response = await http.get(
-    Uri.parse('http://192.168.1.121:8000/api/complaints-history'),
+    Uri.parse('http://10.0.2.2:8000/api/complaints-history'),
     headers: {
       'Authorization': 'Bearer $token', // Pass token in Authorization header
     },

@@ -44,15 +44,16 @@ flutter {
 }
 
 dependencies {
-    //Firebase
+    // Firebase BOM to manage versions of Firebase libraries
     implementation platform('com.google.firebase:firebase-bom:33.5.1')
+
+    // Firebase Analytics
     implementation 'com.google.firebase:firebase-analytics'
 
-    // Additional Firebase products can be added without specifying the version
-    // Example: implementation 'com.google.firebase:firebase-auth'
-    // Example: implementation 'com.google.firebase:firebase-firestore'
+    // Firebase Messaging (required for push notifications)
+    implementation 'com.google.firebase:firebase-messaging'
 
-    //AndroidX dependencies
+    // AndroidX dependencies
     implementation 'androidx.annotation:annotation:1.2.0'
     implementation 'androidx.core:core:1.7.0'
     implementation 'androidx.appcompat:appcompat:1.4.0'

@@ -7,10 +7,10 @@ class OfficerProfileEdit extends StatefulWidget {
   const OfficerProfileEdit({super.key});
 
   @override
-  _OfficerProfileEditState createState() => _OfficerProfileEditState();
+  OfficerProfileEditState createState() => OfficerProfileEditState();
 }
 
-class _OfficerProfileEditState extends State<OfficerProfileEdit> {
+class OfficerProfileEditState extends State<OfficerProfileEdit> {
   String? _currentProfilePic;
   Map<String, dynamic>? officerInfo;
   String? token;

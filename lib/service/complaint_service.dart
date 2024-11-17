@@ -40,7 +40,7 @@ class ComplaintService {
 
     var request = http.MultipartRequest(
       'POST',
-      Uri.parse('http://192.168.1.121:8000/api/complaints'),
+      Uri.parse('http://10.0.2.2:8000/api/complaints'),
     );
     request.headers['Authorization'] = 'Bearer $token';
 

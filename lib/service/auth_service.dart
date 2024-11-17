@@ -1,10 +1,10 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:logger/logger.dart'; // Import logger package
+import 'package:logger/logger.dart';
 
 class AuthService {
-  final String baseUrl = 'http://192.168.1.121:8000/api'; // Android Emulator
+  final String baseUrl = 'http://10.0.2.2:8000/api'; // Android Emulator
   var logger = Logger(); // Create a logger instance
 
   // Login function for officers
@@ -75,6 +75,49 @@ class AuthService {
     } catch (e) {
       logger.e('Error during registration', error: e); // Correct logging
       throw Exception('Error during registration: $e');
+    }
+  }
+
+    Future<void> sendResetCode(String email) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/forgot-password'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'email': email}),
+      );
+
+      if (response.statusCode == 200) {
+        logger.i('Reset code sent successfully.');
+      } else {
+        final data = jsonDecode(response.body);
+        throw Exception(data['message'] ?? 'Failed to send reset code.');
+      }
+    } catch (e) {
+      throw Exception('Error during forgot password request: ${e.toString()}');
+    }
+  }
+
+  Future<void> resetPassword(String email, String code, String password, String confirmPassword) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/reset-password'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'email': email,
+          'code': code,
+          'password': password,
+          'password_confirmation': confirmPassword,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        logger.i('Password has been reset successfully.');
+      } else {
+        final data = jsonDecode(response.body);
+        throw Exception(data['message'] ?? 'Failed to reset password.');
+      }
+    } catch (e) {
+      throw Exception('Error during password reset: ${e.toString()}');
     }
   }
 
