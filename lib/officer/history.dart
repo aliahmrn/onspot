@@ -53,6 +53,19 @@ class HistoryPageState extends State<HistoryPage> {
     }
   }
 
+  String getStatusText(String status) {
+    switch (status.toLowerCase()) {
+      case 'pending':
+        return 'Complaint sent!';
+      case 'ongoing':
+        return 'Complaint in progress...';
+      case 'completed':
+        return 'Complaint resolved!';
+      default:
+        return 'Unknown status';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
@@ -129,7 +142,7 @@ class HistoryPageState extends State<HistoryPage> {
                                           ),
                                           SizedBox(width: screenWidth * 0.025),
                                           Text(
-                                            'Complaint sent!',
+                                            getStatusText(complaint['comp_status'] ?? 'unknown'),
                                             style: TextStyle(
                                               fontSize: screenWidth * 0.045,
                                               fontWeight: FontWeight.bold,
@@ -175,7 +188,8 @@ class HistoryPageState extends State<HistoryPage> {
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (context) => ComplaintDetailsPage(complaintId: complaintId),
+                                      builder: (context) =>
+                                          ComplaintDetailsPage(complaintId: complaintId),
                                     ),
                                   );
                                 },

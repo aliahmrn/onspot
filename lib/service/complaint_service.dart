@@ -57,19 +57,26 @@ class ComplaintService {
       var streamedResponse = await request.send();
       var response = await http.Response.fromStream(streamedResponse);
 
-      if (response.statusCode == 201) {
-        _logger.i('Complaint submitted successfully');
-        return true;
+      // Log the response for debugging purposes
+      _logger.i('Response: ${response.statusCode}, Body: ${response.body}');
+
+       if (response.statusCode == 200 || response.statusCode == 201){
+        // Check and parse the response body if necessary
+        final responseData = response.body;
+        _logger.i('Complaint submitted successfully: $responseData');
+        return true; // Indicate successful submission
       } else if (response.statusCode == 401) {
         _logger.e('Unauthorized. Please log in again.');
         throw Exception('Unauthorized. Please log in again.');
       } else {
+        // Log unexpected status codes or responses
         _logger.e('Failed to submit complaint: ${response.body}');
-        throw Exception('Failed to submit complaint: ${response.body}');
+        return false; // Return false instead of throwing an exception
       }
     } catch (error) {
+      // Log and rethrow the error for debugging
       _logger.e('Error occurred during complaint submission: $error');
-      throw Exception('Error occurred during complaint submission: $error');
+      rethrow; // Use rethrow to preserve the original error stack
     }
   }
 
