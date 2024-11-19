@@ -82,7 +82,10 @@ Future<void> _loadComplaintDetails() async {
           },
         ),
       ),
-      body: Stack(
+      body: SingleChildScrollView( // <== Wrap Stack in SingleChildScrollView
+      child: Container(
+        height: screenHeight * 1.5, // <== Adjust height for scrolling
+        child: Stack(
         children: [
           // Primary background
           Container(color: primaryColor),
@@ -369,7 +372,7 @@ Future<void> _loadComplaintDetails() async {
                               if (complaintDetails != null)
                                 Positioned(
                                   bottom: screenHeight * 0.03,
-                                  right: screenWidth * 0.075,
+                                  right: screenWidth * 0.05,
                                   child: ElevatedButton.icon(
                                     onPressed: complaintDetails!['comp_status'] ==
                                                 'pending' ||
@@ -459,6 +462,8 @@ Future<void> _loadComplaintDetails() async {
       ),
       ),
       ],
+      ),
+      ),
       ),
     );
   }

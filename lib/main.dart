@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'login.dart'; // Import the login screen
 import 'officer/homescreen.dart';
 import 'officer/complaint.dart'; // Import the officer complaint screen
@@ -6,9 +7,8 @@ import 'officer/complaintdetails.dart'; // Import the complaint details screen
 import 'package:google_fonts/google_fonts.dart';
 
 void main() {
-  runApp(const OnspotOfficerApp());
+  runApp(const ProviderScope(child: OnspotOfficerApp()));
 }
-
 class OnspotOfficerApp extends StatelessWidget {
   const OnspotOfficerApp({super.key});
 
