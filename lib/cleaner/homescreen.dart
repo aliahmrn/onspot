@@ -11,10 +11,10 @@ class CleanerHomeScreen extends StatefulWidget {
   const CleanerHomeScreen({super.key});
 
   @override
-  _CleanerHomeScreenState createState() => _CleanerHomeScreenState();
+  CleanerHomeScreenState createState() => CleanerHomeScreenState();
 }
 
-class _CleanerHomeScreenState extends State<CleanerHomeScreen> {
+class CleanerHomeScreenState extends State<CleanerHomeScreen> {
   bool isChecked = false;
   Map<String, dynamic>? latestTask;
   String? error;
