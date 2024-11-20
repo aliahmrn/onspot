@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:logger/logger.dart';
+import '../service/auth_service.dart';
 import 'login.dart';
-import 'service/auth_service.dart'; // Import AuthService
-import 'package:logger/logger.dart'; // Import the logger package
+import '../main.dart'; // Import the global navigatorKeyProvider
 
-// Define a global navigator key provider
-final navigatorKeyProvider = Provider((ref) => GlobalKey<NavigatorState>());
-
-// Define a state class for registration
+// State class for registration logic
 class RegistrationState {
   final bool isLoading;
   final String errorMessage;
@@ -22,7 +20,7 @@ class RegistrationState {
   }
 }
 
-// Define a StateNotifier to manage registration logic
+// StateNotifier to manage registration logic
 class RegistrationNotifier extends StateNotifier<RegistrationState> {
   final AuthService _authService;
   final Logger _logger = Logger();
@@ -73,9 +71,9 @@ class RegistrationNotifier extends StateNotifier<RegistrationState> {
   }
 }
 
-// Define a provider for the registration notifier
+// Riverpod provider for the registration notifier
 final registrationProvider = StateNotifierProvider<RegistrationNotifier, RegistrationState>(
-  (ref) => RegistrationNotifier(AuthService(), ref.read(navigatorKeyProvider)),
+  (ref) => RegistrationNotifier(AuthService(), ref.read(navigatorKeyProvider)), // Use the global navigatorKeyProvider
 );
 
 class RegistrationScreen extends ConsumerWidget {

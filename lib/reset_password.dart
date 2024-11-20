@@ -3,9 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../service/auth_service.dart';
 import 'login.dart';
-
-// Define a global navigator key provider
-final navigatorKeyProvider = Provider((ref) => GlobalKey<NavigatorState>());
+import '../main.dart'; // Import global navigatorKeyProvider
 
 // State class for reset password logic
 class ResetPasswordState {
@@ -22,7 +20,7 @@ class ResetPasswordState {
   }
 }
 
-// Define a StateNotifier for reset password logic
+// StateNotifier for reset password logic
 class ResetPasswordNotifier extends StateNotifier<ResetPasswordState> {
   final AuthService _authService;
   final GlobalKey<NavigatorState> _navigatorKey;
@@ -62,9 +60,9 @@ class ResetPasswordNotifier extends StateNotifier<ResetPasswordState> {
   }
 }
 
-// Define a provider for ResetPasswordNotifier
+// Provider for ResetPasswordNotifier
 final resetPasswordProvider = StateNotifierProvider<ResetPasswordNotifier, ResetPasswordState>(
-  (ref) => ResetPasswordNotifier(AuthService(), ref.read(navigatorKeyProvider)),
+  (ref) => ResetPasswordNotifier(AuthService(), ref.read(navigatorKeyProvider)), // Use the global navigatorKeyProvider
 );
 
 class ResetPasswordScreen extends ConsumerWidget {

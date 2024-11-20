@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../service/auth_service.dart';
 import 'enter_code.dart';
 import 'login.dart';
+import '../main.dart'; // Import navigatorKeyProvider from main.dart
 
 // State class for forgot password logic
 class ForgotPasswordState {
@@ -25,7 +26,8 @@ class ForgotPasswordNotifier extends StateNotifier<ForgotPasswordState> {
   final AuthService _authService;
   final GlobalKey<NavigatorState> _navigatorKey;
 
-  ForgotPasswordNotifier(this._authService, this._navigatorKey) : super(ForgotPasswordState());
+  ForgotPasswordNotifier(this._authService, this._navigatorKey)
+      : super(ForgotPasswordState());
 
   Future<void> sendResetCode(String email) async {
     if (email.isEmpty) {
@@ -55,10 +57,8 @@ class ForgotPasswordNotifier extends StateNotifier<ForgotPasswordState> {
 }
 
 // Riverpod provider for ForgotPasswordNotifier
-final navigatorKeyProvider = Provider((ref) => GlobalKey<NavigatorState>());
-
 final forgotPasswordProvider = StateNotifierProvider<ForgotPasswordNotifier, ForgotPasswordState>(
-  (ref) => ForgotPasswordNotifier(AuthService(), ref.read(navigatorKeyProvider)),
+  (ref) => ForgotPasswordNotifier(AuthService(), ref.read(navigatorKeyProvider)), // Use global navigatorKeyProvider
 );
 
 class ForgotPasswordScreen extends ConsumerWidget {

@@ -1,96 +1,90 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import '../main.dart';
 import '../service/complaint_service.dart';
 import 'dart:io';
 
 // Providers
+final formKeyProvider = Provider((ref) => GlobalKey<FormState>());
 final descriptionControllerProvider = Provider((ref) => TextEditingController());
 final selectedLocationProvider = StateProvider<String?>((ref) => null);
 final selectedDateProvider = StateProvider<DateTime?>((ref) => null);
 final imagePathProvider = StateProvider<String?>((ref) => null);
 final loadingProvider = StateProvider<bool>((ref) => false);
 
-class FileComplaintPage extends ConsumerStatefulWidget {
+class FileComplaintPage extends ConsumerWidget {
   const FileComplaintPage({super.key});
 
-  @override
-  FileComplaintPageState createState() => FileComplaintPageState();
-}
-
-class FileComplaintPageState extends ConsumerState<FileComplaintPage> {
-  final _formKey = GlobalKey<FormState>();
-
   Future<void> _submitComplaint(WidgetRef ref) async {
-    if (_formKey.currentState!.validate()) {
+    final formKey = ref.read(formKeyProvider);
+    final navigatorKey = ref.read(navigatorKeyProvider);
+
+    if (formKey.currentState!.validate()) {
       final selectedDate = ref.read(selectedDateProvider);
       final selectedLocation = ref.read(selectedLocationProvider);
       final descriptionController = ref.read(descriptionControllerProvider);
       final imagePath = ref.read(imagePathProvider);
 
       if (selectedDate == null || selectedLocation == null) {
-        if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
+        ScaffoldMessenger.of(navigatorKey.currentContext!).showSnackBar(
           const SnackBar(content: Text('Please select a date and location')),
         );
         return;
       }
 
-      // Set loading state to true
       ref.read(loadingProvider.notifier).state = true;
 
       try {
-        bool success = await ComplaintService().submitComplaint(
+        final success = await ComplaintService().submitComplaint(
           description: descriptionController.text,
           location: selectedLocation,
           date: selectedDate,
           imagePath: imagePath,
         );
 
-        if (!mounted) return;
-
         if (success) {
-          ScaffoldMessenger.of(context).showSnackBar(
+          ScaffoldMessenger.of(navigatorKey.currentContext!).showSnackBar(
             const SnackBar(content: Text('Complaint added successfully')),
           );
-
-          Navigator.pushReplacementNamed(context, '/officer-home');
+          navigatorKey.currentState?.pushReplacementNamed('/officer-home');
         } else {
-          ScaffoldMessenger.of(context).showSnackBar(
+          ScaffoldMessenger.of(navigatorKey.currentContext!).showSnackBar(
             const SnackBar(content: Text('Failed to submit complaint. Try again.')),
           );
         }
       } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
+        ScaffoldMessenger.of(navigatorKey.currentContext!).showSnackBar(
           SnackBar(content: Text('Error: ${e.toString()}')),
         );
       } finally {
-        // Reset loading state
         ref.read(loadingProvider.notifier).state = false;
       }
     }
   }
 
   Future<void> _pickImage(WidgetRef ref) async {
-    final String? selectedImagePath = await ComplaintService().pickImage();
+    final selectedImagePath = await ComplaintService().pickImage();
     ref.read(imagePathProvider.notifier).state = selectedImagePath;
   }
 
-  Future<void> _selectDate(BuildContext context, WidgetRef ref) async {
-    final DateTime? picked = await showDatePicker(
-      context: context,
+  Future<void> _selectDate(WidgetRef ref) async {
+    final navigatorKey = ref.read(navigatorKeyProvider);
+    final pickedDate = await showDatePicker(
+      context: navigatorKey.currentContext!,
       initialDate: ref.read(selectedDateProvider) ?? DateTime.now(),
       firstDate: DateTime(2000),
       lastDate: DateTime(2100),
     );
-    if (picked != null) {
-      ref.read(selectedDateProvider.notifier).state = picked;
+    if (pickedDate != null) {
+      ref.read(selectedDateProvider.notifier).state = pickedDate;
     }
   }
 
   @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = ref.watch(themeProvider);
+
     final primaryColor = theme.colorScheme.primary;
     final secondaryColor = theme.colorScheme.secondary;
     final onPrimaryColor = theme.colorScheme.onPrimary;
@@ -99,6 +93,7 @@ class FileComplaintPageState extends ConsumerState<FileComplaintPage> {
 
     final screenWidth = MediaQuery.of(context).size.width;
 
+    final formKey = ref.watch(formKeyProvider);
     final descriptionController = ref.watch(descriptionControllerProvider);
     final selectedLocation = ref.watch(selectedLocationProvider);
     final selectedDate = ref.watch(selectedDateProvider);
@@ -118,7 +113,7 @@ class FileComplaintPageState extends ConsumerState<FileComplaintPage> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
-            Navigator.pop(context);
+            ref.read(navigatorKeyProvider).currentState?.pushReplacementNamed('/officer-home');
           },
           color: onSecondaryColor,
         ),
@@ -132,7 +127,7 @@ class FileComplaintPageState extends ConsumerState<FileComplaintPage> {
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Form(
-          key: _formKey,
+          key: formKey,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -140,14 +135,11 @@ class FileComplaintPageState extends ConsumerState<FileComplaintPage> {
               const SizedBox(height: 10),
               _buildImagePreview(imagePath),
               const SizedBox(height: 35),
-              _buildLocationField(
-                  outlineColor, onSecondaryColor, screenWidth, selectedLocation, ref),
+              _buildLocationField(outlineColor, onSecondaryColor, screenWidth, selectedLocation, ref),
               const SizedBox(height: 16.0),
-              _buildDateField(
-                  outlineColor, onSecondaryColor, screenWidth, selectedDate, context, ref),
+              _buildDateField(outlineColor, onSecondaryColor, screenWidth, selectedDate, ref),
               const SizedBox(height: 16.0),
-              _buildDescriptionField(outlineColor, onSecondaryColor, screenWidth,
-                  descriptionController),
+              _buildDescriptionField(outlineColor, onSecondaryColor, screenWidth, descriptionController),
               const SizedBox(height: 30.0),
               _buildSendButton(primaryColor, onPrimaryColor, isLoading, ref),
             ],
@@ -221,8 +213,8 @@ class FileComplaintPageState extends ConsumerState<FileComplaintPage> {
     );
   }
 
-  Widget _buildLocationField(Color outlineColor, Color onSecondaryColor,
-      double screenWidth, String? selectedLocation, WidgetRef ref) {
+  Widget _buildLocationField(Color outlineColor, Color onSecondaryColor, double screenWidth,
+      String? selectedLocation, WidgetRef ref) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -267,8 +259,8 @@ class FileComplaintPageState extends ConsumerState<FileComplaintPage> {
     );
   }
 
-  Widget _buildDateField(Color outlineColor, Color onSecondaryColor,
-      double screenWidth, DateTime? selectedDate, BuildContext context, WidgetRef ref) {
+  Widget _buildDateField(Color outlineColor, Color onSecondaryColor, double screenWidth,
+      DateTime? selectedDate, WidgetRef ref) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -282,7 +274,7 @@ class FileComplaintPageState extends ConsumerState<FileComplaintPage> {
         ),
         const SizedBox(height: 8),
         GestureDetector(
-          onTap: () => _selectDate(context, ref),
+          onTap: () => _selectDate(ref),
           child: AbsorbPointer(
             child: TextFormField(
               decoration: InputDecoration(

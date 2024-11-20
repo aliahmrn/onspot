@@ -1,18 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:onspot_officer/service/auth_service.dart';
 import 'package:onspot_officer/service/profile_service.dart';
+import '../main.dart';
 import 'profileedit.dart';
+import 'navbar.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class OfficerProfileScreen extends StatefulWidget {
+class OfficerProfileScreen extends ConsumerStatefulWidget {
   const OfficerProfileScreen({super.key});
 
   @override
   OfficerProfileScreenState createState() => OfficerProfileScreenState();
 }
 
-class OfficerProfileScreenState extends State<OfficerProfileScreen> {
+class OfficerProfileScreenState extends ConsumerState<OfficerProfileScreen> {
   Map<String, dynamic>? userInfo;
   String? token;
   final Logger _logger = Logger();
@@ -32,7 +35,7 @@ class OfficerProfileScreenState extends State<OfficerProfileScreen> {
     } else {
       _logger.w('No token found');
       if (mounted && context.mounted) {
-        Navigator.pushReplacementNamed(context, '/');
+        ref.read(navigatorKeyProvider).currentState?.pushReplacementNamed('/');
       }
     }
   }
@@ -136,7 +139,7 @@ class OfficerProfileScreenState extends State<OfficerProfileScreen> {
             top: 160,
             left: 0,
             right: 0,
-            bottom: 0,
+            bottom: 60, // Reserve space for the navbar
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 20.0),
               decoration: BoxDecoration(
@@ -158,6 +161,12 @@ class OfficerProfileScreenState extends State<OfficerProfileScreen> {
                 ],
               ),
             ),
+          ),
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            child: const OfficerNavBar(), // Include the navbar
           ),
         ],
       ),
@@ -203,14 +212,7 @@ class OfficerProfileScreenState extends State<OfficerProfileScreen> {
       children: [
         ElevatedButton.icon(
           onPressed: () {
-            Navigator.push(
-              context,
-              PageRouteBuilder(
-                pageBuilder: (context, animation, secondaryAnimation) => const OfficerProfileEdit(),
-                transitionDuration: Duration.zero,
-                reverseTransitionDuration: Duration.zero,
-              ),
-            );
+            Navigator.pushNamed(context, '/profile-edit');
           },
           icon: const Icon(Icons.edit),
           label: const Text('Edit Information'),
@@ -246,7 +248,7 @@ class OfficerProfileScreenState extends State<OfficerProfileScreen> {
     final AuthService authService = AuthService();
     await authService.logout();
     if (mounted && context.mounted) {
-      Navigator.pushReplacementNamed(context, '/');
+      ref.read(navigatorKeyProvider).currentState?.pushReplacementNamed('/');
     }
   }
 }

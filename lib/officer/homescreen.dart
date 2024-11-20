@@ -1,19 +1,59 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'navbar.dart';
-import 'history.dart';
-import 'profile.dart';
-import '../widget/bell.dart';
-import 'complaint.dart';
-import '../service/auth_service.dart';
-import '../service/history_service.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:onspot_officer/main.dart';
+import 'package:onspot_officer/officer/navbar.dart';
+import '../service/auth_service.dart';
+import '../widget/bell.dart';
+import '../service/history_service.dart';
 
 // Providers for managing state
 final officerNameProvider = StateProvider<String>((ref) => 'Officer');
-final recentComplaintProvider = StateProvider<Map<String, dynamic>?>((ref) => null);
-final isLoadingComplaintProvider = StateProvider<bool>((ref) => true);
 
+// Complaint Notifier and State
+class ComplaintState {
+  final Map<String, dynamic>? recentComplaint;
+  final bool isLoading;
+  final String errorMessage;
+
+  ComplaintState({
+    this.recentComplaint,
+    this.isLoading = false,
+    this.errorMessage = '',
+  });
+
+  ComplaintState copyWith({
+    Map<String, dynamic>? recentComplaint,
+    bool? isLoading,
+    String? errorMessage,
+  }) {
+    return ComplaintState(
+      recentComplaint: recentComplaint ?? this.recentComplaint,
+      isLoading: isLoading ?? this.isLoading,
+      errorMessage: errorMessage ?? this.errorMessage,
+    );
+  }
+}
+
+class ComplaintNotifier extends StateNotifier<ComplaintState> {
+  ComplaintNotifier() : super(ComplaintState());
+
+  Future<void> fetchRecentComplaint() async {
+    state = state.copyWith(isLoading: true, errorMessage: '');
+    try {
+      // Replace with your actual complaint fetching logic
+      final complaint = await fetchMostRecentComplaint();
+      state = state.copyWith(recentComplaint: complaint, isLoading: false);
+    } catch (e) {
+      state = state.copyWith(errorMessage: e.toString(), isLoading: false);
+    }
+  }
+}
+
+final complaintNotifierProvider =
+    StateNotifierProvider<ComplaintNotifier, ComplaintState>(
+  (ref) => ComplaintNotifier(),
+);
 
 class OfficerHomeScreen extends ConsumerStatefulWidget {
   const OfficerHomeScreen({super.key});
@@ -30,60 +70,40 @@ class OfficerHomeScreenState extends ConsumerState<OfficerHomeScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _fetchOfficerName(ref);
-      _fetchRecentComplaint(ref);
+      ref.read(complaintNotifierProvider.notifier).fetchRecentComplaint();
     });
   }
 
   Future<void> _fetchOfficerName(WidgetRef ref) async {
     try {
       final userData = await _authService.getUser();
-      ref.read(officerNameProvider.notifier).state = userData['name'] ?? 'Officer';
+      if (mounted) {
+        ref.read(officerNameProvider.notifier).state =
+            userData['name'] ?? 'Officer';
+      }
     } catch (e) {
-      ref.read(officerNameProvider.notifier).state = 'Officer';
+      if (mounted) {
+        ref.read(officerNameProvider.notifier).state = 'Officer';
+      }
     }
-  }
-
-  Future<void> _fetchRecentComplaint(WidgetRef ref) async {
-    try {
-      final complaint = await fetchMostRecentComplaint();
-      ref.read(recentComplaintProvider.notifier).state = complaint;
-    } catch (e) {
-      ref.read(recentComplaintProvider.notifier).state = null;
-    } finally {
-      ref.read(isLoadingComplaintProvider.notifier).state = false;
-    }
-  }
-
-  void _handleBellTap(BuildContext context) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const HistoryPage()),
-    );
-  }
-
-  void _handleProfileTap(BuildContext context) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const OfficerProfileScreen()),
-    );
   }
 
   @override
   Widget build(BuildContext context) {
-    // Debugging: Check if the correct theme is applied here
-    print("Primary Color in OfficerHomeScreen: ${Theme.of(context).colorScheme.primary}");
-
+    final theme = ref.watch(themeProvider);
     final officerName = ref.watch(officerNameProvider);
-    final recentComplaint = ref.watch(recentComplaintProvider);
-    final isLoadingComplaint = ref.watch(isLoadingComplaintProvider);
+    final complaintState = ref.watch(complaintNotifierProvider);
+
+    final recentComplaint = complaintState.recentComplaint;
+    final isLoadingComplaint = complaintState.isLoading;
 
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
 
-    final primaryColor = Theme.of(context).colorScheme.primary;
-    final secondaryColor = Theme.of(context).colorScheme.secondary;
-    final onPrimaryColor = Theme.of(context).colorScheme.onPrimary;
-    final onSecondaryColor = Theme.of(context).colorScheme.onSecondary;
+    final primaryColor = theme.colorScheme.primary;
+    final secondaryColor = theme.colorScheme.secondary;
+    final onPrimaryColor = theme.colorScheme.onPrimary;
+    final onSecondaryColor = theme.colorScheme.onSecondary;
 
     return Scaffold(
       backgroundColor: primaryColor,
@@ -140,14 +160,19 @@ class OfficerHomeScreenState extends ConsumerState<OfficerHomeScreen> {
                         Row(
                           children: [
                             BellProfileWidget(
-                              onBellTap: () => _handleBellTap(context),
+                              onBellTap: () =>
+                                  ref.read(currentIndexProvider.notifier).state =
+                                      2, // Navigate to History
                             ),
                             SizedBox(width: screenWidth * 0.025),
                             GestureDetector(
-                              onTap: () => _handleProfileTap(context),
+                              onTap: () =>
+                                  ref.read(currentIndexProvider.notifier).state =
+                                      3, // Navigate to Profile
                               child: CircleAvatar(
                                 radius: screenWidth * 0.04,
-                                child: Icon(Icons.person, size: screenWidth * 0.06),
+                                child: Icon(Icons.person,
+                                    size: screenWidth * 0.06),
                               ),
                             ),
                           ],
@@ -159,7 +184,8 @@ class OfficerHomeScreenState extends ConsumerState<OfficerHomeScreen> {
                       width: double.infinity,
                       height: screenHeight * 0.25,
                       decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(screenWidth * 0.04),
+                        borderRadius:
+                            BorderRadius.circular(screenWidth * 0.04),
                       ),
                       child: SvgPicture.asset(
                         'assets/images/officer.svg',
@@ -168,17 +194,14 @@ class OfficerHomeScreenState extends ConsumerState<OfficerHomeScreen> {
                     ),
                     SizedBox(height: screenHeight * 0.05),
                     GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => const FileComplaintPage()),
-                        );
-                      },
+                      onTap: () =>
+                          ref.read(currentIndexProvider.notifier).state = 1,
                       child: Container(
                         padding: EdgeInsets.all(screenWidth * 0.04),
                         decoration: BoxDecoration(
                           color: secondaryColor,
-                          borderRadius: BorderRadius.circular(screenWidth * 0.03),
+                          borderRadius:
+                              BorderRadius.circular(screenWidth * 0.03),
                           boxShadow: [
                             BoxShadow(
                               color: Colors.grey.withOpacity(0.5),
@@ -218,7 +241,9 @@ class OfficerHomeScreenState extends ConsumerState<OfficerHomeScreen> {
                                 ],
                               ),
                             ),
-                            Icon(Icons.arrow_forward_ios, size: screenWidth * 0.05, color: onSecondaryColor),
+                            Icon(Icons.arrow_forward_ios,
+                                size: screenWidth * 0.05,
+                                color: onSecondaryColor),
                           ],
                         ),
                       ),
@@ -236,12 +261,8 @@ class OfficerHomeScreenState extends ConsumerState<OfficerHomeScreen> {
                           ),
                         ),
                         GestureDetector(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (context) => const HistoryPage()),
-                            );
-                          },
+                          onTap: () =>
+                              ref.read(currentIndexProvider.notifier).state = 2,
                           child: Text(
                             'see all',
                             style: TextStyle(
@@ -253,85 +274,75 @@ class OfficerHomeScreenState extends ConsumerState<OfficerHomeScreen> {
                       ],
                     ),
                     SizedBox(height: screenHeight * 0.01),
-                    GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => const HistoryPage()),
-                        );
-                      },
-                      child: Container(
-                        padding: EdgeInsets.all(screenWidth * 0.04),
-                        decoration: BoxDecoration(
-                          color: primaryColor,
-                          borderRadius: BorderRadius.circular(screenWidth * 0.03),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.grey.withOpacity(0.5),
-                              spreadRadius: 2,
-                              blurRadius: 5,
-                              offset: Offset(0, screenHeight * 0.005),
-                            ),
-                          ],
-                        ),
-                        child: isLoadingComplaint
-                            ? const Center(child: CircularProgressIndicator())
-                            : recentComplaint != null
-                                ? Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Row(
-                                        children: [
-                                          Icon(Icons.location_on, size: screenWidth * 0.06, color: onPrimaryColor),
-                                          SizedBox(width: screenWidth * 0.02),
-                                          Text(
-                                            recentComplaint['comp_location'] ?? 'Unknown location',
-                                            style: TextStyle(
-                                              fontSize: screenWidth * 0.045,
-                                              fontWeight: FontWeight.w500,
-                                              color: onPrimaryColor,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      SizedBox(height: screenHeight * 0.01),
-                                      Text(
-                                        recentComplaint['comp_desc'] ?? 'No description',
-                                        style: TextStyle(
-                                          fontSize: screenWidth * 0.04,
-                                          fontWeight: FontWeight.bold,
-                                          color: onPrimaryColor,
-                                        ),
-                                      ),
-                                      SizedBox(height: screenHeight * 0.005),
-                                      Text(
-                                        'Status: ${recentComplaint['comp_status'] ?? 'Unknown status'}',
-                                        style: TextStyle(
-                                          fontSize: screenWidth * 0.035,
-                                          color: onPrimaryColor,
-                                        ),
-                                      ),
-                                    ],
-                                  )
-                                : Center(
-                                    child: Text(
-                                      'No recent complaints available',
-                                      style: TextStyle(color: onPrimaryColor),
+                    isLoadingComplaint
+                        ? const Center(child: CircularProgressIndicator())
+                        : recentComplaint != null
+                            ? Container(
+                                padding: EdgeInsets.all(screenWidth * 0.04),
+                                decoration: BoxDecoration(
+                                  color: primaryColor,
+                                  borderRadius: BorderRadius.circular(
+                                      screenWidth * 0.03),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.grey.withOpacity(0.5),
+                                      spreadRadius: 2,
+                                      blurRadius: 5,
+                                      offset:
+                                          Offset(0, screenHeight * 0.005),
                                     ),
-                                  ),
-                      ),
-                    ),
+                                  ],
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Icon(Icons.location_on,
+                                            size: screenWidth * 0.06,
+                                            color: onPrimaryColor),
+                                        SizedBox(width: screenWidth * 0.02),
+                                        Text(
+                                          recentComplaint['comp_location'] ??
+                                              'Unknown location',
+                                          style: TextStyle(
+                                            fontSize: screenWidth * 0.045,
+                                            fontWeight: FontWeight.w500,
+                                            color: onPrimaryColor,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    SizedBox(height: screenHeight * 0.01),
+                                    Text(
+                                      recentComplaint['comp_desc'] ??
+                                          'No description',
+                                      style: TextStyle(
+                                        fontSize: screenWidth * 0.04,
+                                        fontWeight: FontWeight.bold,
+                                        color: onPrimaryColor,
+                                      ),
+                                    ),
+                                    SizedBox(height: screenHeight * 0.005),
+                                    Text(
+                                      'Status: ${recentComplaint['comp_status'] ?? 'Unknown status'}',
+                                      style: TextStyle(
+                                        fontSize: screenWidth * 0.035,
+                                        color: onPrimaryColor,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              )
+                            : Center(
+                                child: Text(
+                                  'No recent complaints available',
+                                  style: TextStyle(color: onPrimaryColor),
+                                ),
+                              ),
                   ],
                 ),
               ),
-            ),
-          ),
-          Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
-            child: SafeArea(
-              child: const OfficerNavBar(),
             ),
           ),
         ],
