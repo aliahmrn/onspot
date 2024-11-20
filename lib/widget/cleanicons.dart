@@ -1,24 +1,39 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
-class CleanIcons extends StatelessWidget {
-  const CleanIcons({super.key});  // Converted 'key' to a super parameter
+// Provider to manage the icon states (e.g., visibility or size adjustment)
+final iconSizeProvider = StateProvider<double>((ref) => 50.0);
+
+class CleanIcons extends ConsumerWidget {
+  const CleanIcons({super.key}); // Converted 'key' to a super parameter
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final iconSize = ref.watch(iconSizeProvider);
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('SVG Icons Example'),
+        actions: [
+          IconButton(
+            onPressed: () {
+              final notifier = ref.read(iconSizeProvider.notifier);
+              notifier.state = notifier.state == 50.0 ? 70.0 : 50.0; // Toggle icon size
+            },
+            icon: const Icon(Icons.sync),
+          ),
+        ],
       ),
       body: Center(
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: const [
-            MopIcon(size: 50),           // Example usage of MopIcon
-            VacuumingIcon(size: 50),      // Example usage of VacuumingIcon
-            WipeIcon(size: 50),           // Example usage of WipeIcon
-            WindowIcon(size: 50),         // Example usage of WindowIcon
-            ToiletIcon(size: 50),         // Example usage of ToiletIcon
+          children: [
+            MopIcon(size: iconSize),           // Example usage of MopIcon
+            VacuumingIcon(size: iconSize),     // Example usage of VacuumingIcon
+            WipeIcon(size: iconSize),          // Example usage of WipeIcon
+            WindowIcon(size: iconSize),        // Example usage of WindowIcon
+            ToiletIcon(size: iconSize),        // Example usage of ToiletIcon
           ],
         ),
       ),
@@ -30,7 +45,7 @@ class CleanIcons extends StatelessWidget {
 class MopIcon extends StatelessWidget {
   final double size;
 
-  const MopIcon({super.key, this.size = 24.0}); // Converted 'key' to a super parameter
+  const MopIcon({super.key, required this.size}); // Converted 'key' to a super parameter
 
   @override
   Widget build(BuildContext context) {
@@ -46,7 +61,7 @@ class MopIcon extends StatelessWidget {
 class VacuumingIcon extends StatelessWidget {
   final double size;
 
-  const VacuumingIcon({super.key, this.size = 24.0}); // Converted 'key' to a super parameter
+  const VacuumingIcon({super.key, required this.size}); // Converted 'key' to a super parameter
 
   @override
   Widget build(BuildContext context) {
@@ -62,7 +77,7 @@ class VacuumingIcon extends StatelessWidget {
 class WipeIcon extends StatelessWidget {
   final double size;
 
-  const WipeIcon({super.key, this.size = 24.0}); // Converted 'key' to a super parameter
+  const WipeIcon({super.key, required this.size}); // Converted 'key' to a super parameter
 
   @override
   Widget build(BuildContext context) {
@@ -78,7 +93,7 @@ class WipeIcon extends StatelessWidget {
 class WindowIcon extends StatelessWidget {
   final double size;
 
-  const WindowIcon({super.key, this.size = 24.0}); // Converted 'key' to a super parameter
+  const WindowIcon({super.key, required this.size}); // Converted 'key' to a super parameter
 
   @override
   Widget build(BuildContext context) {
@@ -94,7 +109,7 @@ class WindowIcon extends StatelessWidget {
 class ToiletIcon extends StatelessWidget {
   final double size;
 
-  const ToiletIcon({super.key, this.size = 24.0}); // Converted 'key' to a super parameter
+  const ToiletIcon({super.key, required this.size}); // Converted 'key' to a super parameter
 
   @override
   Widget build(BuildContext context) {

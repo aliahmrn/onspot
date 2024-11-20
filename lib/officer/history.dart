@@ -1,79 +1,69 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import 'package:onspot_officer/service/history_service.dart';
+import '../service/history_service.dart';
 import 'navbar.dart';
 import 'complaintdetails.dart';
 import 'package:onspot_officer/widget/date.dart';
 
-class HistoryPage extends StatefulWidget {
+// State for history
+class HistoryState {
+  final List<dynamic> historyData;
+  final bool hasFetchedData;
+
+  HistoryState({
+    required this.historyData,
+    required this.hasFetchedData,
+  });
+
+  HistoryState copyWith({
+    List<dynamic>? historyData,
+    bool? hasFetchedData,
+  }) {
+    return HistoryState(
+      historyData: historyData ?? this.historyData,
+      hasFetchedData: hasFetchedData ?? this.hasFetchedData,
+    );
+  }
+}
+
+// StateNotifier to manage history data
+class HistoryNotifier extends StateNotifier<HistoryState> {
+  HistoryNotifier() : super(HistoryState(historyData: [], hasFetchedData: false));
+
+  Future<void> loadComplaintHistory() async {
+    try {
+      List<dynamic> data = await fetchComplaintHistory();
+      state = state.copyWith(historyData: data, hasFetchedData: true);
+    } catch (e) {
+      state = state.copyWith(hasFetchedData: true);
+    }
+  }
+}
+
+// Provider for history state
+final historyProvider =
+    StateNotifierProvider<HistoryNotifier, HistoryState>((ref) => HistoryNotifier());
+
+class HistoryPage extends ConsumerWidget {
   const HistoryPage({super.key});
 
   @override
-  HistoryPageState createState() => HistoryPageState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    final historyState = ref.watch(historyProvider);
+    final historyNotifier = ref.read(historyProvider.notifier);
 
-class HistoryPageState extends State<HistoryPage> {
-  List<dynamic> historyData = [];
-  bool hasFetchedData = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadComplaintHistory();
-  }
-
-  Future<void> _loadComplaintHistory() async {
-    try {
-      List<dynamic> data = await fetchComplaintHistory();
-      if (!mounted) return; // Check if the widget is still mounted
-      setState(() {
-        historyData = data;
-        hasFetchedData = true;
-      });
-    } catch (e) {
-      if (!mounted) return; // Check if the widget is still mounted
-      setState(() {
-        hasFetchedData = true;
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to load complaints: $e')),
-      );
-    }
-  }
-
-  String formatTime(String? timeString) {
-    if (timeString == null || timeString.isEmpty) {
-      return '';
-    }
-    try {
-      final time = DateFormat('HH:mm:ss').parse(timeString);
-      return DateFormat('hh:mm a').format(time);
-    } catch (e) {
-      return '';
-    }
-  }
-
-  String getStatusText(String status) {
-    switch (status.toLowerCase()) {
-      case 'pending':
-        return 'Complaint sent!';
-      case 'ongoing':
-        return 'Complaint in progress...';
-      case 'completed':
-        return 'Complaint resolved!';
-      default:
-        return 'Unknown status';
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
 
     final primaryColor = Theme.of(context).primaryColor;
     final secondaryColor = Theme.of(context).colorScheme.secondary;
     final onPrimaryColor = Theme.of(context).colorScheme.onPrimary;
+
+    // Load data when the widget is first built
+    if (!historyState.hasFetchedData) {
+      Future.microtask(() => historyNotifier.loadComplaintHistory());
+    }
 
     return Scaffold(
       backgroundColor: primaryColor,
@@ -100,13 +90,13 @@ class HistoryPageState extends State<HistoryPage> {
           ),
         ),
         padding: EdgeInsets.all(screenWidth * 0.04),
-        child: hasFetchedData
-            ? (historyData.isEmpty
+        child: historyState.hasFetchedData
+            ? (historyState.historyData.isEmpty
                 ? const Center(child: Text('No complaints found'))
                 : ListView.builder(
-                    itemCount: historyData.length,
+                    itemCount: historyState.historyData.length,
                     itemBuilder: (context, index) {
-                      final complaint = historyData[index];
+                      final complaint = historyState.historyData[index];
                       final complaintId = complaint['id'];
 
                       return Padding(
@@ -202,7 +192,32 @@ class HistoryPageState extends State<HistoryPage> {
                   ))
             : const Center(child: CircularProgressIndicator()),
       ),
-      bottomNavigationBar: const OfficerNavBar(currentIndex: 2),
+      bottomNavigationBar: const OfficerNavBar(),
     );
+  }
+
+  String formatTime(String? timeString) {
+    if (timeString == null || timeString.isEmpty) {
+      return '';
+    }
+    try {
+      final time = DateFormat('HH:mm:ss').parse(timeString);
+      return DateFormat('hh:mm a').format(time);
+    } catch (e) {
+      return '';
+    }
+  }
+
+  String getStatusText(String status) {
+    switch (status.toLowerCase()) {
+      case 'pending':
+        return 'Complaint sent!';
+      case 'ongoing':
+        return 'Complaint in progress...';
+      case 'completed':
+        return 'Complaint resolved!';
+      default:
+        return 'Unknown status';
+    }
   }
 }

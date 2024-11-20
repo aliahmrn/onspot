@@ -1,81 +1,209 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
-import '../service/profile_service.dart'; // Import ProfileService
-import 'package:shared_preferences/shared_preferences.dart'; // Import for token management
+import '../service/profile_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-class OfficerProfileEdit extends StatefulWidget {
+final profileEditProvider = StateNotifierProvider<ProfileEditNotifier, Map<String, dynamic>?>((ref) {
+  return ProfileEditNotifier(ProfileService());
+});
+
+class ProfileEditNotifier extends StateNotifier<Map<String, dynamic>?> {
+  final ProfileService _profileService;
+  String? token;
+
+  ProfileEditNotifier(this._profileService) : super(null);
+
+  final TextEditingController nameController = TextEditingController();
+  final TextEditingController usernameController = TextEditingController();
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController phoneController = TextEditingController();
+
+  String? currentProfilePic;
+
+  Future<void> initializeProfile() async {
+    token = await _getToken();
+    if (token != null) {
+      await loadProfile();
+    } else {
+      // Handle token absence (e.g., redirect to login)
+    }
+  }
+
+  Future<void> loadProfile() async {
+    try {
+      final profile = await _profileService.fetchProfile(token!);
+      currentProfilePic = profile['profile_pic'];
+      nameController.text = profile['name'] ?? '';
+      usernameController.text = profile['username'] ?? '';
+      emailController.text = profile['email'] ?? '';
+      phoneController.text = profile['phone_no'] ?? '';
+      state = profile;
+    } catch (e) {
+      // Handle errors
+    }
+  }
+
+  Future<void> updateProfile() async {
+    try {
+      final updatedData = {
+        'cleaner_name': nameController.text,
+        'cleaner_username': usernameController.text,
+        'email': emailController.text,
+        'phone_no': phoneController.text,
+      };
+
+      await _profileService.updateProfile(token!, updatedData, currentProfilePic);
+      // Handle success, e.g., show a success message
+    } catch (e) {
+      // Handle errors
+    }
+  }
+
+  Future<void> updateProfilePicture(String? path) async {
+    currentProfilePic = path;
+    state = {...state ?? {}, 'profile_pic': path};
+    // Optionally, upload the image to your server
+  }
+
+  Future<String?> _getToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString('token');
+  }
+}
+
+class OfficerProfileEdit extends ConsumerWidget {
   const OfficerProfileEdit({super.key});
 
   @override
-  OfficerProfileEditState createState() => OfficerProfileEditState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    final profileNotifier = ref.read(profileEditProvider.notifier);
 
-class OfficerProfileEditState extends State<OfficerProfileEdit> {
-  String? _currentProfilePic;
-  Map<String, dynamic>? officerInfo;
-  String? token;
+    return Scaffold(
+      appBar: AppBar(
+        elevation: 0,
+        backgroundColor: Colors.transparent,
+        automaticallyImplyLeading: false,
+        title: const Text(
+          'Edit Info',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        centerTitle: true,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => Navigator.pop(context),
+        ),
+      ),
+      extendBodyBehindAppBar: true,
+      body: FutureBuilder(
+        future: profileNotifier.initializeProfile(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
 
-  final TextEditingController _nameController = TextEditingController();
-  final TextEditingController _usernameController = TextEditingController();
-  final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _phoneController = TextEditingController();
-
-  @override
-  void initState() {
-    super.initState();
-    _initializeTokenAndLoadProfile();
+          return Stack(
+            children: [
+              Positioned.fill(
+                child: Column(
+                  children: [
+                    Container(
+                      height: 200,
+                      decoration: const BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [Color(0xFF4C7D90), Colors.white],
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      child: Container(
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              SingleChildScrollView(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    const SizedBox(height: 100),
+                    Stack(
+                      children: [
+                        CircleAvatar(
+                          radius: 50,
+                          backgroundColor: Colors.grey[300],
+                          backgroundImage: profileNotifier.currentProfilePic != null
+                              ? NetworkImage(profileNotifier.currentProfilePic!)
+                              : null,
+                          child: profileNotifier.currentProfilePic == null
+                              ? const Icon(Icons.person, size: 50, color: Colors.white)
+                              : null,
+                        ),
+                        Positioned(
+                          bottom: 0,
+                          right: 0,
+                          child: GestureDetector(
+                            onTap: () => _showImageOptions(context, profileNotifier),
+                            child: const CircleAvatar(
+                              radius: 16,
+                              backgroundColor: Color(0xFFFEF7FF),
+                              child: Icon(Icons.edit, size: 16, color: Colors.black),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 40),
+                    _buildTextField('Name', profileNotifier.nameController),
+                    const SizedBox(height: 30),
+                    _buildTextField('Username', profileNotifier.usernameController),
+                    const SizedBox(height: 30),
+                    _buildTextField('Email', profileNotifier.emailController),
+                    const SizedBox(height: 30),
+                    _buildTextField('Phone Number', profileNotifier.phoneController),
+                    const SizedBox(height: 30),
+                    Center(
+                      child: SizedBox(
+                        width: 250,
+                        height: 50,
+                        child: ElevatedButton(
+                          onPressed: () => profileNotifier.updateProfile(),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(30),
+                            ),
+                            elevation: 3,
+                          ),
+                          child: const Text(
+                            'Save',
+                            style: TextStyle(
+                              color: Colors.black,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          );
+        },
+      ),
+    );
   }
 
-  Future<void> _initializeTokenAndLoadProfile() async {
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
-    token = prefs.getString('token');
-
-    if (token != null) {
-      await _loadProfile();
-    } else {
-      print('No token found');
-      Navigator.pushReplacementNamed(context, '/'); // Navigate to login if no token
-    }
-  }
-
-  Future<void> _loadProfile() async {
-    ProfileService profileService = ProfileService();
-
-    try {
-      officerInfo = await profileService.fetchProfile(token!);
-      setState(() {
-        // Fetch all required fields including name, username, email, and phone
-        _currentProfilePic = officerInfo?['profile_pic'];
-        _nameController.text = officerInfo?['name'] ?? ''; // Fetch name
-        _usernameController.text = officerInfo?['username'] ?? ''; // Fetch username
-        _emailController.text = officerInfo?['email'] ?? ''; // Fetch email
-        _phoneController.text = officerInfo?['phone_no'] ?? ''; // Fetch phone number
-      });
-    } catch (e) {
-      print('Error fetching profile: $e');
-    }
-  }
-
-  Future<void> _updateProfile() async {
-    ProfileService profileService = ProfileService();
-
-    try {
-      Map<String, String> updatedData = {
-        'cleaner_name': _nameController.text,
-        'cleaner_username': _usernameController.text,
-        'email': _emailController.text,
-        'phone_no': _phoneController.text,
-      };
-
-      await profileService.updateProfile(token!, updatedData, _currentProfilePic);
-      // Show success message or navigate back after update
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Profile updated successfully!')));
-    } catch (e) {
-      print('Error updating profile: $e');
-    }
-  }
-
-  Future<void> _showImageOptions() async {
+  Future<void> _showImageOptions(BuildContext context, ProfileEditNotifier profileNotifier) async {
     final ImagePicker picker = ImagePicker();
     final String? action = await showDialog<String>(
       context: context,
@@ -103,141 +231,11 @@ class OfficerProfileEditState extends State<OfficerProfileEdit> {
     if (action == 'Upload') {
       final XFile? image = await picker.pickImage(source: ImageSource.gallery);
       if (image != null) {
-        setState(() {
-          _currentProfilePic = image.path; // Update profile picture path
-        });
-        // TODO: Upload the image to your server
+        await profileNotifier.updateProfilePicture(image.path);
       }
     } else if (action == 'Delete') {
-      setState(() {
-        _currentProfilePic = null; // Clear profile picture
-      });
-      // TODO: Call your API to delete the profile picture
+      await profileNotifier.updateProfilePicture(null);
     }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        elevation: 0,
-        backgroundColor: Colors.transparent,
-        automaticallyImplyLeading: false,
-        title: const Text(
-          'Edit Info',
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        centerTitle: true,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () {
-            Navigator.pop(context);
-          },
-        ),
-      ),
-      extendBodyBehindAppBar: true,
-      body: Stack(
-        children: [
-          Positioned.fill(
-            child: Column(
-              children: [
-                Container(
-                  height: 200,
-                  decoration: const BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        Color(0xFF4C7D90),
-                        Colors.white
-                      ],
-                    ),
-                  ),
-                ),
-                Expanded(
-                  child: Container(
-                    color: Colors.white,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          SingleChildScrollView(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                const SizedBox(height: 100),
-                Stack(
-                  children: [
-                    CircleAvatar(
-                      radius: 50,
-                      backgroundColor: Colors.grey[300],
-                      backgroundImage: _currentProfilePic != null
-                          ? NetworkImage(_currentProfilePic!)
-                          : null,
-                      child: _currentProfilePic == null
-                          ? const Icon(Icons.person, size: 50, color: Colors.white)
-                          : null,
-                    ),
-                    Positioned(
-                      bottom: 0,
-                      right: 0,
-                      child: GestureDetector(
-                        onTap: _showImageOptions,
-                        child: const CircleAvatar(
-                          radius: 16,
-                          backgroundColor: Color(0xFFFEF7FF),
-                          child: Icon(Icons.edit, size: 16, color: Colors.black),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 40),
-                _buildTextField('Name', _nameController),
-                const SizedBox(height: 30),
-                _buildTextField('Username', _usernameController),
-                const SizedBox(height: 30),
-                _buildTextField('Email', _emailController),
-                const SizedBox(height: 30),
-                _buildTextField('Phone Number', _phoneController),
-                const SizedBox(height: 30),
-                Center(
-                  child: SizedBox(
-                    width: 250, // You can set this to the desired width
-                    height: 50,
-                    child:ElevatedButton(
-                      onPressed: _updateProfile,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.white, // Match the background color
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(30), // Same rounded corners as Edit Info
-                        ),
-                        elevation: 3, // Match the elevation for shadow effect
-                        padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15), // Same padding
-                      ),
-                      child: const Text(
-                        'Save',
-                        style: TextStyle(
-                          color: Colors.black, // Match text color
-                          fontWeight: FontWeight.bold, // Bold font style
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
   }
 
   Widget _buildTextField(String label, TextEditingController controller) {

@@ -1,57 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:onspot_officer/service/complaintdetails_service.dart';
 import 'package:onspot_officer/widget/cleanicons.dart';
 import 'package:onspot_officer/widget/constants.dart';
 
-class ComplaintDetailsPage extends StatefulWidget {
+final complaintDetailsProvider = FutureProvider.family<Map<String, dynamic>?, int>((ref, complaintId) async {
+  return await fetchComplaintDetails(complaintId);
+});
+
+class ComplaintDetailsPage extends ConsumerWidget {
   final int complaintId;
 
   const ComplaintDetailsPage({super.key, required this.complaintId});
 
   @override
-  ComplaintDetailsPageState createState() => ComplaintDetailsPageState();
-}
-
-class ComplaintDetailsPageState extends State<ComplaintDetailsPage> {
-  Map<String, dynamic>? complaintDetails;
-  bool isLoading = true;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadComplaintDetails();
-  }
-
-  String _capitalize(String text) {
-    if (text.isEmpty) return text;
-    return text[0].toUpperCase() + text.substring(1).toLowerCase();
-  }
-
-Future<void> _loadComplaintDetails() async {
-  try {
-    final details = await fetchComplaintDetails(widget.complaintId);
-    if (!mounted) return; // Ensure the widget is still in the tree
-    setState(() {
-      complaintDetails = details;
-      isLoading = false;
-    });
-  } catch (e) {
-    if (!mounted) return; // Ensure the widget is still in the tree before using context
-    setState(() {
-      isLoading = false;
-    });
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to load complaint details: $e')),
-      );
-    }
-  }
-}
-
-
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final complaintDetailsAsyncValue = ref.watch(complaintDetailsProvider(complaintId));
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
     final primaryColor = Theme.of(context).colorScheme.primary;
@@ -82,31 +46,34 @@ Future<void> _loadComplaintDetails() async {
           },
         ),
       ),
-      body: SingleChildScrollView( // <== Wrap Stack in SingleChildScrollView
-      child: Container(
-        height: screenHeight * 1.5, // <== Adjust height for scrolling
-        child: Stack(
-        children: [
-          // Primary background
-          Container(color: primaryColor),
+      body: SingleChildScrollView(
+        child: SizedBox(
+          height: screenHeight * 1.5,
+          child: Stack(
+            children: [
+              // Primary background
+              Container(color: primaryColor),
 
-          // Secondary rounded content
-          Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            child: Container(
-              decoration: BoxDecoration(
-                color: secondaryColor,
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(screenWidth * 0.08),
-                  topRight: Radius.circular(screenWidth * 0.08),
-                ),
-              ),
-              child: isLoading
-                  ? const Center(child: CircularProgressIndicator())
-                  : Stack(
+              // Secondary rounded content
+              Positioned(
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: secondaryColor,
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(screenWidth * 0.08),
+                      topRight: Radius.circular(screenWidth * 0.08),
+                    ),
+                  ),
+                  child: complaintDetailsAsyncValue.when(
+                    loading: () => const Center(child: CircularProgressIndicator()),
+                    error: (error, stackTrace) => Center(
+                      child: Text('Failed to load complaint details: $error'),
+                    ),
+                    data: (complaintDetails) => Stack(
                       children: [
                         // Location and Date section
                         Positioned(
@@ -128,7 +95,7 @@ Future<void> _loadComplaintDetails() async {
                                   ),
                                   SizedBox(width: screenWidth * 0.02),
                                   Text(
-                                    complaintDetails!['comp_location'] ?? 'Unknown',
+                                    complaintDetails?['comp_location'] ?? 'Unknown',
                                     style: TextStyle(
                                       fontSize: screenWidth * 0.04,
                                       color: onSecondaryColor,
@@ -148,7 +115,7 @@ Future<void> _loadComplaintDetails() async {
                                   ),
                                   SizedBox(width: screenWidth * 0.02),
                                   Text(
-                                    formatDate(complaintDetails!['comp_date']),
+                                    formatDate(complaintDetails?['comp_date']),
                                     style: TextStyle(
                                       fontSize: screenWidth * 0.04,
                                       color: onSecondaryColor,
@@ -201,11 +168,11 @@ Future<void> _loadComplaintDetails() async {
                                 ),
                               ],
                             ),
-                            child: complaintDetails!['comp_image'] != null
+                            child: complaintDetails != null && complaintDetails['comp_image'] != null
                                 ? ClipRRect(
                                     borderRadius: BorderRadius.circular(screenWidth * 0.08),
                                     child: Image.network(
-                                      resolveUrl(complaintDetails!['comp_image']),
+                                      resolveUrl(complaintDetails['comp_image']!),
                                       width: double.infinity,
                                       height: double.infinity,
                                       fit: BoxFit.cover,
@@ -227,6 +194,7 @@ Future<void> _loadComplaintDetails() async {
                                   ),
                           ),
                         ),
+
                         // Description, status, and tasks
                         Positioned(
                           top: screenHeight * 0.45,
@@ -245,7 +213,7 @@ Future<void> _loadComplaintDetails() async {
                                     borderRadius: BorderRadius.circular(screenWidth * 0.02),
                                   ),
                                   child: Text(
-                                    complaintDetails!['comp_desc'] ?? 'No description available.',
+                                    complaintDetails?['comp_desc'] ?? 'No description available.',
                                     style: TextStyle(
                                       fontSize: screenWidth * 0.04,
                                       color: onSecondaryColor,
@@ -315,7 +283,8 @@ Future<void> _loadComplaintDetails() async {
                               ),
                               SizedBox(height: screenHeight * 0.02),
                               SizedBox(height: screenHeight * 0.02),
-                              // Cleaner Section (updated to handle a list of cleaners)
+
+                              // Cleaner Section
                               Text(
                                 'Cleaners',
                                 style: TextStyle(
@@ -333,28 +302,40 @@ Future<void> _loadComplaintDetails() async {
                                     color: secondaryColor,
                                     borderRadius: BorderRadius.circular(screenWidth * 0.02),
                                   ),
-                                  child: (complaintDetails!['cleaners'] != null &&
-                                          complaintDetails!['cleaners'].isNotEmpty)
+                                  child: (complaintDetails != null &&
+                                          complaintDetails['cleaners'] != null &&
+                                          complaintDetails['cleaners']!.isNotEmpty)
                                       ? Column(
                                           crossAxisAlignment: CrossAxisAlignment.start,
-                                          children: List.generate(
-                                            complaintDetails!['cleaners'].length,
-                                            (index) {
-                                              final cleaner =
-                                                  complaintDetails!['cleaners'][index];
-                                              return Padding(
-                                                padding: EdgeInsets.symmetric(
-                                                    vertical: screenHeight * 0.005),
-                                                child: Text(
-                                                  ' ${cleaner['cleaner_name'] ?? 'Unassigned'}',
-                                                  style: TextStyle(
-                                                    fontSize: screenWidth * 0.035,
-                                                    color: onSecondaryColor,
+                                          children: complaintDetails['cleaners'] != null &&
+                                                    complaintDetails['cleaners'].isNotEmpty
+                                              ? List.generate(
+                                                  complaintDetails['cleaners']!.length,
+                                                  (index) {
+                                                    final cleaner = complaintDetails['cleaners']![index];
+                                                    return Padding(
+                                                      padding: EdgeInsets.symmetric(vertical: screenHeight * 0.005),
+                                                      child: Text(
+                                                        ' ${cleaner['cleaner_name'] ?? 'Unassigned'}',
+                                                        style: TextStyle(
+                                                          fontSize: screenWidth * 0.035,
+                                                          color: onSecondaryColor,
+                                                        ),
+                                                      ),
+                                                    );
+                                                  },
+                                                )
+                                              : [
+                                                  Center(
+                                                    child: Text(
+                                                      'No cleaners assigned',
+                                                      style: TextStyle(
+                                                        fontSize: screenWidth * 0.035,
+                                                        color: onSecondaryColor,
+                                                      ),
+                                                    ),
                                                   ),
-                                                ),
-                                              );
-                                            },
-                                          ),
+                                                ],
                                         )
                                       : Center(
                                           child: Text(
@@ -368,41 +349,32 @@ Future<void> _loadComplaintDetails() async {
                                 ),
                               ),
                               SizedBox(height: screenHeight * 0.02),
+
                               // Completed button with dynamic states
                               if (complaintDetails != null)
                                 Positioned(
                                   bottom: screenHeight * 0.03,
                                   right: screenWidth * 0.05,
                                   child: ElevatedButton.icon(
-                                    onPressed: complaintDetails!['comp_status'] ==
+                                    onPressed: complaintDetails['comp_status'] ==
                                                 'pending' ||
-                                            complaintDetails!['comp_status'] ==
+                                            complaintDetails['comp_status'] ==
                                                 'completed'
-                                        ? null // Disable button for "Pending" and "Completed" statuses
+                                        ? null
                                         : () async {
                                             try {
-                                              // Call the completeComplaint function
-                                              bool success = await completeComplaint(
-                                                  widget.complaintId);
-
-                                              if (!mounted) return;
+                                              bool success = await completeComplaint(complaintId);
 
                                               if (success) {
-                                                ScaffoldMessenger.of(context)
-                                                    .showSnackBar(
+                                                ref.read(scaffoldMessengerProvider).showSnackBar(
                                                   SnackBar(
                                                       content: Text(
                                                           'Complaint marked as completed successfully!')),
                                                 );
 
-                                                // Refresh complaint details
-                                                await _loadComplaintDetails();
                                               }
                                             } catch (e) {
-                                              if (!mounted) return;
-
-                                              ScaffoldMessenger.of(context)
-                                                  .showSnackBar(
+                                              ref.read(scaffoldMessengerProvider).showSnackBar(
                                                 SnackBar(
                                                     content: Text(
                                                         'Failed to complete complaint: $e')),
@@ -411,18 +383,18 @@ Future<void> _loadComplaintDetails() async {
                                           },
                                     style: ElevatedButton.styleFrom(
                                       backgroundColor:
-                                          complaintDetails!['comp_status'] ==
+                                          complaintDetails['comp_status'] ==
                                                   'completed'
                                               ? Colors.green
-                                              : complaintDetails!['comp_status'] ==
+                                              : complaintDetails['comp_status'] ==
                                                       'pending'
                                                   ? tertiaryColor
                                                   : primaryColor,
                                       foregroundColor:
-                                          complaintDetails!['comp_status'] ==
+                                          complaintDetails['comp_status'] ==
                                                   'completed'
                                               ? Colors.white
-                                              : complaintDetails!['comp_status'] ==
+                                              : complaintDetails['comp_status'] ==
                                                       'pending'
                                                   ? onSecondaryColor
                                                   : onPrimaryColor,
@@ -432,18 +404,18 @@ Future<void> _loadComplaintDetails() async {
                                       ),
                                     ),
                                     icon: Icon(
-                                      complaintDetails!['comp_status'] == 'completed'
+                                      complaintDetails['comp_status'] == 'completed'
                                           ? Icons.check_circle
-                                          : complaintDetails!['comp_status'] ==
+                                          : complaintDetails['comp_status'] ==
                                                   'pending'
                                               ? Icons.info
                                               : Icons.check,
                                       size: screenWidth * 0.05,
                                     ),
                                     label: Text(
-                                      complaintDetails!['comp_status'] == 'completed'
+                                      complaintDetails['comp_status'] == 'completed'
                                           ? 'Completed'
-                                          : complaintDetails!['comp_status'] ==
+                                          : complaintDetails['comp_status'] ==
                                                   'pending'
                                               ? 'Pending'
                                               : 'Complete',
@@ -454,17 +426,22 @@ Future<void> _loadComplaintDetails() async {
                                     ),
                                   ),
                                 ),
+                            ],
+                          ),
+                        ),
                       ],
                     ),
-            ),
-        ],
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
-      ),
-      ),
-      ],
-      ),
-      ),
       ),
     );
   }
 }
+
+final scaffoldMessengerProvider = Provider<ScaffoldMessengerState>((ref) {
+  throw UnimplementedError();
+});

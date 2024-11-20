@@ -1,17 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'complaint.dart';
 import 'history.dart';
 import 'profile.dart';
 import 'homescreen.dart';
 
-class OfficerNavBar extends StatelessWidget {
-  final int currentIndex;
+final currentIndexProvider = StateProvider<int>((ref) => 0);
 
-  const OfficerNavBar({
-    super.key,
-    required this.currentIndex,
-  });
+class OfficerNavBar extends ConsumerWidget {
+  const OfficerNavBar({super.key});
 
   void _navigateToPage(BuildContext context, Widget page) {
     Navigator.push(
@@ -35,8 +33,11 @@ class OfficerNavBar extends StatelessWidget {
     );
   }
 
-  void _onItemTapped(BuildContext context, int index) {
-    if (index == currentIndex) return;
+  void _onItemTapped(BuildContext context, WidgetRef ref, int index) {
+    final currentIndex = ref.read(currentIndexProvider.notifier);
+    if (index == ref.read(currentIndexProvider)) return;
+
+    currentIndex.state = index;
 
     switch (index) {
       case 0:
@@ -55,12 +56,14 @@ class OfficerNavBar extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
     final primaryColor = Theme.of(context).colorScheme.primary;
     final secondaryColor = Theme.of(context).colorScheme.secondary;
     final tertiaryColor = Theme.of(context).colorScheme.tertiary;
+
+    final currentIndex = ref.watch(currentIndexProvider);
 
     return Padding(
       padding: EdgeInsets.only(
@@ -99,7 +102,7 @@ class OfficerNavBar extends StatelessWidget {
                 selectedItemColor: primaryColor,
                 unselectedItemColor: tertiaryColor,
                 currentIndex: currentIndex,
-                onTap: (index) => _onItemTapped(context, index),
+                onTap: (index) => _onItemTapped(context, ref, index),
                 items: <BottomNavigationBarItem>[
                   BottomNavigationBarItem(
                     icon: ImageIcon(

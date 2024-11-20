@@ -1,64 +1,79 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../service/auth_service.dart';
 import 'enter_code.dart';
 import 'login.dart';
 
-class ForgotPasswordScreen extends StatefulWidget {
+// State class for forgot password logic
+class ForgotPasswordState {
+  final bool isLoading;
+  final String message;
+
+  ForgotPasswordState({this.isLoading = false, this.message = ''});
+
+  ForgotPasswordState copyWith({bool? isLoading, String? message}) {
+    return ForgotPasswordState(
+      isLoading: isLoading ?? this.isLoading,
+      message: message ?? this.message,
+    );
+  }
+}
+
+// StateNotifier to handle forgot password logic
+class ForgotPasswordNotifier extends StateNotifier<ForgotPasswordState> {
+  final AuthService _authService;
+  final GlobalKey<NavigatorState> _navigatorKey;
+
+  ForgotPasswordNotifier(this._authService, this._navigatorKey) : super(ForgotPasswordState());
+
+  Future<void> sendResetCode(String email) async {
+    if (email.isEmpty) {
+      state = state.copyWith(message: 'Please enter your email');
+      return;
+    }
+
+    state = state.copyWith(isLoading: true, message: '');
+
+    try {
+      await _authService.sendResetCode(email);
+
+      state = state.copyWith(message: 'A reset code has been sent to your email.');
+
+      // Navigate to EnterCodeScreen after a short delay
+      Future.delayed(const Duration(seconds: 3), () {
+        _navigatorKey.currentState?.push(
+          MaterialPageRoute(builder: (context) => EnterCodeScreen(email: email)),
+        );
+      });
+    } catch (e) {
+      state = state.copyWith(message: 'Error: ${e.toString()}');
+    } finally {
+      state = state.copyWith(isLoading: false);
+    }
+  }
+}
+
+// Riverpod provider for ForgotPasswordNotifier
+final navigatorKeyProvider = Provider((ref) => GlobalKey<NavigatorState>());
+
+final forgotPasswordProvider = StateNotifierProvider<ForgotPasswordNotifier, ForgotPasswordState>(
+  (ref) => ForgotPasswordNotifier(AuthService(), ref.read(navigatorKeyProvider)),
+);
+
+class ForgotPasswordScreen extends ConsumerWidget {
   const ForgotPasswordScreen({super.key});
 
   @override
-  ForgotPasswordScreenState createState() => ForgotPasswordScreenState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    final forgotPasswordState = ref.watch(forgotPasswordProvider);
+    final forgotPasswordNotifier = ref.read(forgotPasswordProvider.notifier);
 
-class ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
-  final TextEditingController _emailController = TextEditingController();
-  final AuthService _authService = AuthService();
-  String _message = '';
-  bool _isLoading = false;
-
-  Future<void> _sendResetCode() async {
-    setState(() {
-      _isLoading = true;
-      _message = '';
-    });
-
-    try {
-      await _authService.sendResetCode(_emailController.text);
-      setState(() {
-        _message = 'A reset code has been sent to your email.';
-      });
-
-      // Wait for 3 seconds before navigating to EnterCodeScreen
-      await Future.delayed(const Duration(seconds: 3));
-
-      if (mounted) {
-        Navigator.push(
-          context,
-          PageRouteBuilder(
-            pageBuilder: (context, animation, secondaryAnimation) => EnterCodeScreen(email: _emailController.text),
-            transitionDuration: Duration.zero,
-            reverseTransitionDuration: Duration.zero,
-          ),
-        );
-      }
-    } catch (e) {
-      setState(() {
-        _message = 'Error: ${e.toString()}';
-      });
-    } finally {
-      setState(() {
-        _isLoading = false;
-      });
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context); // Access theme colors
+    final TextEditingController emailController = TextEditingController();
+    final theme = Theme.of(context);
 
     return Scaffold(
-      backgroundColor: theme.primaryColor, // Set background color to primary color
+      backgroundColor: theme.primaryColor,
       body: Center(
         child: SingleChildScrollView(
           child: Padding(
@@ -72,7 +87,7 @@ class ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                   style: GoogleFonts.poppins(
                     fontSize: 22,
                     fontWeight: FontWeight.w600,
-                    color: theme.colorScheme.secondary, // Use secondary color
+                    color: theme.colorScheme.secondary,
                   ),
                 ),
                 const SizedBox(height: 20),
@@ -85,10 +100,12 @@ class ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                     padding: const EdgeInsets.all(20.0),
                     child: Column(
                       children: <Widget>[
-                        _buildInputField('Email', _emailController),
+                        _buildInputField('Email', emailController),
                         const SizedBox(height: 20),
                         ElevatedButton(
-                          onPressed: _isLoading ? null : _sendResetCode,
+                          onPressed: forgotPasswordState.isLoading
+                              ? null
+                              : () => forgotPasswordNotifier.sendResetCode(emailController.text),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.black,
                             padding: const EdgeInsets.symmetric(vertical: 15),
@@ -97,15 +114,17 @@ class ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                               borderRadius: BorderRadius.circular(30),
                             ),
                           ),
-                          child: _isLoading
+                          child: forgotPasswordState.isLoading
                               ? const CircularProgressIndicator(color: Colors.white)
                               : const Text('Send Reset Code', style: TextStyle(color: Colors.white)),
                         ),
                         const SizedBox(height: 10),
-                        if (_message.isNotEmpty)
+                        if (forgotPasswordState.message.isNotEmpty)
                           Text(
-                            _message,
-                            style: TextStyle(color: _message.contains('Error') ? Colors.red : Colors.green),
+                            forgotPasswordState.message,
+                            style: TextStyle(
+                              color: forgotPasswordState.message.contains('Error') ? Colors.red : Colors.green,
+                            ),
                           ),
                       ],
                     ),
@@ -115,19 +134,15 @@ class ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 // Back to Login Button
                 TextButton(
                   onPressed: () {
-                    Navigator.of(context).pushAndRemoveUntil(
-                      PageRouteBuilder(
-                        pageBuilder: (context, animation, secondaryAnimation) => const LoginScreen(),
-                        transitionDuration: Duration.zero,
-                        reverseTransitionDuration: Duration.zero,
-                      ),
+                    ref.read(navigatorKeyProvider).currentState?.pushAndRemoveUntil(
+                      MaterialPageRoute(builder: (context) => const LoginScreen()),
                       (route) => false,
                     );
                   },
                   child: Text(
                     'Back to Login',
                     style: TextStyle(
-                      color: theme.colorScheme.secondary, // Use secondary color
+                      color: theme.colorScheme.secondary,
                       decoration: TextDecoration.underline,
                     ),
                   ),

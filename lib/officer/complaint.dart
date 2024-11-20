@@ -1,47 +1,54 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import 'package:onspot_officer/service/complaint_service.dart';
+import '../service/complaint_service.dart';
 import 'dart:io';
 
-class FileComplaintPage extends StatefulWidget {
+// Providers
+final descriptionControllerProvider = Provider((ref) => TextEditingController());
+final selectedLocationProvider = StateProvider<String?>((ref) => null);
+final selectedDateProvider = StateProvider<DateTime?>((ref) => null);
+final imagePathProvider = StateProvider<String?>((ref) => null);
+final loadingProvider = StateProvider<bool>((ref) => false);
+
+class FileComplaintPage extends ConsumerStatefulWidget {
   const FileComplaintPage({super.key});
 
   @override
   FileComplaintPageState createState() => FileComplaintPageState();
 }
 
-class FileComplaintPageState extends State<FileComplaintPage> {
+class FileComplaintPageState extends ConsumerState<FileComplaintPage> {
   final _formKey = GlobalKey<FormState>();
-  final TextEditingController _descriptionController = TextEditingController();
-  String? _selectedLocation;
-  DateTime? _selectedDate;
-  String? _imagePath;
 
-  final List<String> _locations = [
-    'Floor 1', 'Floor 2', 'Floor 3', 'Floor 4', 'Floor 5',
-    'Floor 6', 'Floor 7', 'Floor 8', 'Floor 9', 'Floor 10',
-    'Floor 11', 'Floor 12', 'Floor 13',
-  ];
-
-  Future<void> _submitComplaint() async {
+  Future<void> _submitComplaint(WidgetRef ref) async {
     if (_formKey.currentState!.validate()) {
-      if (_selectedDate == null || _selectedLocation == null) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Please select a date and location')),
-          );
-        }
+      final selectedDate = ref.read(selectedDateProvider);
+      final selectedLocation = ref.read(selectedLocationProvider);
+      final descriptionController = ref.read(descriptionControllerProvider);
+      final imagePath = ref.read(imagePathProvider);
+
+      if (selectedDate == null || selectedLocation == null) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please select a date and location')),
+        );
         return;
       }
 
-      bool success = await ComplaintService().submitComplaint(
-        description: _descriptionController.text,
-        location: _selectedLocation!,
-        date: _selectedDate!,
-        imagePath: _imagePath,
-      );
+      // Set loading state to true
+      ref.read(loadingProvider.notifier).state = true;
 
-      if (mounted) {
+      try {
+        bool success = await ComplaintService().submitComplaint(
+          description: descriptionController.text,
+          location: selectedLocation,
+          date: selectedDate,
+          imagePath: imagePath,
+        );
+
+        if (!mounted) return;
+
         if (success) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Complaint added successfully')),
@@ -53,28 +60,31 @@ class FileComplaintPageState extends State<FileComplaintPage> {
             const SnackBar(content: Text('Failed to submit complaint. Try again.')),
           );
         }
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: ${e.toString()}')),
+        );
+      } finally {
+        // Reset loading state
+        ref.read(loadingProvider.notifier).state = false;
       }
     }
   }
 
-  Future<void> _pickImage() async {
+  Future<void> _pickImage(WidgetRef ref) async {
     final String? selectedImagePath = await ComplaintService().pickImage();
-    setState(() {
-      _imagePath = selectedImagePath;
-    });
+    ref.read(imagePathProvider.notifier).state = selectedImagePath;
   }
 
-  Future<void> _selectDate(BuildContext context) async {
+  Future<void> _selectDate(BuildContext context, WidgetRef ref) async {
     final DateTime? picked = await showDatePicker(
       context: context,
-      initialDate: _selectedDate ?? DateTime.now(),
+      initialDate: ref.read(selectedDateProvider) ?? DateTime.now(),
       firstDate: DateTime(2000),
       lastDate: DateTime(2100),
     );
     if (picked != null) {
-      setState(() {
-        _selectedDate = picked;
-      });
+      ref.read(selectedDateProvider.notifier).state = picked;
     }
   }
 
@@ -88,6 +98,12 @@ class FileComplaintPageState extends State<FileComplaintPage> {
     final outlineColor = theme.colorScheme.outline;
 
     final screenWidth = MediaQuery.of(context).size.width;
+
+    final descriptionController = ref.watch(descriptionControllerProvider);
+    final selectedLocation = ref.watch(selectedLocationProvider);
+    final selectedDate = ref.watch(selectedDateProvider);
+    final imagePath = ref.watch(imagePathProvider);
+    final isLoading = ref.watch(loadingProvider);
 
     return Scaffold(
       backgroundColor: secondaryColor,
@@ -120,17 +136,20 @@ class FileComplaintPageState extends State<FileComplaintPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildImageUploadCard(primaryColor, onPrimaryColor, screenWidth),
+              _buildImageUploadCard(primaryColor, onPrimaryColor, screenWidth, ref),
               const SizedBox(height: 10),
-              _buildImagePreview(),
+              _buildImagePreview(imagePath),
               const SizedBox(height: 35),
-              _buildLocationField(outlineColor, onSecondaryColor, screenWidth),
+              _buildLocationField(
+                  outlineColor, onSecondaryColor, screenWidth, selectedLocation, ref),
               const SizedBox(height: 16.0),
-              _buildDateField(outlineColor, onSecondaryColor, screenWidth),
+              _buildDateField(
+                  outlineColor, onSecondaryColor, screenWidth, selectedDate, context, ref),
               const SizedBox(height: 16.0),
-              _buildDescriptionField(outlineColor, onSecondaryColor, screenWidth),
+              _buildDescriptionField(outlineColor, onSecondaryColor, screenWidth,
+                  descriptionController),
               const SizedBox(height: 30.0),
-              _buildSendButton(primaryColor, onPrimaryColor),
+              _buildSendButton(primaryColor, onPrimaryColor, isLoading, ref),
             ],
           ),
         ),
@@ -138,7 +157,9 @@ class FileComplaintPageState extends State<FileComplaintPage> {
     );
   }
 
-  Widget _buildImageUploadCard(Color primaryColor, Color onPrimaryColor, double screenWidth) {
+  Widget _buildImageUploadCard(
+      Color primaryColor, Color onPrimaryColor, double screenWidth, WidgetRef ref) {
+    final imagePath = ref.watch(imagePathProvider);
     return Card(
       elevation: 4,
       color: primaryColor,
@@ -164,11 +185,9 @@ class FileComplaintPageState extends State<FileComplaintPage> {
                   border: Border.all(color: primaryColor),
                 ),
                 child: Text(
-                  _imagePath != null
-                      ? _imagePath!.split('/').last
-                      : 'No image selected',
+                  imagePath != null ? imagePath.split('/').last : 'No image selected',
                   style: TextStyle(
-                    color: _imagePath != null ? Colors.black : Colors.grey,
+                    color: imagePath != null ? Colors.black : Colors.grey,
                     fontSize: screenWidth * 0.04,
                   ),
                 ),
@@ -176,7 +195,7 @@ class FileComplaintPageState extends State<FileComplaintPage> {
             ),
             const SizedBox(width: 5),
             IconButton(
-              onPressed: _pickImage,
+              onPressed: () => _pickImage(ref),
               icon: const Icon(Icons.camera_alt),
               color: onPrimaryColor,
             ),
@@ -186,7 +205,7 @@ class FileComplaintPageState extends State<FileComplaintPage> {
     );
   }
 
-  Widget _buildImagePreview() {
+  Widget _buildImagePreview(String? imagePath) {
     return Container(
       height: 200,
       width: double.infinity,
@@ -195,14 +214,15 @@ class FileComplaintPageState extends State<FileComplaintPage> {
         borderRadius: BorderRadius.circular(8.0),
       ),
       child: Center(
-        child: _imagePath != null && File(_imagePath!).existsSync()
-            ? Image.file(File(_imagePath!), fit: BoxFit.cover)
+        child: imagePath != null && File(imagePath).existsSync()
+            ? Image.file(File(imagePath), fit: BoxFit.cover)
             : const Text('Image Preview'),
       ),
     );
   }
 
-  Widget _buildLocationField(Color outlineColor, Color onSecondaryColor, double screenWidth) {
+  Widget _buildLocationField(Color outlineColor, Color onSecondaryColor,
+      double screenWidth, String? selectedLocation, WidgetRef ref) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -216,7 +236,7 @@ class FileComplaintPageState extends State<FileComplaintPage> {
         ),
         const SizedBox(height: 8),
         DropdownButtonFormField<String>(
-          value: _selectedLocation,
+          value: selectedLocation,
           decoration: InputDecoration(
             hintText: 'Room, Floor',
             hintStyle: TextStyle(color: onSecondaryColor, fontSize: screenWidth * 0.04),
@@ -225,16 +245,21 @@ class FileComplaintPageState extends State<FileComplaintPage> {
               borderSide: BorderSide(color: outlineColor),
             ),
           ),
-          items: _locations.map((String location) {
+          items: [
+            'Floor 1',
+            'Floor 2',
+            'Floor 3',
+            'Floor 4',
+            'Floor 5',
+            'Floor 6',
+          ].map((String location) {
             return DropdownMenuItem<String>(
               value: location,
               child: Text(location, style: TextStyle(fontSize: screenWidth * 0.04)),
             );
           }).toList(),
           onChanged: (value) {
-            setState(() {
-              _selectedLocation = value;
-            });
+            ref.read(selectedLocationProvider.notifier).state = value;
           },
           validator: (value) => value == null ? 'Please select a location' : null,
         ),
@@ -242,7 +267,8 @@ class FileComplaintPageState extends State<FileComplaintPage> {
     );
   }
 
-  Widget _buildDateField(Color outlineColor, Color onSecondaryColor, double screenWidth) {
+  Widget _buildDateField(Color outlineColor, Color onSecondaryColor,
+      double screenWidth, DateTime? selectedDate, BuildContext context, WidgetRef ref) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -256,12 +282,12 @@ class FileComplaintPageState extends State<FileComplaintPage> {
         ),
         const SizedBox(height: 8),
         GestureDetector(
-          onTap: () => _selectDate(context),
+          onTap: () => _selectDate(context, ref),
           child: AbsorbPointer(
             child: TextFormField(
               decoration: InputDecoration(
-                hintText: _selectedDate != null
-                    ? DateFormat('dd/MM/yyyy').format(_selectedDate!)
+                hintText: selectedDate != null
+                    ? DateFormat('dd/MM/yyyy').format(selectedDate)
                     : 'Select date',
                 hintStyle: TextStyle(color: onSecondaryColor, fontSize: screenWidth * 0.04),
                 border: OutlineInputBorder(
@@ -269,7 +295,7 @@ class FileComplaintPageState extends State<FileComplaintPage> {
                   borderSide: BorderSide(color: outlineColor),
                 ),
               ),
-              validator: (value) => _selectedDate == null ? 'Please select a date' : null,
+              validator: (value) => selectedDate == null ? 'Please select a date' : null,
             ),
           ),
         ),
@@ -277,7 +303,8 @@ class FileComplaintPageState extends State<FileComplaintPage> {
     );
   }
 
-  Widget _buildDescriptionField(Color outlineColor, Color onSecondaryColor, double screenWidth) {
+  Widget _buildDescriptionField(Color outlineColor, Color onSecondaryColor,
+      double screenWidth, TextEditingController descriptionController) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -291,7 +318,7 @@ class FileComplaintPageState extends State<FileComplaintPage> {
         ),
         const SizedBox(height: 8),
         TextFormField(
-          controller: _descriptionController,
+          controller: descriptionController,
           maxLines: 4,
           decoration: InputDecoration(
             hintText: 'Enter task description',
@@ -308,20 +335,27 @@ class FileComplaintPageState extends State<FileComplaintPage> {
     );
   }
 
-  Widget _buildSendButton(Color primaryColor, Color onPrimaryColor) {
+  Widget _buildSendButton(
+      Color primaryColor, Color onPrimaryColor, bool isLoading, WidgetRef ref) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.end,
       children: [
         TextButton(
-          onPressed: _submitComplaint,
+          onPressed: isLoading ? null : () => _submitComplaint(ref),
           style: TextButton.styleFrom(
-            backgroundColor: primaryColor,
+            backgroundColor: isLoading ? Colors.grey : primaryColor,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           ),
-          child: Text(
-            'Send',
-            style: TextStyle(color: onPrimaryColor, fontSize: 16),
-          ),
+          child: isLoading
+              ? const SizedBox(
+                  height: 20,
+                  width: 20,
+                  child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                )
+              : Text(
+                  'Send',
+                  style: TextStyle(color: onPrimaryColor, fontSize: 16),
+                ),
         ),
       ],
     );

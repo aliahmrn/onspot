@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'navbar.dart';
 import 'history.dart';
 import 'profile.dart';
@@ -6,53 +7,50 @@ import '../widget/bell.dart';
 import 'complaint.dart';
 import '../service/auth_service.dart';
 import '../service/history_service.dart';
-import 'package:flutter_svg/flutter_svg.dart'; 
+import 'package:flutter_svg/flutter_svg.dart';
 
-class OfficerHomeScreen extends StatefulWidget {
+// Providers for managing state
+final officerNameProvider = StateProvider<String>((ref) => 'Officer');
+final recentComplaintProvider = StateProvider<Map<String, dynamic>?>((ref) => null);
+final isLoadingComplaintProvider = StateProvider<bool>((ref) => true);
+
+
+class OfficerHomeScreen extends ConsumerStatefulWidget {
   const OfficerHomeScreen({super.key});
 
   @override
   OfficerHomeScreenState createState() => OfficerHomeScreenState();
 }
 
-class OfficerHomeScreenState extends State<OfficerHomeScreen> {
-  String officerName = 'Officer';
-  Map<String, dynamic>? recentComplaint;
-  bool isLoadingComplaint = true;
+class OfficerHomeScreenState extends ConsumerState<OfficerHomeScreen> {
   final AuthService _authService = AuthService();
 
   @override
   void initState() {
     super.initState();
-    _fetchOfficerName();
-    _fetchRecentComplaint();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _fetchOfficerName(ref);
+      _fetchRecentComplaint(ref);
+    });
   }
 
-  Future<void> _fetchOfficerName() async {
+  Future<void> _fetchOfficerName(WidgetRef ref) async {
     try {
       final userData = await _authService.getUser();
-      setState(() {
-        officerName = userData['name'] ?? 'Officer';
-      });
+      ref.read(officerNameProvider.notifier).state = userData['name'] ?? 'Officer';
     } catch (e) {
-      setState(() {
-        officerName = 'Officer';
-      });
+      ref.read(officerNameProvider.notifier).state = 'Officer';
     }
   }
 
-  Future<void> _fetchRecentComplaint() async {
+  Future<void> _fetchRecentComplaint(WidgetRef ref) async {
     try {
       final complaint = await fetchMostRecentComplaint();
-      setState(() {
-        recentComplaint = complaint;
-        isLoadingComplaint = false;
-      });
+      ref.read(recentComplaintProvider.notifier).state = complaint;
     } catch (e) {
-      setState(() {
-        recentComplaint = null;
-        isLoadingComplaint = false;
-      });
+      ref.read(recentComplaintProvider.notifier).state = null;
+    } finally {
+      ref.read(isLoadingComplaintProvider.notifier).state = false;
     }
   }
 
@@ -72,6 +70,13 @@ class OfficerHomeScreenState extends State<OfficerHomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Debugging: Check if the correct theme is applied here
+    print("Primary Color in OfficerHomeScreen: ${Theme.of(context).colorScheme.primary}");
+
+    final officerName = ref.watch(officerNameProvider);
+    final recentComplaint = ref.watch(recentComplaintProvider);
+    final isLoadingComplaint = ref.watch(isLoadingComplaintProvider);
+
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
 
@@ -280,7 +285,7 @@ class OfficerHomeScreenState extends State<OfficerHomeScreen> {
                                           Icon(Icons.location_on, size: screenWidth * 0.06, color: onPrimaryColor),
                                           SizedBox(width: screenWidth * 0.02),
                                           Text(
-                                            recentComplaint?['comp_location'] ?? 'Unknown location',
+                                            recentComplaint['comp_location'] ?? 'Unknown location',
                                             style: TextStyle(
                                               fontSize: screenWidth * 0.045,
                                               fontWeight: FontWeight.w500,
@@ -291,7 +296,7 @@ class OfficerHomeScreenState extends State<OfficerHomeScreen> {
                                       ),
                                       SizedBox(height: screenHeight * 0.01),
                                       Text(
-                                        recentComplaint?['comp_desc'] ?? 'No description',
+                                        recentComplaint['comp_desc'] ?? 'No description',
                                         style: TextStyle(
                                           fontSize: screenWidth * 0.04,
                                           fontWeight: FontWeight.bold,
@@ -300,7 +305,7 @@ class OfficerHomeScreenState extends State<OfficerHomeScreen> {
                                       ),
                                       SizedBox(height: screenHeight * 0.005),
                                       Text(
-                                        'Status: ${recentComplaint?['comp_status'] ?? 'Unknown status'}',
+                                        'Status: ${recentComplaint['comp_status'] ?? 'Unknown status'}',
                                         style: TextStyle(
                                           fontSize: screenWidth * 0.035,
                                           color: onPrimaryColor,
@@ -326,10 +331,7 @@ class OfficerHomeScreenState extends State<OfficerHomeScreen> {
             left: 0,
             right: 0,
             child: SafeArea(
-              child: Container(
-                color: secondaryColor,
-                child: const OfficerNavBar(currentIndex: 0),
-              ),
+              child: const OfficerNavBar(),
             ),
           ),
         ],

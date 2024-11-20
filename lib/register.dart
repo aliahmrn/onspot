@@ -1,101 +1,98 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'login.dart';
 import 'service/auth_service.dart'; // Import AuthService
 import 'package:logger/logger.dart'; // Import the logger package
 
-class RegistrationScreen extends StatefulWidget {
-  const RegistrationScreen({super.key});
+// Define a global navigator key provider
+final navigatorKeyProvider = Provider((ref) => GlobalKey<NavigatorState>());
 
-  @override
-  RegistrationScreenState createState() => RegistrationScreenState();
+// Define a state class for registration
+class RegistrationState {
+  final bool isLoading;
+  final String errorMessage;
+
+  RegistrationState({this.isLoading = false, this.errorMessage = ''});
+
+  RegistrationState copyWith({bool? isLoading, String? errorMessage}) {
+    return RegistrationState(
+      isLoading: isLoading ?? this.isLoading,
+      errorMessage: errorMessage ?? this.errorMessage,
+    );
+  }
 }
 
-class RegistrationScreenState extends State<RegistrationScreen> {
-  final TextEditingController _fullNameController = TextEditingController();
-  final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _usernameController = TextEditingController(); // Username controller
-  final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _confirmPasswordController = TextEditingController();
-  final TextEditingController _phoneNumberController = TextEditingController();
-  String _errorMessage = '';
-  bool _isLoading = false;
+// Define a StateNotifier to manage registration logic
+class RegistrationNotifier extends StateNotifier<RegistrationState> {
+  final AuthService _authService;
+  final Logger _logger = Logger();
+  final GlobalKey<NavigatorState> _navigatorKey;
 
-  final AuthService _authService = AuthService(); // Instantiate AuthService
-  bool _isDisposed = false; // Track if the widget is disposed
+  RegistrationNotifier(this._authService, this._navigatorKey) : super(RegistrationState());
 
-  final Logger _logger = Logger(); // Instantiate Logger
-
-  // Define setStateIfMounted method to avoid errors after async tasks
-  void setStateIfMounted(f) {
-    if (!_isDisposed && mounted) {
-      setState(f);
-    }
-  }
-
-  Future<void> _register() async {
-    final String fullName = _fullNameController.text;
-    final String email = _emailController.text;
-    final String username = _usernameController.text; // Use username
-    final String password = _passwordController.text;
-    final String confirmPassword = _confirmPasswordController.text;
-    final String phoneNumber = _phoneNumberController.text;
-
+  Future<void> register({
+    required String fullName,
+    required String email,
+    required String username,
+    required String password,
+    required String confirmPassword,
+    required String phoneNumber,
+  }) async {
     // Input validation
-    if (fullName.isEmpty || email.isEmpty || username.isEmpty || password.isEmpty || confirmPassword.isEmpty || phoneNumber.isEmpty) {
-      setStateIfMounted(() {
-        _errorMessage = 'Please fill out all the fields';
-      });
+    if (fullName.isEmpty ||
+        email.isEmpty ||
+        username.isEmpty ||
+        password.isEmpty ||
+        confirmPassword.isEmpty ||
+        phoneNumber.isEmpty) {
+      state = state.copyWith(errorMessage: 'Please fill out all the fields');
       return;
     }
 
     if (password != confirmPassword) {
-      setStateIfMounted(() {
-        _errorMessage = 'Passwords do not match';
-      });
+      state = state.copyWith(errorMessage: 'Passwords do not match');
       return;
     }
 
-    setStateIfMounted(() {
-      _isLoading = true;
-    });
+    state = state.copyWith(isLoading: true, errorMessage: '');
 
     try {
-      // Call the register method from AuthService with username
+      // Call the register method from AuthService
       await _authService.register(fullName, username, email, password, phoneNumber);
 
-      if (!mounted || _isDisposed) return; // Prevents continuing if disposed
-
-      // Navigate to the Login Screen upon successful registration
-      Navigator.pushReplacement(
-        context,
+      // Navigate to the login screen after successful registration
+      _navigatorKey.currentState?.pushReplacement(
         MaterialPageRoute(builder: (context) => const LoginScreen()),
       );
     } catch (e) {
-      setStateIfMounted(() {
-        _errorMessage = 'Failed to register: ${e.toString()}';
-      });
-      _logger.e('Registration error: $e'); // Log the error
+      state = state.copyWith(errorMessage: 'Failed to register: ${e.toString()}');
+      _logger.e('Registration error: $e');
     } finally {
-      setStateIfMounted(() {
-        _isLoading = false;
-      });
+      state = state.copyWith(isLoading: false);
     }
   }
+}
+
+// Define a provider for the registration notifier
+final registrationProvider = StateNotifierProvider<RegistrationNotifier, RegistrationState>(
+  (ref) => RegistrationNotifier(AuthService(), ref.read(navigatorKeyProvider)),
+);
+
+class RegistrationScreen extends ConsumerWidget {
+  const RegistrationScreen({super.key});
 
   @override
-  void dispose() {
-    _isDisposed = true; // Mark the widget as disposed
-    _fullNameController.dispose();
-    _emailController.dispose();
-    _usernameController.dispose();
-    _passwordController.dispose();
-    _confirmPasswordController.dispose();
-    _phoneNumberController.dispose();
-    super.dispose();
-  }
+  Widget build(BuildContext context, WidgetRef ref) {
+    final registrationState = ref.watch(registrationProvider);
+    final registrationNotifier = ref.read(registrationProvider.notifier);
 
-  @override
-  Widget build(BuildContext context) {
+    final TextEditingController fullNameController = TextEditingController();
+    final TextEditingController emailController = TextEditingController();
+    final TextEditingController usernameController = TextEditingController();
+    final TextEditingController passwordController = TextEditingController();
+    final TextEditingController confirmPasswordController = TextEditingController();
+    final TextEditingController phoneNumberController = TextEditingController();
+
     return Scaffold(
       body: Center(
         child: SingleChildScrollView(
@@ -123,20 +120,31 @@ class RegistrationScreenState extends State<RegistrationScreen> {
                     padding: const EdgeInsets.all(20.0),
                     child: Column(
                       children: <Widget>[
-                        _buildInputField('Full Name', _fullNameController),
+                        _buildInputField('Full Name', fullNameController),
                         const SizedBox(height: 20),
-                        _buildInputField('Email', _emailController),
+                        _buildInputField('Email', emailController),
                         const SizedBox(height: 20),
-                        _buildInputField('Username', _usernameController), // Username field
+                        _buildInputField('Username', usernameController),
                         const SizedBox(height: 20),
-                        _buildInputField('Password', _passwordController, obscureText: true),
+                        _buildInputField('Password', passwordController, obscureText: true),
                         const SizedBox(height: 20),
-                        _buildInputField('Confirm Password', _confirmPasswordController, obscureText: true),
+                        _buildInputField('Confirm Password', confirmPasswordController, obscureText: true),
                         const SizedBox(height: 20),
-                        _buildInputField('Phone Number', _phoneNumberController),
+                        _buildInputField('Phone Number', phoneNumberController),
                         const SizedBox(height: 20),
                         ElevatedButton(
-                          onPressed: _isLoading ? null : _register,
+                          onPressed: registrationState.isLoading
+                              ? null
+                              : () {
+                                  registrationNotifier.register(
+                                    fullName: fullNameController.text,
+                                    email: emailController.text,
+                                    username: usernameController.text,
+                                    password: passwordController.text,
+                                    confirmPassword: confirmPasswordController.text,
+                                    phoneNumber: phoneNumberController.text,
+                                  );
+                                },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.black,
                             padding: const EdgeInsets.symmetric(horizontal: 100, vertical: 15),
@@ -145,17 +153,14 @@ class RegistrationScreenState extends State<RegistrationScreen> {
                             ),
                             textStyle: const TextStyle(fontSize: 16),
                           ),
-                          child: _isLoading
+                          child: registrationState.isLoading
                               ? const CircularProgressIndicator(color: Colors.white)
                               : const Text('Register', style: TextStyle(color: Colors.white)),
                         ),
                         const SizedBox(height: 10),
-
-                        // Button to redirect to the Login page
                         TextButton(
                           onPressed: () {
-                            Navigator.pushReplacement(
-                              context,
+                            ref.read(navigatorKeyProvider).currentState?.pushReplacement(
                               MaterialPageRoute(builder: (context) => const LoginScreen()),
                             );
                           },
@@ -168,10 +173,9 @@ class RegistrationScreenState extends State<RegistrationScreen> {
                             ),
                           ),
                         ),
-
-                        if (_errorMessage.isNotEmpty) ...[
+                        if (registrationState.errorMessage.isNotEmpty) ...[
                           Text(
-                            _errorMessage,
+                            registrationState.errorMessage,
                             style: const TextStyle(color: Colors.red),
                           ),
                           const SizedBox(height: 10),
