@@ -86,151 +86,214 @@ class TaskDetailsPageState extends State<TaskDetailsPage> {
     );
   }
 
-  Widget _buildTaskDetailsContent(double screenWidth, double screenHeight, Color primaryColor, Color secondaryColor) {
-    final formattedDate = DateFormat.yMMMMd().format(DateTime.parse(taskDetails!['comp_date']));
-    final formattedTime = DateFormat.jm().format(DateTime.parse("1970-01-01 ${taskDetails!['comp_time']}"));
+Widget _buildTaskDetailsContent(
+  double screenWidth,
+  double screenHeight,
+  Color primaryColor,
+  Color secondaryColor,
+) {
+  final formattedDate = DateFormat.yMMMMd().format(DateTime.parse(taskDetails!['comp_date']));
+  final formattedAssignedDate = DateFormat.yMMMMd().format(DateTime.parse(taskDetails!['assigned_date'])); // Format the Assigned Date
 
-    return Container(
-      decoration: BoxDecoration(
-        color: secondaryColor,
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(screenWidth * 0.06),
-          topRight: Radius.circular(screenWidth * 0.06),
-        ),
-      ),
-      padding: EdgeInsets.all(screenWidth * 0.04),
-      child: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Task details displayed without a card container
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildInfoRow(
-                  icon: Icons.description,
-                  label: 'Description',
-                  value: taskDetails!['comp_desc'] ?? 'No Description',
-                  screenWidth: screenWidth,
-                ),
-                _buildDivider(screenWidth),
-                _buildInfoRow(
-                  icon: Icons.location_on,
-                  label: 'Location',
-                  value: taskDetails!['comp_location'] ?? 'No Location',
-                  screenWidth: screenWidth,
-                ),
-                _buildDivider(screenWidth),
-                _buildInfoRow(
-                  icon: Icons.person,
-                  label: 'Complaint by',
-                  value: taskDetails!['officer_name'] ?? 'Unknown Officer',
-                  screenWidth: screenWidth,
-                ),
-                _buildDivider(screenWidth),
-                _buildInfoRow(
-                  icon: Icons.date_range,
-                  label: 'Date Of Complaint',
-                  value: formattedDate,
-                  screenWidth: screenWidth,
-                ),
-                _buildDivider(screenWidth),
-                _buildInfoRow(
-                  icon: Icons.access_time,
-                  label: 'Complaint Time',
-                  value: formattedTime,
-                  screenWidth: screenWidth,
-                ),
-                _buildDivider(screenWidth),
-                _buildInfoRow(
-                  icon: Icons.people,
-                  label: 'Number of Cleaners',
-                  value: '${taskDetails!['no_of_cleaners']}',
-                  screenWidth: screenWidth,
-                ),
-                _buildDivider(screenWidth),
-                _buildStatusRow(
-                  icon: Icons.assignment_turned_in,
-                  label: 'Status',
-                  status: taskDetails!['comp_status'] ?? 'Unknown',
-                  screenWidth: screenWidth,
-                ),
-                _buildDivider(screenWidth),
-                _buildInfoRow(
-                  icon: Icons.calendar_today,
-                  label: 'Assigned Date',
-                  value: DateFormat.yMMMMd().format(
-                    DateTime.parse(taskDetails!['assigned_date'] ?? DateTime.now().toString()),
+  return Column(
+    children: [
+      // Top rounded container
+      SizedBox(
+        height: screenHeight * 0.885, // Adjust this value to control the height
+        child: Container(
+          decoration: BoxDecoration(
+            color: secondaryColor, // White background
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(screenWidth * 0.06),
+              topRight: Radius.circular(screenWidth * 0.06),
+            ),
+          ),
+          padding: EdgeInsets.all(screenWidth * 0.04),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // "Details" Section Header
+              Row(
+                children: [
+                  Icon(Icons.info, color: primaryColor, size: screenWidth * 0.06), // Add an icon
+                  SizedBox(width: screenWidth * 0.02),
+                  Text(
+                    'Details',
+                    style: TextStyle(
+                      fontSize: screenWidth * 0.05,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                    ),
                   ),
-                  screenWidth: screenWidth,
-                ),
-              ],
-            ),
-            SizedBox(height: screenHeight * 0.03),
-            Text(
-              'Assigned Cleaners',
-              style: TextStyle(
-                fontSize: screenWidth * 0.05,
-                fontWeight: FontWeight.bold,
-                color: Colors.black,
+                ],
               ),
-            ),
-            SizedBox(height: screenHeight * 0.01),
-            _buildCleanersList(screenWidth),
-          ],
+              SizedBox(height: screenHeight * 0.02),
+
+              // Task Details Section
+              Container(
+                decoration: BoxDecoration(
+                  color: primaryColor, // Primary color for the card
+                  borderRadius: BorderRadius.circular(screenWidth * 0.03),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.withOpacity(0.3),
+                      blurRadius: 6,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                padding: EdgeInsets.all(screenWidth * 0.04),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildInfoRow(
+                      icon: Icons.description,
+                      label: 'Description',
+                      value: taskDetails!['comp_desc'] ?? 'No Description',
+                      screenWidth: screenWidth,
+                      textColor: secondaryColor, // Use secondary color for text
+                    ),
+                    _buildInfoRow(
+                      icon: Icons.location_on,
+                      label: 'Location',
+                      value: taskDetails!['comp_location'] ?? 'No Location',
+                      screenWidth: screenWidth,
+                      textColor: secondaryColor,
+                    ),
+                    _buildInfoRow(
+                      icon: Icons.person,
+                      label: 'Complaint by',
+                      value: taskDetails!['officer_name'] ?? 'Unknown Officer',
+                      screenWidth: screenWidth,
+                      textColor: secondaryColor,
+                    ),
+                    _buildInfoRow(
+                      icon: Icons.date_range,
+                      label: 'Date of Complaint',
+                      value: formattedDate,
+                      screenWidth: screenWidth,
+                      textColor: secondaryColor,
+                    ),
+                    _buildInfoRow(
+                      icon: Icons.calendar_today,
+                      label: 'Assigned Date',
+                      value: formattedAssignedDate,
+                      screenWidth: screenWidth,
+                      textColor: secondaryColor,
+                    ),
+                    _buildStatusRow(
+                      icon: Icons.assignment_turned_in,
+                      label: 'Status',
+                      status: taskDetails!['comp_status'] ?? 'Unknown',
+                      screenWidth: screenWidth,
+                      textColor: secondaryColor,
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(height: screenHeight * 0.03),
+
+              // "Assigned Cleaners" Section Header
+              Row(
+                children: [
+                  Icon(Icons.people, color: primaryColor, size: screenWidth * 0.06), // Add an icon
+                  SizedBox(width: screenWidth * 0.02),
+                  Text(
+                    'Assigned Cleaners',
+                    style: TextStyle(
+                      fontSize: screenWidth * 0.05,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: screenHeight * 0.01),
+
+              // Cleaners List Section
+              _buildCleanersList(
+                screenWidth,
+                primaryColor,
+                secondaryColor,
+                Theme.of(context).colorScheme.onPrimary,
+              ),
+            ],
+          ),
         ),
       ),
-    );
-  }
+    ],
+  );
+}
 
-  Widget _buildInfoRow({required IconData icon, required String label, required String value, required double screenWidth}) {
-    return Row(
+
+Widget _buildInfoRow({
+  required IconData icon,
+  required String label,
+  required String value,
+  required double screenWidth,
+  required Color textColor, // Add textColor as a parameter
+}) {
+  return Padding(
+    padding: EdgeInsets.symmetric(vertical: screenWidth * 0.02),
+    child: Row(
       children: [
-        Icon(icon, color: Colors.black.withOpacity(0.7), size: screenWidth * 0.05),
-        SizedBox(width: screenWidth * 0.025),
+        Icon(icon, color: textColor.withOpacity(0.7), size: screenWidth * 0.05),
+        SizedBox(width: screenWidth * 0.03),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 label,
-                style: TextStyle(fontSize: screenWidth * 0.04, color: Colors.black.withOpacity(0.7), fontWeight: FontWeight.w600),
+                style: TextStyle(
+                  fontSize: screenWidth * 0.04,
+                  color: textColor.withOpacity(0.7),
+                  fontWeight: FontWeight.w600,
+                ),
               ),
               SizedBox(height: screenWidth * 0.01),
               Text(
                 value,
-                style: TextStyle(fontSize: screenWidth * 0.045, fontWeight: FontWeight.w500, color: Colors.black),
+                style: TextStyle(
+                  fontSize: screenWidth * 0.045,
+                  fontWeight: FontWeight.w500,
+                  color: textColor,
+                ),
               ),
             ],
           ),
         ),
       ],
-    );
-  }
+    ),
+  );
+}
 
-  Widget _buildStatusRow({required IconData icon, required String label, required String status, required double screenWidth}) {
-    Color statusColor;
-    if (status.toLowerCase() == 'completed') {
-      statusColor = Colors.green;
-    } else if (status.toLowerCase() == 'ongoing') {
-      statusColor = Colors.blue;
-    } else if (status.toLowerCase() == 'pending') {
-      statusColor = Colors.orange;
-    } else {
-      statusColor = Colors.red;
-    }
+Widget _buildStatusRow({
+  required IconData icon,
+  required String label,
+  required String status,
+  required double screenWidth,
+  required Color textColor, // Add textColor as a parameter
+}) {
+  Color statusColor = _getStatusColor(status);
 
-    return Row(
+  return Padding(
+    padding: EdgeInsets.symmetric(vertical: screenWidth * 0.02),
+    child: Row(
       children: [
-        Icon(icon, color: statusColor.withOpacity(0.7), size: screenWidth * 0.05),
-        SizedBox(width: screenWidth * 0.025),
+        Icon(icon, color: textColor.withOpacity(0.7), size: screenWidth * 0.05),
+        SizedBox(width: screenWidth * 0.03),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 label,
-                style: TextStyle(fontSize: screenWidth * 0.04, color: statusColor.withOpacity(0.7), fontWeight: FontWeight.w600),
+                style: TextStyle(
+                  fontSize: screenWidth * 0.04,
+                  color: textColor.withOpacity(0.7),
+                  fontWeight: FontWeight.w600,
+                ),
               ),
               SizedBox(height: screenWidth * 0.01),
               Container(
@@ -241,59 +304,76 @@ class TaskDetailsPageState extends State<TaskDetailsPage> {
                 ),
                 child: Text(
                   status,
-                  style: TextStyle(fontSize: screenWidth * 0.045, fontWeight: FontWeight.bold, color: statusColor),
+                  style: TextStyle(
+                    fontSize: screenWidth * 0.045,
+                    fontWeight: FontWeight.bold,
+                    color: statusColor,
+                  ),
                 ),
               ),
             ],
           ),
         ),
       ],
+    ),
+  );
+}
+
+
+Widget _buildCleanersList(double screenWidth, Color primaryColor, Color secondaryColor, Color onPrimaryColor) {
+  final cleaners = taskDetails!['assigned_cleaners'] as List<dynamic>;
+
+  if (cleaners.isEmpty) {
+    return Text(
+      'No cleaners assigned.',
+      style: TextStyle(fontSize: screenWidth * 0.04, color: Colors.black),
     );
   }
 
-  Widget _buildDivider(double screenWidth) {
-    return Padding(
-      padding: EdgeInsets.symmetric(vertical: screenWidth * 0.03),
-      child: Divider(
-        color: Colors.grey[300],
-        thickness: 1,
-      ),
-    );
-  }
-
-  Widget _buildCleanersList(double screenWidth) {
-    final cleaners = taskDetails!['assigned_cleaners'] as List<dynamic>;
-    if (cleaners.isEmpty) {
-      return Text(
-        'No cleaners assigned.',
-        style: TextStyle(fontSize: screenWidth * 0.04, color: Colors.black),
-      );
-    }
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: cleaners.map<Widget>((cleaner) {
-        return Container(
-          margin: EdgeInsets.symmetric(vertical: screenWidth * 0.02),
-          padding: EdgeInsets.symmetric(vertical: screenWidth * 0.03, horizontal: screenWidth * 0.04),
-          decoration: BoxDecoration(
-            color: Colors.grey[200],
-            borderRadius: BorderRadius.circular(screenWidth * 0.03),
-          ),
-          child: Row(
-            children: [
-              Icon(Icons.person, color: Colors.teal, size: screenWidth * 0.05),
-              SizedBox(width: screenWidth * 0.025),
-              Expanded(
-                child: Text(
-                  cleaner['cleaner_name'] ?? 'Unknown Cleaner',
-                  style: TextStyle(fontSize: screenWidth * 0.045, color: Colors.black87),
-                ),
+  return Column(
+    children: cleaners.map<Widget>((cleaner) {
+      return Container(
+        margin: EdgeInsets.symmetric(vertical: screenWidth * 0.02),
+        padding: EdgeInsets.symmetric(vertical: screenWidth * 0.03, horizontal: screenWidth * 0.04),
+        decoration: BoxDecoration(
+          color: primaryColor,
+          borderRadius: BorderRadius.circular(screenWidth * 0.03),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black12,
+              blurRadius: 4,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            CircleAvatar(
+              backgroundColor: secondaryColor,
+              child: Text(
+                cleaner['cleaner_name']?.substring(0, 1).toUpperCase() ?? '?',
+                style: TextStyle(fontSize: screenWidth * 0.045, color: primaryColor),
               ),
-            ],
-          ),
-        );
-      }).toList(),
-    );
+            ),
+            SizedBox(width: screenWidth * 0.03),
+            Expanded(
+              child: Text(
+                cleaner['cleaner_name'] ?? 'Unknown Cleaner',
+                style: TextStyle(fontSize: screenWidth * 0.045, color: onPrimaryColor),
+              ),
+            ),
+          ],
+        ),
+      );
+    }).toList(),
+  );
+}
+
+
+  Color _getStatusColor(String status) {
+    if (status.toLowerCase() == 'completed') return Colors.green;
+    if (status.toLowerCase() == 'ongoing') return Colors.blue;
+    if (status.toLowerCase() == 'pending') return Colors.orange;
+    return Colors.red;
   }
 }

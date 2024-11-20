@@ -79,24 +79,26 @@ class ComplaintPageState extends State<ComplaintPage> {
                 final String formattedTime = DateFormat('HH:mm').format(time);
 
                 return Padding(
-                  padding: EdgeInsets.symmetric(vertical: screenHeight * 0.01),
+                  padding: EdgeInsets.symmetric(vertical: screenHeight * 0.007),
                   child: Container(
                     decoration: BoxDecoration(
                       color: primaryColor,
                       borderRadius: BorderRadius.circular(screenWidth * 0.03),
+                      border: Border.all(color: onPrimaryColor.withOpacity(0.2), width: 1),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.grey.withOpacity(0.5),
-                          spreadRadius: screenWidth * 0.005,
-                          blurRadius: screenWidth * 0.03,
-                          offset: Offset(0, screenHeight * 0.005),
+                          color: Colors.grey.withOpacity(0.2),
+                          spreadRadius: screenWidth * 0.003,
+                          blurRadius: screenWidth * 0.02,
+                          offset: Offset(0, screenHeight * 0.003),
                         ),
                       ],
                     ),
-                    padding: EdgeInsets.all(screenWidth * 0.04),
+                    padding: EdgeInsets.all(screenWidth * 0.035),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        // Complaint title and time
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
@@ -118,6 +120,12 @@ class ComplaintPageState extends State<ComplaintPage> {
                           ],
                         ),
                         SizedBox(height: screenHeight * 0.01),
+                        const Divider(
+                          thickness: 1,
+                          color: Colors.white24,
+                        ),
+                        SizedBox(height: screenHeight * 0.01),
+                        // Complaint description
                         Text(
                           complaint['comp_desc']!,
                           style: TextStyle(
@@ -126,6 +134,7 @@ class ComplaintPageState extends State<ComplaintPage> {
                           ),
                         ),
                         SizedBox(height: screenHeight * 0.01),
+                        // Complaint date
                         Text(
                           'Date: ${complaint['comp_date']!}',
                           style: TextStyle(
@@ -133,7 +142,8 @@ class ComplaintPageState extends State<ComplaintPage> {
                             color: onPrimaryColor.withOpacity(0.7),
                           ),
                         ),
-                        SizedBox(height: screenHeight * 0.02),
+                        SizedBox(height: screenHeight * 0.015),
+                        // Assign button
                         Align(
                           alignment: Alignment.centerRight,
                           child: ElevatedButton(
@@ -141,7 +151,9 @@ class ComplaintPageState extends State<ComplaintPage> {
                               await Navigator.push(
                                 context,
                                 PageRouteBuilder(
-                                  pageBuilder: (context, animation, secondaryAnimation) => AssignTaskPage(complaintId: complaint['id'].toString()),
+                                  pageBuilder: (context, animation, secondaryAnimation) => AssignTaskPage(
+                                    complaintId: complaint['id'].toString(),
+                                  ),
                                   transitionDuration: Duration.zero, // No transition animation
                                   reverseTransitionDuration: Duration.zero, // No reverse transition animation
                                 ),
@@ -150,18 +162,27 @@ class ComplaintPageState extends State<ComplaintPage> {
                             },
                             style: ElevatedButton.styleFrom(
                               padding: EdgeInsets.symmetric(
-                                  horizontal: screenWidth * 0.04, vertical: screenHeight * 0.015),
+                                horizontal: screenWidth * 0.05,
+                                vertical: screenHeight * 0.015,
+                              ),
                               backgroundColor: onPrimaryColor,
                               foregroundColor: primaryColor,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(screenWidth * 0.03),
                               ),
+                              elevation: 4,
+                              shadowColor: Colors.black.withOpacity(0.2),
                             ),
-                            child: Text(
-                              'Assign',
-                              style: TextStyle(
-                                fontSize: screenWidth * 0.04,
-                              ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(Icons.assignment, size: 18),
+                                const SizedBox(width: 5),
+                                Text(
+                                  'Assign',
+                                  style: TextStyle(fontSize: screenWidth * 0.04),
+                                ),
+                              ],
                             ),
                           ),
                         ),

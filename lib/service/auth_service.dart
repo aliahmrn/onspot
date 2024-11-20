@@ -3,6 +3,9 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:logger/logger.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:device_info_plus/device_info_plus.dart';
+import 'dart:io';
+
 
 
 class AuthService {
@@ -80,31 +83,52 @@ Future<void> login(String input, String password) async {
     _logger.i('User details cleared');
   }
 
-  Future<void> logout() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final token = prefs.getString('token');
+Future<void> logout() async {
+  try {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('token');
+    final deviceId = await _getDeviceId();
 
-      final response = await http.post(
-        Uri.parse('$baseUrl/flutterlogout'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
-          'Accept': 'application/json',
-        },
-      );
-
-      if (response.statusCode != 200) {
-        _logger.w('Logout failed: ${response.statusCode} - ${response.body}');
-        throw Exception('Failed to logout: ${response.body}');
-      }
-
-      await clearUserDetails();
-    } catch (e) {
-      _logger.e('Error during logout: $e');
-      throw Exception('Error during logout: $e');
+    if (deviceId == null) {
+      throw Exception('Device ID is required but was not provided.');
     }
+
+    final response = await http.post(
+      Uri.parse('$baseUrl/flutterlogout'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+        'Accept': 'application/json',
+      },
+      body: jsonEncode({
+        'device_id': deviceId, // Include the required device_id field
+      }),
+    );
+
+    if (response.statusCode != 200) {
+      _logger.w('Logout failed: ${response.statusCode} - ${response.body}');
+      throw Exception('Failed to logout: ${response.body}');
+    }
+
+    await clearUserDetails();
+  } catch (e) {
+    _logger.e('Error during logout: $e');
+    throw Exception('Error during logout: $e');
   }
+}
+
+// Function to get the device ID
+Future<String?> _getDeviceId() async {
+  final deviceInfo = DeviceInfoPlugin();
+  if (Platform.isAndroid) {
+    final androidInfo = await deviceInfo.androidInfo;
+    return androidInfo.id; // Unique Android device ID
+  } else if (Platform.isIOS) {
+    final iosInfo = await deviceInfo.iosInfo;
+    return iosInfo.identifierForVendor; // Unique iOS device ID
+  }
+  return null; // Handle other platforms if necessary
+}
 
   Future<Map<String, dynamic>> getUser() async {
     try {

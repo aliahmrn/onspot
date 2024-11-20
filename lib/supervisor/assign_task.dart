@@ -172,7 +172,7 @@ class AssignTaskPageState extends State<AssignTaskPage> {
         ),
         centerTitle: true,
         title: Text(
-          'Assign Task',
+          'Assign Complaint',
           style: TextStyle(
             color: onPrimaryColor,
             fontSize: screenWidth * 0.05,
@@ -201,120 +201,177 @@ class AssignTaskPageState extends State<AssignTaskPage> {
   }
 
   Widget _buildComplaintDetailsContent(double screenWidth, double screenHeight, Color primaryColor, Color secondaryColor) {
-    final formattedDate = DateFormat.yMMMMd().format(DateTime.parse(complaintDetails!['comp_date']));
-    final String? imageUrl = complaintDetails!['comp_image_url'];
+  final formattedDate = DateFormat.yMMMMd().format(DateTime.parse(complaintDetails!['comp_date']));
+  final String? imageUrl = complaintDetails!['comp_image_url'];
 
-    final bool isAssignButtonEnabled = availableCleaners.isNotEmpty;
+  final bool isAssignButtonEnabled = availableCleaners.isNotEmpty;
 
-    return Container(
-      width: double.infinity,
-      height: screenHeight * 0.9,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(screenWidth * 0.03),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.5),
-            spreadRadius: screenWidth * 0.005,
-            blurRadius: screenWidth * 0.03,
-            offset: Offset(0, screenWidth * 0.005),
-          ),
-        ],
-      ),
-      padding: EdgeInsets.all(screenWidth * 0.04),
-      child: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              width: double.infinity,
-              height: 200,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(10),
-                boxShadow: const [
-                  BoxShadow(
-                    color: Colors.black26,
-                    offset: Offset(0, 4),
-                    blurRadius: 6,
-                  ),
-                ],
-                image: imageUrl != null
-                    ? DecorationImage(
-                        image: NetworkImage(imageUrl),
-                        fit: BoxFit.cover,
-                      )
-                    : null,
-              ),
-              child: imageUrl == null
-                  ? Center(
-                      child: Icon(Icons.image, size: 50, color: Colors.grey[300]),
+  return Container(
+    width: double.infinity,
+    height: screenHeight * 0.9,
+    decoration: BoxDecoration(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(screenWidth * 0.03),
+      boxShadow: [
+        BoxShadow(
+          color: Colors.grey.withOpacity(0.5),
+          spreadRadius: screenWidth * 0.005,
+          blurRadius: screenWidth * 0.03,
+          offset: Offset(0, screenWidth * 0.005),
+        ),
+      ],
+    ),
+    padding: EdgeInsets.all(screenWidth * 0.04),
+    child: SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Image Section
+          Container(
+            width: double.infinity,
+            height: 180,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.grey.shade300),
+              boxShadow: const [
+                BoxShadow(
+                  color: Colors.black12,
+                  offset: Offset(0, 4),
+                  blurRadius: 6,
+                ),
+              ],
+              image: imageUrl != null
+                  ? DecorationImage(
+                      image: NetworkImage(imageUrl),
+                      fit: BoxFit.cover,
                     )
                   : null,
             ),
-            const SizedBox(height: 20),
-            _buildDetailRow(Icons.location_on, 'Location', complaintDetails!['comp_location'] ?? 'No Location'),
-            _buildDetailRow(Icons.date_range, 'Date', formattedDate),
-            _buildDetailRow(Icons.description, 'Description', complaintDetails!['comp_desc']),
-            const SizedBox(height: 20),
-            Text(
-              'Number of Cleaners',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black),
-            ),
-            const SizedBox(height: 10),
-            DropdownButton<String>(
-              isExpanded: true,
-              value: selectedNumOfCleaners,
-              hint: const Text('Select number'),
-              onChanged: isAssignButtonEnabled ? _onNumberOfCleanersChanged : null,
-              items: List.generate(10, (index) => (index + 1).toString())
-                  .map<DropdownMenuItem<String>>((String value) {
-                return DropdownMenuItem<String>(
-                  value: value,
-                  child: Text(value),
-                );
-              }).toList(),
-            ),
-            const SizedBox(height: 10),
-            for (int i = 0; i < int.parse(selectedNumOfCleaners ?? '1'); i++)
-              DropdownButton<String>(
-                isExpanded: true,
-                value: selectedCleaners.length > i ? selectedCleaners[i] : null,
-                hint: const Text('Select cleaner'),
-                onChanged: isAssignButtonEnabled ? (String? newValue) {
-                  if (newValue != 'No cleaner available for now') {
-                    _onCleanerSelected(i, newValue);
-                  }
-                } : null,
-                items: _getAvailableCleaners(i).map<DropdownMenuItem<String>>((String cleaner) {
-                  return DropdownMenuItem<String>(
-                    value: cleaner,
-                    child: Text(cleaner),
-                  );
-                }).toList(),
-              ),
-            const SizedBox(height: 20),
-            Center(
-              child: ElevatedButton(
-                onPressed: isAssignButtonEnabled ? _assignTask : null,
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 16),
-                  backgroundColor: isAssignButtonEnabled ? primaryColor : Colors.grey, // Change color based on availability
-                  foregroundColor: secondaryColor,
+            child: imageUrl == null
+                ? Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.image_not_supported, size: 50, color: Colors.grey[400]),
+                        const SizedBox(height: 10),
+                        Text(
+                          'No Image Available',
+                          style: TextStyle(color: Colors.grey[600], fontSize: 14),
+                        ),
+                      ],
+                    ),
+                  )
+                : null,
+          ),
+          const SizedBox(height: 20),
+
+          // Complaint Details
+          _buildDetailRow(Icons.location_on, 'Location', complaintDetails!['comp_location'] ?? 'No Location'),
+          const Divider(color: Colors.grey, thickness: 0.5),
+          _buildDetailRow(Icons.date_range, 'Date', formattedDate),
+          const Divider(color: Colors.grey, thickness: 0.5),
+          _buildDetailRow(Icons.description, 'Description', complaintDetails!['comp_desc']),
+          const SizedBox(height: 20),
+
+          // Number of Cleaners Section
+          Container(
+            padding: EdgeInsets.all(screenWidth * 0.04),
+            decoration: BoxDecoration(
+              color: Colors.grey.shade100,
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.grey.withOpacity(0.2),
+                  spreadRadius: screenWidth * 0.005,
+                  blurRadius: screenWidth * 0.02,
+                  offset: Offset(0, screenHeight * 0.005),
                 ),
-                child: Text(
-                  isAssignButtonEnabled ? 'Assign Task' : 'No Cleaners Available',
-                  style: TextStyle(
-                    color: isAssignButtonEnabled ? Theme.of(context).colorScheme.onPrimary : Colors.black54,
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Number of Cleaners',
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black),
+                ),
+                const SizedBox(height: 10),
+                DropdownButton<String>(
+                  isExpanded: true,
+                  value: selectedNumOfCleaners,
+                  hint: const Text('Select number'),
+                  onChanged: isAssignButtonEnabled ? _onNumberOfCleanersChanged : null,
+                  items: List.generate(10, (index) => (index + 1).toString())
+                      .map<DropdownMenuItem<String>>((String value) {
+                    return DropdownMenuItem<String>(
+                      value: value,
+                      child: Text(value),
+                    );
+                  }).toList(),
+                ),
+                const SizedBox(height: 10),
+                for (int i = 0; i < int.parse(selectedNumOfCleaners ?? '1'); i++)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 10),
+                    child: DropdownButton<String>(
+                      isExpanded: true,
+                      value: selectedCleaners.length > i ? selectedCleaners[i] : null,
+                      hint: const Text('Select cleaner'),
+                      onChanged: isAssignButtonEnabled ? (String? newValue) {
+                        if (newValue != 'No cleaner available for now') {
+                          _onCleanerSelected(i, newValue);
+                        }
+                      } : null,
+                      items: _getAvailableCleaners(i).map<DropdownMenuItem<String>>((String cleaner) {
+                        return DropdownMenuItem<String>(
+                          value: cleaner,
+                          child: Text(cleaner),
+                        );
+                      }).toList(),
+                    ),
                   ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 20),
+
+          // Assign Button
+          Center(
+            child: ElevatedButton(
+              onPressed: isAssignButtonEnabled ? _assignTask : null,
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 16),
+                backgroundColor: isAssignButtonEnabled ? primaryColor : Colors.grey,
+                foregroundColor: secondaryColor,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
                 ),
+                elevation: 4,
+                shadowColor: Colors.black.withOpacity(0.2),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.assignment, size: 20),
+                  const SizedBox(width: 8),
+                  Text(
+                    isAssignButtonEnabled ? 'Assign Complaint' : 'No Cleaners Available',
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: isAssignButtonEnabled ? Colors.white : Colors.black54,
+                    ),
+                  ),
+                ],
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
-    );
-  }
+    ),
+  );
+}
+
 
   Widget _buildDetailRow(IconData icon, String label, String value) {
     return Padding(

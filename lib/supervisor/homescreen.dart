@@ -1,96 +1,17 @@
 import 'package:flutter/material.dart';
-import '../widget/bell.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:intl/intl.dart';
+import '../providers/complaints_provider.dart';
+import '../widget/bell.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../service/complaints_service.dart';
-import 'package:firebase_messaging/firebase_messaging.dart'; // Import Firebase Messaging
 
-class SupervisorHomeScreen extends StatefulWidget {
-  const SupervisorHomeScreen({super.key});
 
-  @override
-  SupervisorHomeScreenState createState() => SupervisorHomeScreenState();
-}
-
-class SupervisorHomeScreenState extends State<SupervisorHomeScreen> {
-  String userName = '';
-  Map<String, dynamic>? latestComplaint;
-  bool isLoading = true;
-  String? error;
+class SupervisorHomeScreen extends ConsumerWidget {
+  const SupervisorHomeScreen({Key? key}) : super(key: key);
 
   @override
-  void initState() {
-    super.initState();
-    _loadUserName();
-    _fetchUnassignedComplaints();
-    _setupNotificationListener(); // Set up notification listener
-  }
-
-  Future<void> _loadUserName() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    setState(() {
-      userName = prefs.getString('name') ?? 'Supervisor';
-    });
-  }
-
-Future<void> _fetchUnassignedComplaints() async {
-  try {
-    final complaints = await ComplaintsService().fetchComplaints();
-    
-    if (complaints.isNotEmpty) {
-      // Sort complaints by date in descending order
-      complaints.sort((a, b) {
-        DateTime dateA = DateTime.parse(a['comp_date']);
-        DateTime dateB = DateTime.parse(b['comp_date']);
-        return dateB.compareTo(dateA);
-      });
-
-      // Set the latest complaint as the first item in the sorted list
-      setState(() {
-        latestComplaint = complaints.first;
-        isLoading = false;
-      });
-    } else {
-      setState(() {
-        latestComplaint = null;
-        isLoading = false;
-      });
-    }
-  } catch (e) {
-    setState(() {
-      error = 'Failed to load complaints: $e';
-      isLoading = false;
-    });
-  }
-}
-
-
-  void _setupNotificationListener() {
-    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-      if (message.data.containsKey('complaint_id')) {
-        String complaintId = message.data['complaint_id'];
-        _navigateToComplaintsPageWithId(complaintId);
-      }
-    });
-  }
-
-  void _navigateToProfile() {
-    Navigator.pushNamed(context, '/main-navigator', arguments: 4); // 4 is the index for the Profile screen
-  }
-
-  void _navigateToComplaintsPage() {
-    Navigator.pushNamed(context, '/main-navigator', arguments: 2); // 2 is the index for Complaints
-  }
-
-  void _navigateToComplaintsPageWithId(String complaintId) {
-    Navigator.pushNamed(context, '/main-navigator', arguments: {
-      'index': 2, // Index for Complaints page
-      'complaintId': complaintId, // Pass the complaint ID to navigate to the specific complaint
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
 
@@ -98,6 +19,10 @@ Future<void> _fetchUnassignedComplaints() async {
     final secondaryColor = Theme.of(context).colorScheme.secondary;
     final onPrimaryColor = Theme.of(context).colorScheme.onPrimary;
     final onSecondaryColor = Theme.of(context).colorScheme.onSecondary;
+
+    // Watch Riverpod providers
+    final complaintsState = ref.watch(complaintsProvider);
+    final latestComplaint = ref.watch(latestComplaintProvider);
 
     return Scaffold(
       backgroundColor: primaryColor,
@@ -117,12 +42,11 @@ Future<void> _fetchUnassignedComplaints() async {
       ),
       body: Stack(
         children: [
-          // Background color with rounded corners at the top
           Positioned(
             top: screenHeight * 0.01,
             left: 0,
             right: 0,
-            bottom: 0, // Changed from screenHeight * 0.08 to 0
+            bottom: 0,
             child: Container(
               decoration: BoxDecoration(
                 color: secondaryColor,
@@ -135,26 +59,47 @@ Future<void> _fetchUnassignedComplaints() async {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Welcome message with profile and bell icons
+                  // Header Section
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        'Welcome, $userName!',
-                        style: TextStyle(
-                          fontSize: screenWidth * 0.05,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black87,
-                        ),
+                      FutureBuilder<String>(
+                        future: _getUserName(),
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState == ConnectionState.waiting) {
+                            return Text(
+                              'Welcome!',
+                              style: TextStyle(
+                                fontSize: screenWidth * 0.05,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black87,
+                              ),
+                            );
+                          }
+                          return Text(
+                            'Welcome, ${snapshot.data}!',
+                            style: TextStyle(
+                              fontSize: screenWidth * 0.05,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black87,
+                            ),
+                          );
+                        },
                       ),
                       Row(
                         children: [
-                          BellProfileWidget(
-                            onBellTap: _navigateToComplaintsPage,
-                          ),
-                          SizedBox(width: screenWidth * 0.025),
+                          BellProfileWidget(onBellTap: () {
+                            Navigator.pushNamed(context, '/complaints');
+                          }),
+                          SizedBox(width: screenWidth * 0.02),
                           GestureDetector(
-                            onTap: _navigateToProfile,
+                            onTap: () {
+                              Navigator.pushNamed(
+                                context,
+                                '/main-navigator',
+                                arguments: 4, // Navigate to profile page using argument 4
+                              );
+                            },
                             child: const CircleAvatar(
                               backgroundImage: AssetImage('assets/images/user.jpg'),
                               radius: 20,
@@ -165,7 +110,8 @@ Future<void> _fetchUnassignedComplaints() async {
                     ],
                   ),
                   SizedBox(height: screenHeight * 0.02),
-                  // Welcome image
+
+                  // Welcome Icon
                   Center(
                     child: SvgPicture.asset(
                       'assets/images/homeicon.svg',
@@ -173,7 +119,8 @@ Future<void> _fetchUnassignedComplaints() async {
                     ),
                   ),
                   SizedBox(height: screenHeight * 0.02),
-                  // Complaints section
+
+                  // Complaints Section Header
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -186,115 +133,162 @@ Future<void> _fetchUnassignedComplaints() async {
                         ),
                       ),
                       GestureDetector(
-                        onTap: _navigateToComplaintsPage,
-                        child: Text(
-                          'See All',
-                          style: TextStyle(
-                            fontSize: screenWidth * 0.035,
-                            fontWeight: FontWeight.w400,
-                            color: onSecondaryColor.withOpacity(0.6),
+                        onTap: () {
+                          Navigator.pushNamed(
+                            context,
+                            '/main-navigator',
+                            arguments: 2, 
+                          );
+                        },
+                        child: Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: screenWidth * 0.03,
+                            vertical: screenHeight * 0.008,
+                          ),
+                          decoration: BoxDecoration(
+                            color: onSecondaryColor.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(screenWidth * 0.02),
+                          ),
+                          child: Row(
+                            children: [
+                              Text(
+                                'See All',
+                                style: TextStyle(
+                                  fontSize: screenWidth * 0.035,
+                                  fontWeight: FontWeight.w500,
+                                  color: onSecondaryColor,
+                                ),
+                              ),
+                              Icon(Icons.arrow_forward_ios, size: screenWidth * 0.035, color: onSecondaryColor),
+                            ],
                           ),
                         ),
                       ),
                     ],
                   ),
                   SizedBox(height: screenHeight * 0.01),
-                  // Latest complaint section with shadow and rounded corners
-                  isLoading
-                      ? const Center(child: CircularProgressIndicator())
-                      : error != null
-                          ? Center(child: Text(error!))
-                          : latestComplaint != null
-                              ? GestureDetector(
-                                  onTap: _navigateToComplaintsPage,
-                                  child: Container(
-                                    padding: EdgeInsets.all(screenWidth * 0.04),
-                                    decoration: BoxDecoration(
-                                      color: primaryColor,
-                                      borderRadius: BorderRadius.circular(screenWidth * 0.03),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: Colors.grey.withOpacity(0.5),
-                                          spreadRadius: screenWidth * 0.005,
-                                          blurRadius: screenWidth * 0.03,
-                                          offset: Offset(0, screenHeight * 0.005),
+
+                  // Divider
+                  Divider(color: Colors.grey.withOpacity(0.5)),
+
+                  // Complaints Section
+                  complaintsState.when(
+                    loading: () => const Center(child: CircularProgressIndicator()),
+                    error: (e, _) => Center(child: Text('Failed to load complaints: $e')),
+                    data: (_) {
+                      if (latestComplaint == null) {
+                        return Center(
+                          child: Text(
+                            'No complaints available.',
+                            style: TextStyle(
+                              fontSize: screenWidth * 0.04,
+                              fontWeight: FontWeight.bold,
+                              color: onPrimaryColor,
+                            ),
+                          ),
+                        );
+                      }
+
+                      // Format complaint time
+                      final timeString = latestComplaint['comp_time']!;
+                      final DateTime time = DateTime.parse('1970-01-01 $timeString');
+                      final String formattedTime = DateFormat('HH:mm').format(time);
+
+                      return GestureDetector(
+                      onTap: () {
+                        Navigator.pushNamed(
+                          context,
+                          '/main-navigator',
+                          arguments: 2, 
+                        );
+                      },
+                        child: Container(
+                          padding: EdgeInsets.all(screenWidth * 0.04),
+                          decoration: BoxDecoration(
+                            color: primaryColor,
+                            borderRadius: BorderRadius.circular(screenWidth * 0.03),
+                            border: Border.all(color: onPrimaryColor.withOpacity(0.2), width: 1),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.grey.withOpacity(0.2),
+                                spreadRadius: screenWidth * 0.003,
+                                blurRadius: screenWidth * 0.02,
+                                offset: Offset(0, screenHeight * 0.003),
+                              ),
+                            ],
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // Location and Time Row
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Row(
+                                    children: [
+                                      const Icon(Icons.location_on, size: 18, color: Colors.white),
+                                      SizedBox(width: screenWidth * 0.02),
+                                      Text(
+                                        latestComplaint['comp_location'] ?? 'No Location',
+                                        style: TextStyle(
+                                          fontSize: screenWidth * 0.045,
+                                          fontWeight: FontWeight.bold,
+                                          color: onPrimaryColor,
                                         ),
-                                      ],
-                                    ),
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Row(
-                                          children: [
-                                            Icon(Icons.location_on, size: screenWidth * 0.06, color: onPrimaryColor),
-                                            SizedBox(width: screenWidth * 0.02),
-                                            Text(
-                                              latestComplaint!['comp_location'] ?? 'No Location',
-                                              style: TextStyle(
-                                                fontSize: screenWidth * 0.045,
-                                                fontWeight: FontWeight.w500,
-                                                color: onPrimaryColor,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                        SizedBox(height: screenHeight * 0.005),
-                                        Text(
-                                          latestComplaint!['comp_desc'] ?? 'No Description',
-                                          style: TextStyle(
-                                            fontSize: screenWidth * 0.04,
-                                            fontWeight: FontWeight.bold,
-                                            color: onPrimaryColor,
-                                          ),
-                                        ),
-                                        SizedBox(height: screenHeight * 0.005),
-                                        Row(
-                                          children: [
-                                            SvgPicture.asset(
-                                              'assets/images/calendar.svg',
-                                              height: screenWidth * 0.06,
-                                              colorFilter: ColorFilter.mode(onPrimaryColor, BlendMode.srcIn),
-                                            ),
-                                            SizedBox(width: screenWidth * 0.02),
-                                            Text(
-                                              latestComplaint!['comp_date'] ?? 'N/A',
-                                              style: TextStyle(
-                                                fontSize: screenWidth * 0.035,
-                                                color: onPrimaryColor,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                )
-                              // No complaints available message wrapped in a card
-                              : Container(
-                                  padding: EdgeInsets.all(screenWidth * 0.04),
-                                  decoration: BoxDecoration(
-                                    color: primaryColor,
-                                    borderRadius: BorderRadius.circular(screenWidth * 0.03),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.grey.withOpacity(0.5),
-                                        spreadRadius: screenWidth * 0.005,
-                                        blurRadius: screenWidth * 0.03,
-                                        offset: Offset(0, screenHeight * 0.005),
                                       ),
                                     ],
                                   ),
-                                  child: Center(
+                                  Text(
+                                    formattedTime,
+                                    style: TextStyle(
+                                      fontSize: screenWidth * 0.035,
+                                      color: onPrimaryColor.withOpacity(0.7),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              SizedBox(height: screenHeight * 0.01),
+                              const Divider(thickness: 1, color: Colors.white24),
+                              SizedBox(height: screenHeight * 0.01),
+
+                              // Complaint Description
+                              Row(
+                                children: [
+                                  const Icon(Icons.description, size: 18, color: Colors.white),
+                                  SizedBox(width: screenWidth * 0.02),
+                                  Expanded(
                                     child: Text(
-                                      'No unassigned complaints available.',
+                                      latestComplaint['comp_desc'] ?? 'No Description',
                                       style: TextStyle(
                                         fontSize: screenWidth * 0.04,
-                                        fontWeight: FontWeight.bold,
                                         color: onPrimaryColor,
                                       ),
                                     ),
                                   ),
-                                ),
+                                ],
+                              ),
+                              SizedBox(height: screenHeight * 0.01),
+
+                              // Complaint Date
+                              Row(
+                                children: [
+                                  const Icon(Icons.calendar_today, size: 18, color: Colors.white),
+                                  SizedBox(width: screenWidth * 0.02),
+                                  Text(
+                                    latestComplaint['comp_date']!,
+                                    style: TextStyle(
+                                      fontSize: screenWidth * 0.035,
+                                      color: onPrimaryColor.withOpacity(0.7),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
                 ],
               ),
             ),
@@ -302,5 +296,10 @@ Future<void> _fetchUnassignedComplaints() async {
         ],
       ),
     );
+  }
+
+  Future<String> _getUserName() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    return prefs.getString('name') ?? 'Supervisor';
   }
 }

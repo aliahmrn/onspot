@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart'; // Import Riverpod
 import 'login.dart';
 import 'supervisor/homescreen.dart';
 import 'supervisor/main_navigator.dart';
@@ -23,8 +24,12 @@ void main() async {
   // Subscribe to supervisor notifications topic
   FirebaseMessaging.instance.subscribeToTopic('supervisors'); // Add this line
 
-  // Run the Flutter App
-  runApp(const OnspotSupervisorApp());
+  // Wrap the app with ProviderScope and run it
+  runApp(
+    ProviderScope( // Add ProviderScope here
+      child: const OnspotSupervisorApp(),
+    ),
+  );
 }
 
 // Clear token on app startup to ensure login screen displays

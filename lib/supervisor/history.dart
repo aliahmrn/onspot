@@ -68,7 +68,13 @@ class _HistoryPageState extends State<HistoryPage> {
             } else if (snapshot.hasError) {
               return Center(child: Text('Error: ${snapshot.error}'));
             } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-              return const Center(child: Text('No assigned complaints history.'));
+              // Keep the empty state simple as requested
+              return const Center(
+                child: Text(
+                  'No assigned complaints history.',
+                  style: TextStyle(fontSize: 16, color: Colors.grey),
+                ),
+              );
             }
 
             final tasks = snapshot.data!;
@@ -96,6 +102,7 @@ class _HistoryPageState extends State<HistoryPage> {
                 return Padding(
                   padding: EdgeInsets.symmetric(vertical: screenHeight * 0.01),
                   child: InkWell(
+                    borderRadius: BorderRadius.circular(screenWidth * 0.03),
                     onTap: () async {
                       logger.i("Selected Complaint ID: ${task['id']}");
                       final result = await Navigator.push(
@@ -114,12 +121,16 @@ class _HistoryPageState extends State<HistoryPage> {
                       decoration: BoxDecoration(
                         color: primaryColor,
                         borderRadius: BorderRadius.circular(screenWidth * 0.03),
+                        border: Border.all(
+                          color: statusColor.withOpacity(0.5),
+                          width: 1.2,
+                        ),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.grey.withOpacity(0.5),
-                            spreadRadius: screenWidth * 0.005,
-                            blurRadius: screenWidth * 0.03,
-                            offset: Offset(0, screenHeight * 0.005),
+                            color: Colors.grey.withOpacity(0.3),
+                            spreadRadius: screenWidth * 0.003,
+                            blurRadius: screenWidth * 0.02,
+                            offset: Offset(0, screenHeight * 0.003),
                           ),
                         ],
                       ),
@@ -127,15 +138,16 @@ class _HistoryPageState extends State<HistoryPage> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
+                          // Complaint Assigned Header Row
                           Row(
                             children: [
-                              Icon(Icons.access_time, color: onPrimaryColor.withOpacity(0.7), size: screenWidth * 0.04),
-                              SizedBox(width: screenWidth * 0.025),
+                              Icon(Icons.access_time, color: onPrimaryColor.withOpacity(0.7), size: screenWidth * 0.05),
+                              SizedBox(width: screenWidth * 0.02),
                               Text(
                                 'Complaint assigned',
                                 style: TextStyle(
                                   fontSize: screenWidth * 0.045,
-                                  fontWeight: FontWeight.w600,
+                                  fontWeight: FontWeight.bold,
                                   color: onPrimaryColor,
                                 ),
                               ),
@@ -144,43 +156,59 @@ class _HistoryPageState extends State<HistoryPage> {
                                 compDate,
                                 style: TextStyle(
                                   fontSize: screenWidth * 0.035,
+                                  color: onPrimaryColor.withOpacity(0.6),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const Divider(color: Colors.white24),
+                          SizedBox(height: screenHeight * 0.005),
+
+                          // Complaint Description
+                          Text(
+                            description,
+                            style: TextStyle(
+                              fontSize: screenWidth * 0.04,
+                              color: onPrimaryColor.withOpacity(0.9),
+                            ),
+                          ),
+                          SizedBox(height: screenHeight * 0.005),
+
+                          // Number of Cleaners
+                          Row(
+                            children: [
+                              Icon(Icons.people, size: screenWidth * 0.04, color: onPrimaryColor.withOpacity(0.7)),
+                              SizedBox(width: screenWidth * 0.02),
+                              Text(
+                                '$noOfCleaners Cleaners Assigned',
+                                style: TextStyle(
+                                  fontSize: screenWidth * 0.035,
                                   color: onPrimaryColor.withOpacity(0.7),
                                 ),
                               ),
                             ],
                           ),
-                          SizedBox(height: screenHeight * 0.01),
-                          Text(
-                            description,
-                            style: TextStyle(
-                              fontSize: screenWidth * 0.04,
-                              color: onPrimaryColor,
-                            ),
-                          ),
-                          SizedBox(height: screenHeight * 0.005),
-                          Text(
-                            '$noOfCleaners Cleaners Assigned',
-                            style: TextStyle(
-                              fontSize: screenWidth * 0.035,
-                              color: onPrimaryColor.withOpacity(0.7),
-                            ),
-                          ),
                           SizedBox(height: screenHeight * 0.015),
-                          Container(
-                            padding: EdgeInsets.symmetric(
-                              vertical: screenHeight * 0.005,
-                              horizontal: screenWidth * 0.03,
-                            ),
-                            decoration: BoxDecoration(
-                              color: statusColor.withOpacity(0.2),
-                              borderRadius: BorderRadius.circular(screenWidth * 0.03),
-                            ),
-                            child: Text(
-                              status,
-                              style: TextStyle(
-                                fontSize: screenWidth * 0.035,
-                                fontWeight: FontWeight.w500,
-                                color: statusColor,
+
+                          // Status Badge
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: Container(
+                              padding: EdgeInsets.symmetric(
+                                vertical: screenHeight * 0.006,
+                                horizontal: screenWidth * 0.04,
+                              ),
+                              decoration: BoxDecoration(
+                                color: statusColor.withOpacity(0.2),
+                                borderRadius: BorderRadius.circular(screenWidth * 0.03),
+                              ),
+                              child: Text(
+                                status,
+                                style: TextStyle(
+                                  fontSize: screenWidth * 0.035,
+                                  fontWeight: FontWeight.bold,
+                                  color: statusColor,
+                                ),
                               ),
                             ),
                           ),

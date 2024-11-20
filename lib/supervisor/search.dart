@@ -2,24 +2,38 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/search_page_provider.dart';
 import '../utils/string_extension.dart';
+import '../supervisor/cleaner_detail.dart';
 
-class SearchPage extends ConsumerWidget {
+class SearchPage extends ConsumerStatefulWidget {
   const SearchPage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<SearchPage> createState() => _SearchPageState();
+}
+
+class _SearchPageState extends ConsumerState<SearchPage> {
+  @override
+  void initState() {
+    super.initState();
+    // Fetch all cleaners when the page loads
+    Future.microtask(() =>
+        ref.read(cleanersProvider.notifier).fetchCleaners());
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final primaryColor = Theme.of(context).primaryColor;
     final secondaryColor = Theme.of(context).colorScheme.secondary;
     final onPrimaryColor = Theme.of(context).colorScheme.onPrimary;
     final screenWidth = MediaQuery.of(context).size.width;
 
-    final filteredCleaners = ref.watch(filteredCleanersProvider);
-    final selectedStatus = ref.watch(selectedStatusProvider);
+    final cleaners = ref.watch(cleanersProvider); // List of cleaners
+    final selectedStatus = ref.watch(selectedStatusProvider); // Selected dropdown status
 
     return Scaffold(
       backgroundColor: primaryColor,
       appBar: AppBar(
-        automaticallyImplyLeading: false, // Removes the back arrow button
+        automaticallyImplyLeading: false,
         backgroundColor: primaryColor,
         elevation: 0,
         centerTitle: true,
@@ -34,6 +48,7 @@ class SearchPage extends ConsumerWidget {
       ),
       body: Stack(
         children: [
+          // Search and filter section
           Positioned(
             top: 0,
             left: 0,
@@ -54,6 +69,7 @@ class SearchPage extends ConsumerWidget {
                   children: [
                     Row(
                       children: [
+                        // Search bar
                         Expanded(
                           child: Container(
                             padding: const EdgeInsets.symmetric(horizontal: 10.0),
@@ -67,11 +83,15 @@ class SearchPage extends ConsumerWidget {
                                 const SizedBox(width: 10),
                                 Expanded(
                                   child: TextField(
-                                    onChanged: (value) => ref
-                                        .read(cleanersProvider.notifier)
-                                        .fetchCleaners(),
+                                    onChanged: (value) {
+                                      // Filter cleaners based on input and status
+                                      ref.read(cleanersProvider.notifier).searchCleaners(
+                                        value,
+                                        status: selectedStatus,
+                                      );
+                                    },
                                     decoration: const InputDecoration(
-                                      hintText: 'Search',
+                                      hintText: 'Search cleaner',
                                       border: InputBorder.none,
                                     ),
                                   ),
@@ -81,6 +101,7 @@ class SearchPage extends ConsumerWidget {
                           ),
                         ),
                         const SizedBox(width: 10),
+                        // Status filter dropdown
                         Container(
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(20),
@@ -105,6 +126,11 @@ class SearchPage extends ConsumerWidget {
                             }).toList(),
                             onChanged: (String? newValue) {
                               ref.read(selectedStatusProvider.notifier).state = newValue!;
+                              // Re-filter cleaners based on the selected status
+                              ref.read(cleanersProvider.notifier).searchCleaners(
+                                '',
+                                status: newValue,
+                              );
                             },
                           ),
                         ),
@@ -115,6 +141,7 @@ class SearchPage extends ConsumerWidget {
               ),
             ),
           ),
+          // Cleaner list section
           Positioned(
             top: 100,
             left: 0,
@@ -129,7 +156,7 @@ class SearchPage extends ConsumerWidget {
                   topRight: Radius.circular(40),
                 ),
               ),
-              child: filteredCleaners.isEmpty
+              child: cleaners.isEmpty
                   ? Center(
                       child: Text(
                         'No cleaners found.',
@@ -141,9 +168,9 @@ class SearchPage extends ConsumerWidget {
                       ),
                     )
                   : ListView.builder(
-                      itemCount: filteredCleaners.length,
+                      itemCount: cleaners.length,
                       itemBuilder: (context, index) {
-                        final cleaner = filteredCleaners[index];
+                        final cleaner = cleaners[index];
                         return CleanerCard(cleaner: cleaner);
                       },
                     ),
@@ -155,15 +182,68 @@ class SearchPage extends ConsumerWidget {
   }
 }
 
+// CleanerCard widget
 class CleanerCard extends StatelessWidget {
   final Map<String, String> cleaner;
   const CleanerCard({super.key, required this.cleaner});
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      title: Text(cleaner['name'] ?? ''),
-      subtitle: Text(cleaner['status'] ?? ''),
+    final primaryColor = Theme.of(context).primaryColor;
+    final secondaryColor = Theme.of(context).colorScheme.secondary;
+
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          PageRouteBuilder(
+            pageBuilder: (context, animation, secondaryAnimation) => CleanerDetailPage(
+              cleanerName: cleaner['name'] ?? 'Unknown',
+              cleanerStatus: cleaner['status'] ?? 'Unavailable',
+              profilePic: cleaner['profile_pic'] ?? '',
+              cleanerPhoneNo: cleaner['phone_no'] ?? 'N/A',
+              building: cleaner['building'] ?? 'N/A',
+            ),
+            transitionDuration: Duration.zero, // Disable forward animation
+            reverseTransitionDuration: Duration.zero, // Disable reverse animation
+          ),
+        );
+      },
+      child: Card(
+        color: primaryColor, // Primary color for the card
+        margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 10.0),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        child: ListTile(
+          leading: CircleAvatar(
+            backgroundColor: secondaryColor, // Secondary color for the avatar
+            child: cleaner['name'] != null && cleaner['name']!.isNotEmpty
+                ? Text(
+                    cleaner['name']![0].toUpperCase(), // First letter of the name
+                    style: TextStyle(
+                      color: primaryColor, // Primary color for the font
+                      fontWeight: FontWeight.bold,
+                    ),
+                  )
+                : Icon(
+                    Icons.person,
+                    color: primaryColor, // Primary color for fallback icon
+                  ),
+          ),
+          title: Text(
+            cleaner['name'] ?? 'Unknown',
+            style: const TextStyle(
+              color: Colors.white, // White text for readability
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          subtitle: Text(
+            cleaner['status'] ?? 'Unavailable',
+            style: const TextStyle(
+              color: Colors.white70, // Subtle contrast for status
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

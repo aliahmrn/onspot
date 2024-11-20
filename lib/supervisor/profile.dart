@@ -5,8 +5,6 @@ import '../service/profile_service.dart';
 import 'profileedit.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-
-
 class SVProfileScreen extends StatefulWidget {
   const SVProfileScreen({super.key});
 
@@ -100,15 +98,28 @@ class SVProfileScreenState extends State<SVProfileScreen> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        CircleAvatar(
-                          radius: 50,
-                          backgroundColor: Colors.white,
-                          backgroundImage: cleanerInfo?['profile_pic'] != null
-                              ? NetworkImage(cleanerInfo!['profile_pic'])
-                              : null,
-                          child: cleanerInfo?['profile_pic'] == null
-                              ? Icon(Icons.person, size: 50, color: Colors.grey[600])
-                              : null,
+                        Container(
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(color: Colors.grey.shade300, width: 2),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.1),
+                                blurRadius: 5,
+                                offset: Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: CircleAvatar(
+                            radius: 50,
+                            backgroundColor: Colors.white,
+                            backgroundImage: cleanerInfo?['profile_pic'] != null
+                                ? NetworkImage(cleanerInfo!['profile_pic'])
+                                : null,
+                            child: cleanerInfo?['profile_pic'] == null
+                                ? Icon(Icons.person, size: 50, color: Colors.grey[600])
+                                : null,
+                          ),
                         ),
                         const SizedBox(width: 20),
                         Column(
@@ -169,7 +180,8 @@ class SVProfileScreenState extends State<SVProfileScreen> {
 
   Widget _buildTextField(String label, String value) {
     final screenWidth = MediaQuery.of(context).size.width;
-    return Center(
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 10),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -188,7 +200,7 @@ class SVProfileScreenState extends State<SVProfileScreen> {
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.grey),
+              border: Border.all(color: Colors.grey.shade400),
             ),
             child: Text(
               value,
@@ -210,7 +222,7 @@ class SVProfileScreenState extends State<SVProfileScreen> {
               context,
               PageRouteBuilder(
                 pageBuilder: (context, animation, secondaryAnimation) => SVProfileEditScreen(),
-                transitionDuration: Duration.zero, // Disables animation
+                transitionDuration: Duration.zero,
                 reverseTransitionDuration: Duration.zero,
               ),
             );
@@ -218,30 +230,56 @@ class SVProfileScreenState extends State<SVProfileScreen> {
           icon: const Icon(Icons.edit),
           label: const Text('Edit Information'),
           style: ElevatedButton.styleFrom(
-            backgroundColor: primaryColor,     // Use primary color for background
-            foregroundColor: secondaryColor,   // Use secondary color for text
+            backgroundColor: primaryColor,
+            foregroundColor: secondaryColor,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
             ),
+            padding: const EdgeInsets.symmetric(vertical: 15),
             minimumSize: const Size(250, 50),
           ),
         ),
         const SizedBox(height: 10),
         ElevatedButton(
           onPressed: () {
-            _logout(context);
+            _confirmLogout(context);
           },
           style: ElevatedButton.styleFrom(
-            backgroundColor: primaryColor,     // Use primary color for background
-            foregroundColor: secondaryColor,   // Use secondary color for text
+            backgroundColor: primaryColor,
+            foregroundColor: secondaryColor,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
             ),
+            padding: const EdgeInsets.symmetric(vertical: 15),
             minimumSize: const Size(250, 50),
           ),
           child: const Text('Logout'),
         ),
       ],
+    );
+  }
+
+  void _confirmLogout(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Logout'),
+          content: const Text('Are you sure you want to log out?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                _logout(context);
+              },
+              child: const Text('Logout'),
+            ),
+          ],
+        );
+      },
     );
   }
 
