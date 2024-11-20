@@ -4,7 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:logger/logger.dart';
 
 class ComplaintsService {
-  final String baseUrl = 'http://127.0.0.1:8000/api';
+  final String baseUrl = 'http://192.168.1.105:8000/api';
   final Logger _logger = Logger(); // Initialize Logger
 
   Future<List<Map<String, dynamic>>> fetchComplaints() async {
@@ -112,11 +112,6 @@ class ComplaintsService {
 Future<Map<String, dynamic>> fetchAssignedTaskDetails(String complaintId) async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
   String? token = prefs.getString('token');
-
-  if (token == null) {
-    _logger.e('Token not found. Please ensure the user is logged in.');
-    throw Exception('Authentication token is missing.');
-  }
 
   final url = '$baseUrl/supervisor/history/$complaintId';
   _logger.i('Fetching task details from URL: $url with token: $token');

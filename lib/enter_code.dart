@@ -13,8 +13,8 @@ class EnterCodeScreen extends StatefulWidget {
 
 class EnterCodeScreenState extends State<EnterCodeScreen> {
   final TextEditingController _codeController = TextEditingController();
-  String _message = '';
-  bool _isLoading = false;
+  final String _message = '';
+  final bool _isLoading = false;
 
   void _navigateToResetPassword() {
     Navigator.push(

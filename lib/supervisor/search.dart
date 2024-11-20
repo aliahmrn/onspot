@@ -1,94 +1,25 @@
 import 'package:flutter/material.dart';
-import 'dart:convert';
-import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:logger/logger.dart';
-import '../supervisor/cleaner_detail.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../providers/search_page_provider.dart';
+import '../utils/string_extension.dart';
 
-class SearchPage extends StatefulWidget {
+class SearchPage extends ConsumerWidget {
   const SearchPage({super.key});
 
   @override
-  SearchPageState createState() => SearchPageState();
-}
-
-class SearchPageState extends State<SearchPage> {
-  final Logger _logger = Logger();
-  List<Map<String, String>> allCleaners = [];
-  List<Map<String, String>> filteredCleaners = [];
-  String selectedStatus = 'all';
-  bool isLoading = true;
-
-  @override
-  void initState() {
-    super.initState();
-    fetchCleaners();
-  }
-
-  Future<void> fetchCleaners({String? status}) async {
-    final url = 'http://127.0.0.1:8000/api/supervisor/cleaners';
-    try {
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      String? token = prefs.getString('token');
-      Map<String, String> headers = {
-        'Authorization': 'Bearer $token',
-        'Content-Type': 'application/json',
-      };
-      final response = await http.get(Uri.parse('$url?status=$status'), headers: headers);
-      _logger.i('Response status: ${response.statusCode}');
-      _logger.i('Response body: ${response.body}');
-
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        final List<dynamic> cleaners = data['data'];
-        setState(() {
-          allCleaners = cleaners.map((cleaner) {
-            return {
-              'name': cleaner['cleaner_name'] as String? ?? 'Unknown',
-              'status': cleaner['status'] as String? ?? 'Unavailable',
-              'profile_pic': cleaner['profile_pic'] as String? ?? '',
-              'phone_no': cleaner['cleaner_phoneNo'] as String? ?? '',
-              'building': cleaner['building'] as String? ?? '',
-            };
-          }).toList();
-          _filterNames(''); // Apply the initial filter based on selected status
-          isLoading = false;
-        });
-      } else {
-        throw Exception('Failed to load cleaners');
-      }
-    } catch (e) {
-      _logger.e('Error fetching cleaners: $e');
-      setState(() {
-        isLoading = false;
-      });
-    }
-  }
-
-  void _filterNames(String query) {
-    setState(() {
-      filteredCleaners = allCleaners
-          .where((cleaner) => cleaner['name']!.toLowerCase().contains(query.toLowerCase()))
-          .toList();
-
-      if (selectedStatus != 'all') {
-        filteredCleaners = filteredCleaners
-            .where((cleaner) => cleaner['status'] == selectedStatus)
-            .toList();
-      }
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final primaryColor = Theme.of(context).primaryColor;
     final secondaryColor = Theme.of(context).colorScheme.secondary;
     final onPrimaryColor = Theme.of(context).colorScheme.onPrimary;
     final screenWidth = MediaQuery.of(context).size.width;
 
+    final filteredCleaners = ref.watch(filteredCleanersProvider);
+    final selectedStatus = ref.watch(selectedStatusProvider);
+
     return Scaffold(
       backgroundColor: primaryColor,
       appBar: AppBar(
+        automaticallyImplyLeading: false, // Removes the back arrow button
         backgroundColor: primaryColor,
         elevation: 0,
         centerTitle: true,
@@ -103,7 +34,6 @@ class SearchPageState extends State<SearchPage> {
       ),
       body: Stack(
         children: [
-          // Blue background section
           Positioned(
             top: 0,
             left: 0,
@@ -137,7 +67,9 @@ class SearchPageState extends State<SearchPage> {
                                 const SizedBox(width: 10),
                                 Expanded(
                                   child: TextField(
-                                    onChanged: (value) => _filterNames(value),
+                                    onChanged: (value) => ref
+                                        .read(cleanersProvider.notifier)
+                                        .fetchCleaners(),
                                     decoration: const InputDecoration(
                                       hintText: 'Search',
                                       border: InputBorder.none,
@@ -165,17 +97,14 @@ class SearchPageState extends State<SearchPage> {
                                 child: Padding(
                                   padding: const EdgeInsets.symmetric(horizontal: 10.0),
                                   child: Text(
-                                    value == 'all' ? 'Status' : value.capitalizeFirstOfEach(),
+                                    value == 'all' ? 'Status' : value.capitalizeFirst(),
                                     style: const TextStyle(color: Colors.black),
                                   ),
                                 ),
                               );
                             }).toList(),
                             onChanged: (String? newValue) {
-                              setState(() {
-                                selectedStatus = newValue!;
-                                _filterNames("");
-                              });
+                              ref.read(selectedStatusProvider.notifier).state = newValue!;
                             },
                           ),
                         ),
@@ -186,7 +115,6 @@ class SearchPageState extends State<SearchPage> {
               ),
             ),
           ),
-          // Main content section
           Positioned(
             top: 100,
             left: 0,
@@ -201,94 +129,24 @@ class SearchPageState extends State<SearchPage> {
                   topRight: Radius.circular(40),
                 ),
               ),
-              child: isLoading
-                  ? const Center(child: CircularProgressIndicator())
-                  : filteredCleaners.isEmpty
-                      ? Center(
-                          child: Text(
-                            selectedStatus == 'available'
-                                ? 'No available cleaners.'
-                                : 'No unavailable cleaners.',
-                            style: TextStyle(
-                              color: Colors.black,
-                              fontSize: screenWidth * 0.05,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        )
-                      : ListView.builder(
-                          itemCount: filteredCleaners.length,
-                          itemBuilder: (context, index) {
-                            final cleaner = filteredCleaners[index];
-                            return Padding(
-                              padding: EdgeInsets.symmetric(
-                                  vertical: MediaQuery.of(context).size.height * 0.01),
-                              child: InkWell(
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => CleanerDetailPage(
-                                        cleanerName: cleaner['name']!,
-                                        cleanerStatus: cleaner['status']!,
-                                        profilePic: cleaner['profile_pic']!,
-                                        cleanerPhoneNo: cleaner['phone_no']!,
-                                        building: cleaner['building']!,
-                                      ),
-                                    ),
-                                  );
-                                },
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    color: primaryColor,
-                                    borderRadius: BorderRadius.circular(
-                                        MediaQuery.of(context).size.width * 0.03),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.grey.withOpacity(0.5),
-                                        spreadRadius:
-                                            MediaQuery.of(context).size.width * 0.005,
-                                        blurRadius:
-                                            MediaQuery.of(context).size.width * 0.03,
-                                        offset: Offset(0,
-                                            MediaQuery.of(context).size.height * 0.005),
-                                      ),
-                                    ],
-                                  ),
-                                  padding: EdgeInsets.all(
-                                      MediaQuery.of(context).size.width * 0.04),
-                                  child: Row(
-                                    children: [
-                                      CircleAvatar(
-                                        backgroundColor: const Color.fromARGB(255, 255, 255, 255),
-                                        child: Text(
-                                          cleaner['name']![0],
-                                          style: const TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            color: Color(0xFF2E5675),
-                                          ),
-                                        ),
-                                      ),
-                                      const SizedBox(width: 10),
-                                      Expanded(
-                                        child: Text(
-                                          cleaner['name']!,
-                                          style: TextStyle(
-                                            fontSize:
-                                                MediaQuery.of(context).size.width * 0.045,
-                                            fontWeight: FontWeight.w600,
-                                            color: onPrimaryColor,
-                                          ),
-                                        ),
-                                      ),
-                                      const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            );
-                          },
+              child: filteredCleaners.isEmpty
+                  ? Center(
+                      child: Text(
+                        'No cleaners found.',
+                        style: TextStyle(
+                          color: Colors.black,
+                          fontSize: screenWidth * 0.05,
+                          fontWeight: FontWeight.bold,
                         ),
+                      ),
+                    )
+                  : ListView.builder(
+                      itemCount: filteredCleaners.length,
+                      itemBuilder: (context, index) {
+                        final cleaner = filteredCleaners[index];
+                        return CleanerCard(cleaner: cleaner);
+                      },
+                    ),
             ),
           ),
         ],
@@ -297,11 +155,15 @@ class SearchPageState extends State<SearchPage> {
   }
 }
 
-// Extension to capitalize the first letter of each word in the status dropdown
-extension StringExtension on String {
-  String capitalizeFirstOfEach() {
-    return split(' ')
-        .map((word) => word.isNotEmpty ? word[0].toUpperCase() + word.substring(1) : '')
-        .join(' ');
+class CleanerCard extends StatelessWidget {
+  final Map<String, String> cleaner;
+  const CleanerCard({super.key, required this.cleaner});
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      title: Text(cleaner['name'] ?? ''),
+      subtitle: Text(cleaner['status'] ?? ''),
+    );
   }
 }

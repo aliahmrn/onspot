@@ -3,6 +3,7 @@ import '../widget/bell.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../service/complaints_service.dart';
+import 'package:firebase_messaging/firebase_messaging.dart'; // Import Firebase Messaging
 
 class SupervisorHomeScreen extends StatefulWidget {
   const SupervisorHomeScreen({super.key});
@@ -22,6 +23,7 @@ class SupervisorHomeScreenState extends State<SupervisorHomeScreen> {
     super.initState();
     _loadUserName();
     _fetchUnassignedComplaints();
+    _setupNotificationListener(); // Set up notification listener
   }
 
   Future<void> _loadUserName() async {
@@ -63,15 +65,29 @@ Future<void> _fetchUnassignedComplaints() async {
 }
 
 
-void _navigateToProfile() {
-  Navigator.pushNamed(context, '/main-navigator', arguments: 4); // 4 is the index for the Profile screen
-}
+  void _setupNotificationListener() {
+    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+      if (message.data.containsKey('complaint_id')) {
+        String complaintId = message.data['complaint_id'];
+        _navigateToComplaintsPageWithId(complaintId);
+      }
+    });
+  }
 
+  void _navigateToProfile() {
+    Navigator.pushNamed(context, '/main-navigator', arguments: 4); // 4 is the index for the Profile screen
+  }
 
-void _navigateToComplaintsPage() {
-  Navigator.pushNamed(context, '/main-navigator', arguments: 2); // 2 is the index for Complaints
-}
+  void _navigateToComplaintsPage() {
+    Navigator.pushNamed(context, '/main-navigator', arguments: 2); // 2 is the index for Complaints
+  }
 
+  void _navigateToComplaintsPageWithId(String complaintId) {
+    Navigator.pushNamed(context, '/main-navigator', arguments: {
+      'index': 2, // Index for Complaints page
+      'complaintId': complaintId, // Pass the complaint ID to navigate to the specific complaint
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -234,12 +250,11 @@ void _navigateToComplaintsPage() {
                                         SizedBox(height: screenHeight * 0.005),
                                         Row(
                                           children: [
-                                          SvgPicture.asset(
-                                            'assets/images/calendar.svg',
-                                            height: screenWidth * 0.06,
-                                            colorFilter: ColorFilter.mode(onPrimaryColor, BlendMode.srcIn),
-                                          ),
-
+                                            SvgPicture.asset(
+                                              'assets/images/calendar.svg',
+                                              height: screenWidth * 0.06,
+                                              colorFilter: ColorFilter.mode(onPrimaryColor, BlendMode.srcIn),
+                                            ),
                                             SizedBox(width: screenWidth * 0.02),
                                             Text(
                                               latestComplaint!['comp_date'] ?? 'N/A',

@@ -1,0 +1,49 @@
+
+{
+  "project_info": {
+    "project_number": "1020043914920",
+    "project_id": "onspot-40f9a",
+    "storage_bucket": "onspot-40f9a.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1020043914920:android:de87d3777d80f3664a1c9d",
+        "android_client_info": {
+          "package_name": "com.example.onspot_cleaner"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAPmfdf8zg-dmrZe2Q18CxO3iD9EQ3F2zk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1020043914920:android:3dccae3b0df807374a1c9d",
+        "android_client_info": {
+          "package_name": "com.example.onspot_supervisor"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAPmfdf8zg-dmrZe2Q18CxO3iD9EQ3F2zk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
