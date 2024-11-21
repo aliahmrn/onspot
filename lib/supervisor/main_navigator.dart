@@ -1,58 +1,33 @@
 import 'package:flutter/material.dart';
-import '../supervisor/homescreen.dart';
-import '../supervisor/complaints.dart';
-import '../supervisor/history.dart';
-import '../supervisor/profile.dart';
-import '../supervisor/search.dart';
-import '../supervisor/navbar.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../providers/navigation_provider.dart';
+import 'homescreen.dart';
+import 'complaints.dart';
+import 'history.dart';
+import 'profile.dart';
+import 'search.dart';
+import 'navbar.dart';
 
-class MainNavigator extends StatefulWidget {
-  const MainNavigator({super.key}); // Use super.key here
-
-  @override
-  MainNavigatorState createState() => MainNavigatorState(); // Made public
-}
-
-class MainNavigatorState extends State<MainNavigator> {
-  int _currentIndex = 0;
-
-  final List<Widget> _pages = [
-    const SupervisorHomeScreen(),
-    const SearchPage(),
-    const ComplaintPage(),
-    const HistoryPage(),
-    const SVProfileScreen(),
-  ];
-
-@override
-void didChangeDependencies() {
-  super.didChangeDependencies();
-  final args = ModalRoute.of(context)?.settings.arguments as int?;
-  if (args != null) {
-    setState(() {
-      _currentIndex = args; // Set _currentIndex to the passed argument
-    });
-  }
-}
-
-
-  void _onItemTapped(int index) {
-    setState(() {
-      _currentIndex = index;
-    });
-  }
+class MainNavigator extends ConsumerWidget {
+  const MainNavigator({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final currentIndex = ref.watch(currentIndexProvider); // Watch the current index
+    final List<Widget> pages = [
+      const SupervisorHomeScreen(),
+      const SearchPage(),
+      const ComplaintPage(),
+      const HistoryPage(),
+      const SVProfileScreen(),
+    ];
+
     return Scaffold(
       body: IndexedStack(
-        index: _currentIndex,
-        children: _pages,
+        index: currentIndex,
+        children: pages,
       ),
-      bottomNavigationBar: SupervisorBottomNavBar(
-        currentIndex: _currentIndex,
-        onTap: _onItemTapped,
-      ),
+      bottomNavigationBar: const SupervisorBottomNavBar(),
     );
   }
 }

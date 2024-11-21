@@ -1,61 +1,107 @@
 import 'package:flutter/material.dart';
-import '../service/auth_service.dart';
-import 'register.dart'; 
 import 'package:google_fonts/google_fonts.dart';
-import 'forgot_password.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../service/auth_service.dart';
 import '../supervisor/main_navigator.dart';
+import 'register.dart';
+import 'forgot_password.dart';
+import 'package:logger/logger.dart';
 
-class LoginScreen extends StatefulWidget {
+final logger = Logger();
+
+// State class for login
+class LoginState {
+  final bool isAuthenticated; // Tracks if the user is logged in
+  final bool isLoading;       // Tracks loading state
+  final String errorMessage;  // Stores any error messages
+
+  LoginState({
+    this.isAuthenticated = false,
+    this.isLoading = false,
+    this.errorMessage = '',
+  });
+
+  // Creates a copy of the current state with optional modifications
+  LoginState copyWith({
+    bool? isAuthenticated,
+    bool? isLoading,
+    String? errorMessage,
+  }) {
+    return LoginState(
+      isAuthenticated: isAuthenticated ?? this.isAuthenticated,
+      isLoading: isLoading ?? this.isLoading,
+      errorMessage: errorMessage ?? this.errorMessage,
+    );
+  }
+}
+
+
+// Define a StateNotifier to manage login logic
+class LoginNotifier extends StateNotifier<LoginState> {
+  final AuthService _authService;
+
+  LoginNotifier(this._authService) : super(LoginState());
+
+  Future<bool> login({
+    required String input,
+    required String password,
+  }) async {
+    if (input.isEmpty || password.isEmpty) {
+      state = state.copyWith(errorMessage: 'Please enter both username/email and password');
+      logger.e('Login failed: Missing username/email or password.');
+      return false;
+    }
+
+    state = state.copyWith(isLoading: true, errorMessage: '');
+    logger.i('Attempting login with username/email: $input');
+
+    try {
+      await _authService.login(input, password);
+      logger.i('Login successful!');
+      return true;
+    } catch (e) {
+      final errorMessage = e.toString() == 'Exception: Invalid login credentials.'
+          ? 'Invalid login credentials.'
+          : 'Failed to login: ${e.toString()}';
+
+      state = state.copyWith(errorMessage: errorMessage);
+      logger.e('Login failed: $errorMessage');
+      return false;
+    } finally {
+      state = state.copyWith(isLoading: false);
+      logger.i('Login process completed.');
+    }
+  }
+}
+
+// Define a provider for LoginNotifier
+final loginProvider = StateNotifierProvider<LoginNotifier, LoginState>(
+  (ref) => LoginNotifier(AuthService()),
+);
+
+class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
 
   @override
-  LoginScreenState createState() => LoginScreenState(); // Made public
+  ConsumerState<LoginScreen> createState() => _LoginScreenState();
 }
 
-class LoginScreenState extends State<LoginScreen> {
+class _LoginScreenState extends ConsumerState<LoginScreen> {
   final TextEditingController _inputController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  final AuthService _authService = AuthService();
-  String _errorMessage = '';
-  bool _isLoading = false;
 
-Future<void> _login() async {
-  final String input = _inputController.text;
-  final String password = _passwordController.text;
-
-  if (input.isEmpty || password.isEmpty) {
-    setState(() {
-      _errorMessage = 'Please enter both username/email and password';
-    });
-    return;
+  @override
+  void dispose() {
+    _inputController.dispose();
+    _passwordController.dispose();
+    super.dispose();
   }
-
-  setState(() {
-    _isLoading = true;
-  });
-
-  try {
-    await _authService.login(input, password);
-
-    if (mounted) {
-      Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (context) => const MainNavigator()),
-        (route) => false, // Remove all previous routes
-      );
-    }
-  } catch (e) {
-    setState(() {
-      _errorMessage = e.toString(); // Directly display error message
-    });
-  } finally {
-    setState(() {
-      _isLoading = false;
-    });
-  }
-}
 
   @override
   Widget build(BuildContext context) {
+    final loginState = ref.watch(loginProvider);
+    final loginNotifier = ref.read(loginProvider.notifier);
+
     return Scaffold(
       backgroundColor: const Color(0xFF2E5675),
       body: Center(
@@ -82,7 +128,7 @@ Future<void> _login() async {
                       style: GoogleFonts.poppins(
                         fontSize: 32,
                         fontWeight: FontWeight.w800,
-                        color:  Colors.white,
+                        color: Colors.white,
                       ),
                     ),
                   ],
@@ -103,7 +149,25 @@ Future<void> _login() async {
                         _buildInputField('Password', _passwordController, obscureText: true),
                         const SizedBox(height: 20),
                         ElevatedButton(
-                          onPressed: _isLoading ? null : _login,
+                          onPressed: loginState.isLoading
+                              ? null
+                              : () async {
+                                  final input = _inputController.text;
+                                  final password = _passwordController.text;
+
+                                  final success = await loginNotifier.login(
+                                    input: input,
+                                    password: password,
+                                  );
+
+                                  if (success && context.mounted) {
+                                    // Navigate to MainNavigator
+                                    Navigator.of(context).pushAndRemoveUntil(
+                                      MaterialPageRoute(builder: (context) => const MainNavigator()),
+                                      (route) => false,
+                                    );
+                                  }
+                                },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.black,
                             padding: const EdgeInsets.symmetric(vertical: 15),
@@ -113,14 +177,14 @@ Future<void> _login() async {
                             ),
                             textStyle: const TextStyle(fontSize: 16),
                           ),
-                          child: _isLoading
+                          child: loginState.isLoading
                               ? const CircularProgressIndicator(color: Colors.white)
                               : const Text('Sign In', style: TextStyle(color: Colors.white)),
                         ),
                         const SizedBox(height: 10),
-                        if (_errorMessage.isNotEmpty) ...[
+                        if (loginState.errorMessage.isNotEmpty) ...[
                           Text(
-                            _errorMessage,
+                            loginState.errorMessage,
                             style: const TextStyle(color: Colors.red),
                           ),
                           const SizedBox(height: 10),
@@ -130,7 +194,8 @@ Future<void> _login() async {
                             Navigator.push(
                               context,
                               PageRouteBuilder(
-                                pageBuilder: (context, animation, secondaryAnimation) => const ForgotPasswordScreen(),
+                                pageBuilder: (context, animation, secondaryAnimation) =>
+                                    const ForgotPasswordScreen(),
                                 transitionDuration: Duration.zero,
                                 reverseTransitionDuration: Duration.zero,
                               ),
@@ -146,7 +211,8 @@ Future<void> _login() async {
                             Navigator.push(
                               context,
                               PageRouteBuilder(
-                                pageBuilder: (context, animation, secondaryAnimation) => const RegistrationScreen(),
+                                pageBuilder: (context, animation, secondaryAnimation) =>
+                                    const RegistrationScreen(),
                                 transitionDuration: Duration.zero,
                                 reverseTransitionDuration: Duration.zero,
                               ),

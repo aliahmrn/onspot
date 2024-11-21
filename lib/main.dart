@@ -1,41 +1,32 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart'; // Import Riverpod
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'login.dart';
-import 'supervisor/homescreen.dart';
+// Intentional import for post-login navigation
+// ignore: unused_import
 import 'supervisor/main_navigator.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_messaging/firebase_messaging.dart'; // Add this import
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'service/notification_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   // Initialize Firebase
   await Firebase.initializeApp();
 
   // Initialize the Notification Service (for push notifications)
   await NotificationService().initialize(); // Initialize Notification Service
 
-  // Clear the token on app startup to ensure the login screen displays
-  await _clearTokenOnStartup();
-
   // Subscribe to supervisor notifications topic
-  FirebaseMessaging.instance.subscribeToTopic('supervisors'); // Add this line
+  FirebaseMessaging.instance.subscribeToTopic('supervisors');
 
   // Wrap the app with ProviderScope and run it
   runApp(
-    ProviderScope( // Add ProviderScope here
-      child: const OnspotSupervisorApp(),
+    const ProviderScope(
+      child: OnspotSupervisorApp(),
     ),
   );
-}
-
-// Clear token on app startup to ensure login screen displays
-Future<void> _clearTokenOnStartup() async {
-  final prefs = await SharedPreferences.getInstance();
-  await prefs.remove('token');
 }
 
 class OnspotSupervisorApp extends StatelessWidget {
@@ -45,12 +36,7 @@ class OnspotSupervisorApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      initialRoute: '/',
-      routes: {
-        '/': (context) => const LoginScreen(),
-        '/supervisor-home': (context) => const SupervisorHomeScreen(),
-        '/main-navigator': (context) => const MainNavigator(), // Supervisor home screen
-      },
+      home: const LoginScreen(), // Default screen is the LoginScreen
       theme: ThemeData(
         scaffoldBackgroundColor: Colors.white, // Background color
         primaryColor: const Color(0xFF2E5675), // Primary color

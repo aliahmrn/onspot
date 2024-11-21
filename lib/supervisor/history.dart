@@ -1,33 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:logger/logger.dart';
-import '../service/complaints_service.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
+import '../providers/complaints_provider.dart';
 import 'history_details.dart';
 
-class HistoryPage extends StatefulWidget {
+class HistoryPage extends ConsumerWidget {
   const HistoryPage({super.key});
 
   @override
-  _HistoryPageState createState() => _HistoryPageState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    final historyAsync = ref.watch(historyProvider);
 
-class _HistoryPageState extends State<HistoryPage> {
-  final Logger logger = Logger();
-  late Future<List<Map<String, dynamic>>> _assignedTasksHistory;
-
-  @override
-  void initState() {
-    super.initState();
-    _assignedTasksHistory = ComplaintsService().fetchAssignedTasksHistory();
-  }
-
-  Future<void> _refreshHistory() async {
-    setState(() {
-      _assignedTasksHistory = ComplaintsService().fetchAssignedTasksHistory();
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
 
@@ -60,15 +43,11 @@ class _HistoryPageState extends State<HistoryPage> {
           ),
         ),
         padding: EdgeInsets.all(screenWidth * 0.04),
-        child: FutureBuilder<List<Map<String, dynamic>>>(
-          future: _assignedTasksHistory,
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
-            } else if (snapshot.hasError) {
-              return Center(child: Text('Error: ${snapshot.error}'));
-            } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-              // Keep the empty state simple as requested
+        child: historyAsync.when(
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (error, _) => Center(child: Text('Error: $error')),
+          data: (tasks) {
+            if (tasks.isEmpty) {
               return const Center(
                 child: Text(
                   'No assigned complaints history.',
@@ -77,7 +56,6 @@ class _HistoryPageState extends State<HistoryPage> {
               );
             }
 
-            final tasks = snapshot.data!;
             return ListView.builder(
               itemCount: tasks.length,
               itemBuilder: (context, index) {
@@ -104,18 +82,18 @@ class _HistoryPageState extends State<HistoryPage> {
                   child: InkWell(
                     borderRadius: BorderRadius.circular(screenWidth * 0.03),
                     onTap: () async {
-                      logger.i("Selected Complaint ID: ${task['id']}");
-                      final result = await Navigator.push(
+                      Navigator.push(
                         context,
                         PageRouteBuilder(
-                          pageBuilder: (context, animation, secondaryAnimation) => TaskDetailsPage(complaintId: task['id'].toString()),
+                          pageBuilder: (context, animation, secondaryAnimation) => TaskDetailsPage(
+                            complaintId: task['id'].toString(),
+                          ),
                           transitionDuration: Duration.zero, // Disables the animation
                           reverseTransitionDuration: Duration.zero,
                         ),
                       );
-                      if (result == true) {
-                        _refreshHistory();
-                      }
+                      // Refresh the history provider on return
+                      ref.invalidate(historyProvider);
                     },
                     child: Container(
                       decoration: BoxDecoration(
@@ -153,7 +131,7 @@ class _HistoryPageState extends State<HistoryPage> {
                               ),
                               const Spacer(),
                               Text(
-                                compDate,
+                                DateFormat('dd/MM/yyyy').format(DateTime.parse(compDate)),
                                 style: TextStyle(
                                   fontSize: screenWidth * 0.035,
                                   color: onPrimaryColor.withOpacity(0.6),

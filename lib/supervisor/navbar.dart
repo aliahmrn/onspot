@@ -1,18 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../providers/navigation_provider.dart';
 
-class SupervisorBottomNavBar extends StatelessWidget {
-  final int currentIndex;
-  final Function(int) onTap;
 
-  const SupervisorBottomNavBar({
-    super.key,
-    required this.currentIndex,
-    required this.onTap,
-  });
+// Bottom navigation bar widget with Riverpod
+class SupervisorBottomNavBar extends ConsumerWidget {
+  const SupervisorBottomNavBar({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final currentIndex = ref.watch(currentIndexProvider); // Observe the current index
     final primaryColor = Theme.of(context).primaryColor;
     final secondaryColor = Theme.of(context).colorScheme.secondary;
     final shadowColor = Colors.black.withOpacity(0.15);
@@ -52,7 +50,9 @@ class SupervisorBottomNavBar extends StatelessWidget {
                 selectedItemColor: primaryColor,
                 unselectedItemColor: Colors.grey,
                 currentIndex: currentIndex,
-                onTap: onTap,
+                onTap: (index) {
+                  ref.read(currentIndexProvider.notifier).state = index; // Update index via Riverpod
+                },
                 type: BottomNavigationBarType.fixed,
                 showSelectedLabels: true,
                 showUnselectedLabels: true,
@@ -60,72 +60,46 @@ class SupervisorBottomNavBar extends StatelessWidget {
                 unselectedFontSize: 12,
                 items: <BottomNavigationBarItem>[
                   BottomNavigationBarItem(
-                    icon: ColorFiltered(
-                      colorFilter: ColorFilter.mode(
-                        currentIndex == 0 ? primaryColor : Colors.grey,
-                        BlendMode.srcIn,
-                      ),
-                      child: Image.asset(
-                        'assets/images/home.png',
-                        width: 24,
-                        height: 24,
-                      ),
+                    icon: _buildIcon(
+                      context,
+                      currentIndex == 0,
+                      'assets/images/home.png',
                     ),
                     label: 'Home',
                   ),
                   BottomNavigationBarItem(
-                    icon: ColorFiltered(
-                      colorFilter: ColorFilter.mode(
-                        currentIndex == 1 ? primaryColor : Colors.grey,
-                        BlendMode.srcIn,
-                      ),
-                      child: SvgPicture.asset(
-                        'assets/images/search.svg',
-                        width: 24,
-                        height: 24,
-                      ),
+                    icon: _buildIcon(
+                      context,
+                      currentIndex == 1,
+                      'assets/images/search.svg',
+                      isSvg: true,
                     ),
                     label: 'Search',
                   ),
                   BottomNavigationBarItem(
-                    icon: ColorFiltered(
-                      colorFilter: ColorFilter.mode(
-                        currentIndex == 2 ? primaryColor : Colors.grey,
-                        BlendMode.srcIn,
-                      ),
-                      child: SvgPicture.asset(
-                        'assets/images/plus.svg',
-                        width: 24,
-                        height: 24,
-                      ),
+                    icon: _buildIcon(
+                      context,
+                      currentIndex == 2,
+                      'assets/images/plus.svg',
+                      isSvg: true,
                     ),
                     label: 'Complaints',
                   ),
                   BottomNavigationBarItem(
-                    icon: ColorFiltered(
-                      colorFilter: ColorFilter.mode(
-                        currentIndex == 3 ? primaryColor : Colors.grey,
-                        BlendMode.srcIn,
-                      ),
-                      child: SvgPicture.asset(
-                        'assets/images/history.svg',
-                        width: 24,
-                        height: 24,
-                      ),
+                    icon: _buildIcon(
+                      context,
+                      currentIndex == 3,
+                      'assets/images/history.svg',
+                      isSvg: true,
                     ),
                     label: 'History',
                   ),
                   BottomNavigationBarItem(
-                    icon: ColorFiltered(
-                      colorFilter: ColorFilter.mode(
-                        currentIndex == 4 ? primaryColor : Colors.grey,
-                        BlendMode.srcIn,
-                      ),
-                      child: SvgPicture.asset(
-                        'assets/images/user.svg',
-                        width: 24,
-                        height: 24,
-                      ),
+                    icon: _buildIcon(
+                      context,
+                      currentIndex == 4,
+                      'assets/images/user.svg',
+                      isSvg: true,
                     ),
                     label: 'Profile',
                   ),
@@ -135,6 +109,27 @@ class SupervisorBottomNavBar extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildIcon(BuildContext context, bool isSelected, String assetPath, {bool isSvg = false}) {
+    final primaryColor = Theme.of(context).primaryColor;
+    return ColorFiltered(
+      colorFilter: ColorFilter.mode(
+        isSelected ? primaryColor : Colors.grey,
+        BlendMode.srcIn,
+      ),
+      child: isSvg
+          ? SvgPicture.asset(
+              assetPath,
+              width: 24,
+              height: 24,
+            )
+          : Image.asset(
+              assetPath,
+              width: 24,
+              height: 24,
+            ),
     );
   }
 }

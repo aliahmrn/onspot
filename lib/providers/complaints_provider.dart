@@ -5,6 +5,16 @@ final complaintsProvider = FutureProvider<List<Map<String, dynamic>>>((ref) asyn
   return ComplaintsService().fetchComplaints();
 });
 
+// Provider for fetching assigned tasks history
+final historyProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async {
+  return ComplaintsService().fetchAssignedTasksHistory();
+});
+
+// Provider for fetching details of a specific task
+final taskDetailsProvider = FutureProvider.family<Map<String, dynamic>, String>((ref, complaintId) async {
+  return ComplaintsService().fetchAssignedTaskDetails(complaintId);
+});
+
 final latestComplaintProvider = Provider<Map<String, dynamic>?>((ref) {
   final complaints = ref.watch(complaintsProvider).maybeWhen(
     data: (data) => data,

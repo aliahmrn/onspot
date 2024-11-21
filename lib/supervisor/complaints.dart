@@ -1,24 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'assign_task.dart';
-import '../service/complaints_service.dart';
+import '../providers/complaints_provider.dart';
 
-class ComplaintPage extends StatefulWidget {
-  const ComplaintPage({super.key});
-
-  @override
-  ComplaintPageState createState() => ComplaintPageState();
-}
-
-class ComplaintPageState extends State<ComplaintPage> {
-  final ComplaintsService complaintsService = ComplaintsService();
-
-  Future<void> _refreshComplaints() async {
-    setState(() {}); // Trigger a rebuild to fetch updated complaints
-  }
+class ComplaintPage extends ConsumerWidget {
+  const ComplaintPage({Key? key}) : super(key: key);
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final complaintsAsync = ref.watch(complaintsProvider);
+
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
 
@@ -29,7 +21,7 @@ class ComplaintPageState extends State<ComplaintPage> {
     return Scaffold(
       backgroundColor: primaryColor,
       appBar: AppBar(
-        automaticallyImplyLeading: false, // Removes the back arrow
+        automaticallyImplyLeading: false,
         centerTitle: true,
         title: Text(
           'Complaints',
@@ -51,19 +43,15 @@ class ComplaintPageState extends State<ComplaintPage> {
           ),
         ),
         padding: EdgeInsets.all(screenWidth * 0.04),
-        child: FutureBuilder<List<Map<String, dynamic>>>(
-          future: complaintsService.fetchComplaints(),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
-            } else if (snapshot.hasError) {
-              return Center(child: Text('Error: ${snapshot.error}'));
-            } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+        child: complaintsAsync.when(
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (error, _) => Center(child: Text('Error: $error')),
+          data: (complaints) {
+            if (complaints.isEmpty) {
               return const Center(child: Text('No complaints yet.'));
             }
 
             // Sort complaints by date in descending order
-            final complaints = snapshot.data!;
             complaints.sort((a, b) {
               DateTime dateA = DateTime.parse(a['comp_date']);
               DateTime dateB = DateTime.parse(b['comp_date']);
@@ -136,7 +124,7 @@ class ComplaintPageState extends State<ComplaintPage> {
                         SizedBox(height: screenHeight * 0.01),
                         // Complaint date
                         Text(
-                          'Date: ${complaint['comp_date']!}',
+                          'Date: ${DateFormat('dd/MM/yyyy').format(DateTime.parse(complaint['comp_date']!))}',
                           style: TextStyle(
                             fontSize: screenWidth * 0.035,
                             color: onPrimaryColor.withOpacity(0.7),
@@ -158,7 +146,7 @@ class ComplaintPageState extends State<ComplaintPage> {
                                   reverseTransitionDuration: Duration.zero, // No reverse transition animation
                                 ),
                               );
-                              _refreshComplaints();
+                              ref.invalidate(complaintsProvider); // Refresh complaints after assigning
                             },
                             style: ElevatedButton.styleFrom(
                               padding: EdgeInsets.symmetric(

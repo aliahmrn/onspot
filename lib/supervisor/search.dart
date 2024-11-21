@@ -27,7 +27,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
     final onPrimaryColor = Theme.of(context).colorScheme.onPrimary;
     final screenWidth = MediaQuery.of(context).size.width;
 
-    final cleaners = ref.watch(cleanersProvider); // List of cleaners
+    final cleanersState = ref.watch(cleanersProvider); // Watch cleanersProvider state
     final selectedStatus = ref.watch(selectedStatusProvider); // Selected dropdown status
 
     return Scaffold(
@@ -156,21 +156,16 @@ class _SearchPageState extends ConsumerState<SearchPage> {
                   topRight: Radius.circular(40),
                 ),
               ),
-              child: cleaners.isEmpty
+              child: cleanersState.isEmpty
                   ? Center(
-                      child: Text(
-                        'No cleaners found.',
-                        style: TextStyle(
-                          color: Colors.black,
-                          fontSize: screenWidth * 0.05,
-                          fontWeight: FontWeight.bold,
-                        ),
+                      child: CircularProgressIndicator(
+                        color: primaryColor, // Primary color for loading indicator
                       ),
                     )
                   : ListView.builder(
-                      itemCount: cleaners.length,
+                      itemCount: cleanersState.length,
                       itemBuilder: (context, index) {
-                        final cleaner = cleaners[index];
+                        final cleaner = cleanersState[index];
                         return CleanerCard(cleaner: cleaner);
                       },
                     ),
@@ -185,6 +180,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
 // CleanerCard widget
 class CleanerCard extends StatelessWidget {
   final Map<String, String> cleaner;
+
   const CleanerCard({super.key, required this.cleaner});
 
   @override
@@ -194,53 +190,63 @@ class CleanerCard extends StatelessWidget {
 
     return GestureDetector(
       onTap: () {
-        Navigator.push(
-          context,
-          PageRouteBuilder(
-            pageBuilder: (context, animation, secondaryAnimation) => CleanerDetailPage(
-              cleanerName: cleaner['name'] ?? 'Unknown',
-              cleanerStatus: cleaner['status'] ?? 'Unavailable',
-              profilePic: cleaner['profile_pic'] ?? '',
-              cleanerPhoneNo: cleaner['phone_no'] ?? 'N/A',
-              building: cleaner['building'] ?? 'N/A',
+        final cleanerId = cleaner['id']; // Extract cleanerId
+
+        if (cleanerId != null && cleanerId.isNotEmpty) {
+          Navigator.push(
+            context,
+            PageRouteBuilder(
+              pageBuilder: (context, animation, secondaryAnimation) => CleanerDetailPage(
+                cleanerId: cleanerId, // Pass cleanerId to CleanerDetailPage
+              ),
+              transitionDuration: Duration.zero, // Disable forward animation
+              reverseTransitionDuration: Duration.zero, // Disable reverse animation
             ),
-            transitionDuration: Duration.zero, // Disable forward animation
-            reverseTransitionDuration: Duration.zero, // Disable reverse animation
-          ),
-        );
+          );
+        } else {
+          // Handle case where cleanerId is missing
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("Cleaner ID is missing.")),
+          );
+        }
       },
       child: Card(
-        color: primaryColor, // Primary color for the card
+        color: primaryColor,
         margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 10.0),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         child: ListTile(
           leading: CircleAvatar(
-            backgroundColor: secondaryColor, // Secondary color for the avatar
+            backgroundColor: secondaryColor,
             child: cleaner['name'] != null && cleaner['name']!.isNotEmpty
                 ? Text(
-                    cleaner['name']![0].toUpperCase(), // First letter of the name
+                    cleaner['name']![0].toUpperCase(),
                     style: TextStyle(
-                      color: primaryColor, // Primary color for the font
+                      color: primaryColor,
                       fontWeight: FontWeight.bold,
                     ),
                   )
                 : Icon(
                     Icons.person,
-                    color: primaryColor, // Primary color for fallback icon
+                    color: primaryColor,
                   ),
           ),
           title: Text(
             cleaner['name'] ?? 'Unknown',
             style: const TextStyle(
-              color: Colors.white, // White text for readability
+              color: Colors.white,
               fontWeight: FontWeight.bold,
             ),
           ),
           subtitle: Text(
             cleaner['status'] ?? 'Unavailable',
             style: const TextStyle(
-              color: Colors.white70, // Subtle contrast for status
+              color: Colors.white70,
             ),
+          ),
+          trailing: Icon( // Add right-arrow icon
+            Icons.arrow_forward_ios,
+            color: Colors.white70,
+            size: 16,
           ),
         ),
       ),

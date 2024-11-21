@@ -1,63 +1,57 @@
 import 'dart:convert';
+import 'dart:io'; // For platform checks
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:logger/logger.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:device_info_plus/device_info_plus.dart';
-import 'dart:io';
-
-
+import 'package:firebase_messaging/firebase_messaging.dart'; // Firebase Messaging
+import '../utils/device_utils.dart'; // Correctly imported device utility
 
 class AuthService {
-  final String baseUrl = 'http://192.168.1.105:8000/api'; // Android Emulator
+  final String baseUrl = 'http://192.168.1.105:8000/api'; // Your API base URL
   final Logger _logger = Logger(); // Initialize Logger
 
-
   // Login function for supervisors
-Future<void> login(String input, String password) async {
-  try {
-    final requestBody = jsonEncode({
-      'login': input,
-      'password': password,
-    });
+  Future<void> login(String input, String password) async {
+    try {
+      final requestBody = jsonEncode({
+        'login': input,
+        'password': password,
+      });
 
-    final response = await http.post(
-      Uri.parse('$baseUrl/flutterlogin'),
-      headers: {'Content-Type': 'application/json'},
-      body: requestBody,
-    );
+      final response = await http.post(
+        Uri.parse('$baseUrl/flutterlogin'),
+        headers: {'Content-Type': 'application/json'},
+        body: requestBody,
+      );
 
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      _logger.i("Login Response: $data");
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        _logger.i("Login Response: $data");
 
-      final String token = data['token'];
-      final String role = data['user']['role'];
-      final String svId = data['user']['id'].toString();
-      final String email = data['user']['email'];
-      final String username = data['user']['username'];
-      final String name = data['user']['name'];
-      final String phoneNo = data['user']['phone_no'];
+        final String token = data['token'];
+        final String role = data['user']['role'];
+        final String svId = data['user']['id'].toString();
+        final String email = data['user']['email'];
+        final String username = data['user']['username'];
+        final String name = data['user']['name'];
+        final String phoneNo = data['user']['phone_no'];
 
-      if (role == 'supervisor') {
-        await saveUserDetails(token, role, svId, email, username, name, phoneNo);
-        
-        // Store the notification token after login
-        final String? deviceToken = await FirebaseMessaging.instance.getToken();
-        if (deviceToken != null) {
-          await storeNotificationToken(deviceToken, "device_id_placeholder", "android"); // Replace "device_id_placeholder" with actual device ID if needed
+        if (role == 'supervisor') {
+          await saveUserDetails(token, role, svId, email, username, name, phoneNo);
+
+          // Fetch and save FCM token
+          _logger.i('Fetching and saving FCM token...');
+          await saveFcmTokenIfNeeded(token);
+        } else {
+          throw Exception('Access denied: User is not a supervisor');
         }
-      } else {
-        throw Exception('Access denied: User is not a supervisor');
+      } else if (response.statusCode == 401) {
+        throw Exception('Invalid login credentials.');
       }
-    } else if (response.statusCode == 401) {
-      throw Exception('Invalid login credentials.');
+    } catch (e) {
+      throw Exception('Error during login: ${e.toString()}');
     }
-  } catch (e) {
-    throw Exception('Error during login: ${e.toString()}');
-
   }
-}
 
   Future<void> saveUserDetails(String token, String role, String svId, String email, String username, String name, String phoneNo) async {
     final prefs = await SharedPreferences.getInstance();
@@ -68,127 +62,131 @@ Future<void> login(String input, String password) async {
     await prefs.setString('username', username);
     await prefs.setString('name', name);
     await prefs.setString('phoneNo', phoneNo);
-    _logger.i('Supervisor details saved successfully');
+    _logger.i('Supervisor details saved successfully.');
   }
 
   Future<void> clearUserDetails() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('token');
     await prefs.remove('role');
-    await prefs.remove('supervisorId'); 
+    await prefs.remove('supervisorId');
     await prefs.remove('email');
     await prefs.remove('username');
     await prefs.remove('name');
     await prefs.remove('phoneNo');
-    _logger.i('User details cleared');
+    _logger.i('User details cleared.');
   }
 
-Future<void> logout() async {
-  try {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('token');
-    final deviceId = await _getDeviceId();
+  // Save FCM token to the backend
+  Future<void> saveFcmToken(String authToken, String fcmToken) async {
+    try {
+      final deviceId = await getDeviceId(); // Use device utility
 
-    if (deviceId == null) {
-      throw Exception('Device ID is required but was not provided.');
+      final response = await http.post(
+        Uri.parse('$baseUrl/store-token'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $authToken',
+        },
+        body: jsonEncode({
+          'device_token': fcmToken,
+          'device_id': deviceId,
+          'device_type': Platform.isAndroid ? 'android' : 'ios',
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        _logger.i('FCM token saved successfully.');
+      } else {
+        _logger.w('Failed to save FCM token: ${response.statusCode} - ${response.body}');
+      }
+    } catch (e) {
+      _logger.e('Error while saving FCM token: $e');
     }
+  }
 
-    final response = await http.post(
-      Uri.parse('$baseUrl/flutterlogout'),
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token',
-        'Accept': 'application/json',
-      },
-      body: jsonEncode({
-        'device_id': deviceId, // Include the required device_id field
-      }),
-    );
+  // Fetch and save FCM token if needed
+  Future<void> saveFcmTokenIfNeeded(String authToken) async {
+    try {
+      final fcmToken = await FirebaseMessaging.instance.getToken();
 
-    if (response.statusCode != 200) {
-      _logger.w('Logout failed: ${response.statusCode} - ${response.body}');
-      throw Exception('Failed to logout: ${response.body}');
+      _logger.i('Retrieved FCM token: $fcmToken');
+
+      if (fcmToken != null) {
+        await saveFcmToken(authToken, fcmToken); // Save token to backend
+      } else {
+        _logger.w('FCM token is null. Skipping save.');
+      }
+    } catch (e) {
+      _logger.e('Error retrieving FCM token: $e');
     }
-
-    await clearUserDetails();
-  } catch (e) {
-    _logger.e('Error during logout: $e');
-    throw Exception('Error during logout: $e');
   }
-}
 
-// Function to get the device ID
-Future<String?> _getDeviceId() async {
-  final deviceInfo = DeviceInfoPlugin();
-  if (Platform.isAndroid) {
-    final androidInfo = await deviceInfo.androidInfo;
-    return androidInfo.id; // Unique Android device ID
-  } else if (Platform.isIOS) {
-    final iosInfo = await deviceInfo.iosInfo;
-    return iosInfo.identifierForVendor; // Unique iOS device ID
-  }
-  return null; // Handle other platforms if necessary
-}
-
-  Future<Map<String, dynamic>> getUser() async {
+  // Logout
+  Future<void> logout() async {
     try {
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString('token');
+      final deviceId = await getDeviceId();
 
-      final response = await http.get(
-        Uri.parse('$baseUrl/profile'),
+      final response = await http.post(
+        Uri.parse('$baseUrl/flutterlogout'),
         headers: {
+          'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
         },
+        body: jsonEncode({'device_id': deviceId}),
       );
 
-      if (response.statusCode != 200) {
-        _logger.w('Failed to load user: ${response.statusCode} - ${response.body}');
-        throw Exception('Failed to load user: ${response.body}');
+      if (response.statusCode == 200) {
+        await clearUserDetails();
+        _logger.i('Logout successful. User details cleared.');
+      } else {
+        _logger.w('Logout failed: ${response.statusCode} - ${response.body}');
+        throw Exception('Failed to logout: ${response.body}');
       }
-
-      return jsonDecode(response.body);
     } catch (e) {
-      _logger.e('Error while getting user: $e');
-      throw Exception('Error while getting user: $e');
+      _logger.e('Error during logout: $e');
+      throw Exception('Error during logout: $e');
     }
   }
 
-Future<void> register(String name, String username, String email, String password, String phoneNo) async {
-  try {
-    final response = await http.post(
-      Uri.parse('$baseUrl/flutterregister'),
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      },
-      body: jsonEncode({
-        'username': username,
-        'name': name,
-        'email': email,
-        'password': password,
-        'password_confirmation': password,
-        'phone_no': phoneNo,
-        'role': 'supervisor',
-      }),
-    );
+  Future<void> register(String name, String username, String email, String password, String phoneNo) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/flutterregister'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: jsonEncode({
+          'username': username,
+          'name': name,
+          'email': email,
+          'password': password,
+          'password_confirmation': password,
+          'phone_no': phoneNo,
+          'role': 'supervisor',
+        }),
+      );
 
-    if (response.statusCode == 201) {
-      // Assuming successful registration, get the notification token and store it
-      final String? deviceToken = await FirebaseMessaging.instance.getToken();
-      if (deviceToken != null) {
-        await storeNotificationToken(deviceToken, "device_id_placeholder", "android"); // Replace "device_id_placeholder" with actual device ID if needed
+      if (response.statusCode == 201) {
+        _logger.i('Registration successful.');
+
+        // Fetch and save FCM token
+        final data = jsonDecode(response.body);
+        final String token = data['token'];
+        _logger.i('Registration complete. Fetching and saving FCM token...');
+        await saveFcmTokenIfNeeded(token);
+      } else {
+        _logger.w('Registration failed: ${response.statusCode} - ${response.body}');
+        throw Exception('Failed to register user: ${response.body}');
       }
-    } else {
-      _logger.w('Registration failed: ${response.statusCode} - ${response.body}');
-      throw Exception('Failed to register user: ${response.body}');
+    } catch (e) {
+      _logger.e('Error during registration: $e');
+      throw Exception('Error during registration: $e');
     }
-  } catch (e) {
-    _logger.e('Error during registration: $e');
-    throw Exception('Error during registration: $e');
   }
-}
-
 
   Future<void> sendResetCode(String email) async {
     try {

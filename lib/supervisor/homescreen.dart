@@ -275,7 +275,7 @@ class SupervisorHomeScreen extends ConsumerWidget {
                                   const Icon(Icons.calendar_today, size: 18, color: Colors.white),
                                   SizedBox(width: screenWidth * 0.02),
                                   Text(
-                                    latestComplaint['comp_date']!,
+                                    DateFormat('dd/MM/yyyy').format(DateTime.parse(latestComplaint['comp_date']!)),
                                     style: TextStyle(
                                       fontSize: screenWidth * 0.035,
                                       color: onPrimaryColor.withOpacity(0.7),

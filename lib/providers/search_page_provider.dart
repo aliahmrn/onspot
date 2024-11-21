@@ -21,60 +21,61 @@ class CleanersNotifier extends StateNotifier<List<Map<String, String>>> {
 
   List<Map<String, String>> _allCleaners = []; // Store all cleaners for filtering
 
-Future<void> fetchCleaners({String? status = 'all'}) async {
-  const url = 'http://192.168.1.105:8000/api/supervisor/cleaners';
+  Future<void> fetchCleaners({String? status = 'all'}) async {
+    const url = 'http://192.168.1.105:8000/api/supervisor/cleaners';
 
-  try {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('token');
-    logger.i('Token: $token');
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('token');
+      logger.i('Token: $token');
 
-    if (token == null) {
-      throw Exception('Token is null. Please log in again.');
-    }
-
-    final headers = {
-      'Authorization': 'Bearer $token',
-      'Content-Type': 'application/json',
-    };
-
-    logger.i('Fetching cleaners with status: $status'); // Log request
-    final response = await http.get(Uri.parse('$url?status=$status'), headers: headers);
-    logger.i('Response status: ${response.statusCode}');
-    logger.i('Response body: ${response.body}');
-
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-
-      if (!data['success']) {
-        throw Exception('API returned an error: ${data['message']}');
+      if (token == null) {
+        throw Exception('Token is null. Please log in again.');
       }
 
-      final List<dynamic> cleaners = data['data'];
-      logger.i('Number of cleaners fetched: ${cleaners.length}'); // Log cleaner count
+      final headers = {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      };
+
+      logger.i('Fetching cleaners with status: $status'); // Log request
+      final response = await http.get(Uri.parse('$url?status=$status'), headers: headers);
+      logger.i('Response status: ${response.statusCode}');
+      logger.i('Response body: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+
+        if (!data['success']) {
+          throw Exception('API returned an error: ${data['message']}');
+        }
+
+        final List<dynamic> cleaners = data['data'];
+        logger.i('Number of cleaners fetched: ${cleaners.length}'); // Log cleaner count
 
       _allCleaners = cleaners.map((cleaner) {
         return {
-          'name': cleaner['cleaner_name'] as String? ?? 'Unknown',
-          'status': cleaner['status'] as String? ?? 'Unavailable',
-          'profile_pic': cleaner['profile_pic'] as String? ?? '',
-          'phone_no': cleaner['cleaner_phoneNo'] as String? ?? '',
-          'building': cleaner['building'] as String? ?? '',
+          'id': cleaner['id']?.toString() ?? '', 
+          'name': cleaner['cleaner_name']?.toString() ?? 'Unknown',
+          'status': cleaner['status']?.toString() ?? 'Unavailable',
+          'profile_pic': cleaner['profile_pic']?.toString() ?? '',
+          'phone_no': cleaner['cleaner_phoneNo']?.toString() ?? 'N/A',
+          'building': cleaner['building']?.toString() ?? 'N/A',
         };
       }).toList();
 
-      state = _allCleaners; // Update the state with the fetched cleaners
-      logger.i('State updated with cleaners: $state');
-    } else {
-      throw Exception('Failed to load cleaners: ${response.body}');
-    }
-  } catch (e) {
-    logger.e('Error fetching cleaners: $e');
-    _allCleaners = [];
-    state = []; // Clear the state if an error occurs
-  }
-}
 
+        state = _allCleaners; // Update the state with the fetched cleaners
+        logger.i('State updated with cleaners: $state');
+      } else {
+        throw Exception('Failed to load cleaners: ${response.body}');
+      }
+    } catch (e) {
+      logger.e('Error fetching cleaners: $e');
+      _allCleaners = [];
+      state = []; // Clear the state if an error occurs
+    }
+  }
 
   void searchCleaners(String query, {String? status = 'all'}) {
     if (query.isEmpty) {
@@ -92,3 +93,45 @@ Future<void> fetchCleaners({String? status = 'all'}) async {
     }
   }
 }
+
+final cleanerDetailProvider =
+    FutureProvider.family<Map<String, dynamic>, String>((ref, cleanerId) async {
+  final url = 'http://192.168.1.105:8000/api/supervisor/cleaner/$cleanerId';
+
+  try {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('token');
+    logger.i('Token: $token');
+
+    if (token == null) {
+      throw Exception('Token is null. Please log in again.');
+    }
+
+    final headers = {
+      'Authorization': 'Bearer $token',
+      'Content-Type': 'application/json',
+    };
+
+    logger.i('Fetching cleaner details for ID: $cleanerId');
+    final response = await http.get(Uri.parse(url), headers: headers);
+
+    logger.i('Response status: ${response.statusCode}');
+    logger.i('Response body: ${response.body}');
+
+    if (response.statusCode == 200) {
+      final Map<String, dynamic> data = jsonDecode(response.body);
+
+      // Ensure 'data' key exists
+      if (data['data'] == null) {
+        throw Exception('Data not found in API response.');
+      }
+
+      return data['data'];
+    } else {
+      throw Exception('Failed to load cleaner details: ${response.body}');
+    }
+  } catch (e) {
+    logger.e('Error fetching cleaner details: $e');
+    throw Exception('Error fetching cleaner details: $e');
+  }
+});
