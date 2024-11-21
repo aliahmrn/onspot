@@ -41,14 +41,14 @@ class ComplaintNotifier extends StateNotifier<ComplaintState> {
   Future<void> fetchRecentComplaint() async {
     state = state.copyWith(isLoading: true, errorMessage: '');
     try {
-      // Replace this with your actual complaint fetching logic
-      final complaint = await fetchMostRecentComplaint();
-      state = state.copyWith(recentComplaint: complaint, isLoading: false);
+      final recentComplaint = await fetchMostRecentComplaint();
+      state = state.copyWith(recentComplaint: recentComplaint, isLoading: false);
     } catch (e) {
       state = state.copyWith(errorMessage: e.toString(), isLoading: false);
     }
   }
 }
+
 
 final complaintNotifierProvider =
     StateNotifierProvider<ComplaintNotifier, ComplaintState>(

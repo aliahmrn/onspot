@@ -81,73 +81,86 @@ class FileComplaintPage extends ConsumerWidget {
     }
   }
 
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final theme = ref.watch(themeProvider);
+@override
+Widget build(BuildContext context, WidgetRef ref) {
+  final theme = ref.watch(themeProvider);
 
-    final primaryColor = theme.colorScheme.primary;
-    final secondaryColor = theme.colorScheme.secondary;
-    final onPrimaryColor = theme.colorScheme.onPrimary;
-    final onSecondaryColor = theme.colorScheme.onSecondary;
-    final outlineColor = theme.colorScheme.outline;
+  final primaryColor = theme.colorScheme.primary;
+  final secondaryColor = theme.colorScheme.secondary;
+  final onPrimaryColor = theme.colorScheme.onPrimary;
+  final onSecondaryColor = theme.colorScheme.onSecondary;
+  final outlineColor = theme.colorScheme.outline;
 
-    final screenWidth = MediaQuery.of(context).size.width;
+  final screenWidth = MediaQuery.of(context).size.width;
 
-    final formKey = ref.watch(formKeyProvider);
-    final descriptionController = ref.watch(descriptionControllerProvider);
-    final selectedLocation = ref.watch(selectedLocationProvider);
-    final selectedDate = ref.watch(selectedDateProvider);
-    final imagePath = ref.watch(imagePathProvider);
-    final isLoading = ref.watch(loadingProvider);
+  final formKey = ref.watch(formKeyProvider);
+  final descriptionController = ref.watch(descriptionControllerProvider);
+  final selectedLocation = ref.watch(selectedLocationProvider);
+  final selectedDate = ref.watch(selectedDateProvider);
+  final imagePath = ref.watch(imagePathProvider);
+  final isLoading = ref.watch(loadingProvider);
 
-    return Scaffold(
-      backgroundColor: secondaryColor,
-      appBar: AppBar(
-        title: const Text(
-          'Request Cleaner',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        centerTitle: true,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            ref.read(navigatorKeyProvider).currentState?.pushReplacementNamed('/officer-home');
-          },
-          color: onSecondaryColor,
-        ),
-        backgroundColor: secondaryColor,
-        titleTextStyle: TextStyle(
-          color: onSecondaryColor,
+  return Scaffold(
+    backgroundColor: secondaryColor,
+    appBar: AppBar(
+      title: const Text(
+        'Request Cleaner',
+        style: TextStyle(
           fontWeight: FontWeight.bold,
-          fontSize: screenWidth * 0.05,
         ),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildImageUploadCard(primaryColor, onPrimaryColor, screenWidth, ref),
-              const SizedBox(height: 10),
-              _buildImagePreview(imagePath),
-              const SizedBox(height: 35),
-              _buildLocationField(outlineColor, onSecondaryColor, screenWidth, selectedLocation, ref),
-              const SizedBox(height: 16.0),
-              _buildDateField(outlineColor, onSecondaryColor, screenWidth, selectedDate, ref),
-              const SizedBox(height: 16.0),
-              _buildDescriptionField(outlineColor, onSecondaryColor, screenWidth, descriptionController),
-              const SizedBox(height: 30.0),
-              _buildSendButton(primaryColor, onPrimaryColor, isLoading, ref),
-            ],
+      centerTitle: true,
+      leading: IconButton(
+        icon: const Icon(Icons.arrow_back),
+        onPressed: () {
+          // Redirect to home when back is pressed
+          Navigator.of(context).pushReplacementNamed('/officer-home');
+        },
+        color: onSecondaryColor,
+      ),
+      backgroundColor: secondaryColor,
+      titleTextStyle: TextStyle(
+        color: onSecondaryColor,
+        fontWeight: FontWeight.bold,
+        fontSize: screenWidth * 0.05,
+      ),
+    ),
+    body: Builder(
+      builder: (context) {
+        // Intercept the back button press
+        return WillPopScope(
+          onWillPop: () async {
+            Navigator.of(context).pushReplacementNamed('/officer-home');
+            return false; // Prevent the default back navigation
+          },
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(16.0),
+            child: Form(
+              key: formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildImageUploadCard(primaryColor, onPrimaryColor, screenWidth, ref),
+                  const SizedBox(height: 10),
+                  _buildImagePreview(imagePath),
+                  const SizedBox(height: 35),
+                  _buildLocationField(outlineColor, onSecondaryColor, screenWidth, selectedLocation, ref),
+                  const SizedBox(height: 16.0),
+                  _buildDateField(outlineColor, onSecondaryColor, screenWidth, selectedDate, ref),
+                  const SizedBox(height: 16.0),
+                  _buildDescriptionField(outlineColor, onSecondaryColor, screenWidth, descriptionController),
+                  const SizedBox(height: 30.0),
+                  _buildSendButton(primaryColor, onPrimaryColor, isLoading, ref),
+                ],
+              ),
+            ),
           ),
-        ),
-      ),
-    );
-  }
+        );
+      },
+    ),
+  );
+}
+
 
   Widget _buildImageUploadCard(
       Color primaryColor, Color onPrimaryColor, double screenWidth, WidgetRef ref) {

@@ -13,22 +13,15 @@ class AuthService {
   // Login function for officers
   Future<void> login(String input, String password) async {
     try {
-      // Prepare the request body
-      final requestBody = jsonEncode({
-        'login': input,
-        'password': password,
-      });
-
-    final response = await http
-      .post(
-        Uri.parse('$baseUrl/flutterlogin'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'login': input, 'password': password}),
-      )
-      .timeout(const Duration(seconds: 10), onTimeout: () {
-        throw Exception('Login request timed out. Please try again.');
-      });
-
+      final response = await http
+          .post(
+            Uri.parse('$baseUrl/flutterlogin'),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({'login': input, 'password': password}),
+          )
+          .timeout(const Duration(seconds: 10), onTimeout: () {
+            throw Exception('Login request timed out. Please try again.');
+          });
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -56,6 +49,7 @@ class AuthService {
       throw Exception('Error during login: ${e.toString()}');
     }
   }
+
 
   // Register function with default role "officer"
   Future<void> register(String name, String username, String email, String password, String phoneNo) async {

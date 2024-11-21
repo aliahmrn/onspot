@@ -16,9 +16,10 @@ class OfficerNavBar extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final currentIndex = ref.watch(currentIndexProvider);
 
+    // Screens array including the FileComplaintPage
     final List<Widget> screens = [
       const OfficerHomeScreen(),
-      Center(child: Text('Placeholder for Complaint')), // Excluded from tabs
+      const FileComplaintPage(), // Complaint page stays within the tabs
       const HistoryPage(),
       Center(child: Text('Profile Placeholder')),
     ];
@@ -28,7 +29,9 @@ class OfficerNavBar extends ConsumerWidget {
         index: currentIndex,
         children: screens,
       ),
-      bottomNavigationBar: _buildBottomNavigationBar(ref),
+      bottomNavigationBar: currentIndex == 1 // Hide the navbar for complaint page
+          ? null
+          : _buildBottomNavigationBar(ref),
     );
   }
 
@@ -46,20 +49,8 @@ class OfficerNavBar extends ConsumerWidget {
           unselectedItemColor: Colors.grey,
           currentIndex: currentIndex,
           onTap: (index) {
-          if (index == 1) { // Handle Complaint Tab Separately
-            Navigator.push(
-              ref.context,
-              MaterialPageRoute(builder: (context) => const FileComplaintPage()),
-            ).then((_) {
-              // Reset the current index back to the Home tab
-              ref.read(currentIndexProvider.notifier).state = 0;
-            });
-          } else {
             ref.read(currentIndexProvider.notifier).state = index;
-          }
-        },
-
-
+          },
           type: BottomNavigationBarType.fixed,
           showSelectedLabels: true,
           showUnselectedLabels: true,
@@ -72,15 +63,10 @@ class OfficerNavBar extends ConsumerWidget {
               iconPath: 'assets/images/home.svg',
               label: 'Home',
             ),
-            BottomNavigationBarItem(
-              icon: SvgPicture.asset(
-                'assets/images/plus.svg',
-                height: 24.0,
-                width: 24.0,
-                color: currentIndex == 1
-                    ? Theme.of(ref.context).colorScheme.primary // Active color
-                    : Colors.grey, // Inactive color
-              ),
+            _buildNavbarItem(
+              ref,
+              index: 1,
+              iconPath: 'assets/images/plus.svg',
               label: 'Complaint',
             ),
             _buildNavbarItem(
@@ -114,13 +100,14 @@ class OfficerNavBar extends ConsumerWidget {
         iconPath,
         height: 24.0,
         width: 24.0,
-        color: currentIndex == index
-            ? Theme.of(ref.context).colorScheme.primary
-            : Colors.grey,
+        colorFilter: ColorFilter.mode(
+          currentIndex == index
+              ? Theme.of(ref.context).colorScheme.primary // Active color
+              : Colors.grey, // Inactive color
+          BlendMode.srcIn,
+        ),
       ),
       label: label,
     );
   }
 }
-
-
