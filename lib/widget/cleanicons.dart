@@ -120,3 +120,4 @@ class ToiletIcon extends StatelessWidget {
     );
   }
 }
+

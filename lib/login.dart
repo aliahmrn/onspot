@@ -3,13 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../service/auth_service.dart';
 import 'forgot_password.dart';
-import 'main.dart';
 import 'register.dart';
+import 'main.dart';
 import 'package:logger/logger.dart';
 
 final logger = Logger();
 
-// State class for login
 class LoginState {
   final bool isLoading;
   final String errorMessage;
@@ -24,10 +23,10 @@ class LoginState {
   }
 }
 
-// Define a StateNotifier to manage login logic
 class LoginNotifier extends StateNotifier<LoginState> {
   final AuthService _authService;
   final Ref _ref;
+  bool _isNavigating = false;
 
   LoginNotifier(this._authService, this._ref) : super(LoginState());
 
@@ -35,6 +34,8 @@ class LoginNotifier extends StateNotifier<LoginState> {
     required String input,
     required String password,
   }) async {
+    if (_isNavigating) return;
+
     if (input.isEmpty || password.isEmpty) {
       state = state.copyWith(errorMessage: 'Please enter both username/email and password');
       logger.e('Login failed: Missing username/email or password.');
@@ -47,9 +48,10 @@ class LoginNotifier extends StateNotifier<LoginState> {
     try {
       await _authService.login(input, password);
       logger.i('Login successful! Navigating to /officer-home...');
+      _isNavigating = true;
 
-      // Use navigatorKey from the global provider to navigate
       final navigatorKey = _ref.read(navigatorKeyProvider);
+      logger.i('Navigating to /officer-home');
       navigatorKey.currentState?.pushReplacementNamed('/officer-home');
     } catch (e) {
       final errorMessage = e.toString() == 'Exception: Invalid login credentials.'
@@ -60,13 +62,12 @@ class LoginNotifier extends StateNotifier<LoginState> {
       logger.e('Login failed: $errorMessage');
     } finally {
       state = state.copyWith(isLoading: false);
+      _isNavigating = false;
       logger.i('Login process completed.');
     }
   }
 }
 
-
-// Define a provider for LoginNotifier
 final loginProvider = StateNotifierProvider<LoginNotifier, LoginState>(
   (ref) => LoginNotifier(AuthService(), ref),
 );
@@ -101,29 +102,23 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           child: Padding(
             padding: const EdgeInsets.all(20.0),
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.center,
               children: <Widget>[
                 const SizedBox(height: 60),
-                Column(
-                  children: [
-                    Text(
-                      'OnSpot',
-                      style: GoogleFonts.poppins(
-                        fontSize: 32,
-                        fontWeight: FontWeight.w800,
-                        color: Colors.white,
-                      ),
-                    ),
-                    Text(
-                      'Facility',
-                      style: GoogleFonts.poppins(
-                        fontSize: 32,
-                        fontWeight: FontWeight.w800,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ],
+                Text(
+                  'OnSpot',
+                  style: GoogleFonts.poppins(
+                    fontSize: 32,
+                    fontWeight: FontWeight.w800,
+                    color: Colors.white,
+                  ),
+                ),
+                Text(
+                  'Facility',
+                  style: GoogleFonts.poppins(
+                    fontSize: 32,
+                    fontWeight: FontWeight.w800,
+                    color: Colors.white,
+                  ),
                 ),
                 const SizedBox(height: 20),
                 Card(
@@ -134,7 +129,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   child: Padding(
                     padding: const EdgeInsets.all(20.0),
                     child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
                       children: <Widget>[
                         _buildInputField('Username or Email', _inputController),
                         const SizedBox(height: 20),

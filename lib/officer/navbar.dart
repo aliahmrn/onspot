@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'homescreen.dart';
-import 'complaint.dart';
-import 'history.dart';
-import 'profile.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:onspot_officer/officer/complaint.dart';
+import 'package:onspot_officer/officer/history.dart';
+import 'package:onspot_officer/officer/homescreen.dart';
+import 'package:onspot_officer/officer/profile.dart';
 
 // Provider to manage the current selected index in the BottomNavigationBar
 final currentIndexProvider = StateProvider<int>((ref) => 0);
@@ -13,61 +14,113 @@ class OfficerNavBar extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
     final currentIndex = ref.watch(currentIndexProvider);
 
-    return BottomNavigationBar(
-      backgroundColor: theme.colorScheme.secondary,
-      selectedItemColor: theme.colorScheme.primary,
-      unselectedItemColor: theme.colorScheme.tertiary,
-      currentIndex: currentIndex,
-      onTap: (index) {
-        ref.read(currentIndexProvider.notifier).state = index;
-      },
-      items: const [
-        BottomNavigationBarItem(
-          icon: Icon(Icons.home),
-          label: 'Home',
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.add_circle_outline),
-          label: 'Complaint',
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.history),
-          label: 'History',
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.person),
-          label: 'Profile',
-        ),
-      ],
-      type: BottomNavigationBarType.fixed,
-    );
-  }
-}
-
-class OfficerAppWithNavBar extends ConsumerWidget {
-  const OfficerAppWithNavBar({super.key});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final currentIndex = ref.watch(currentIndexProvider);
-
-    // Define all screens in an IndexedStack
-    final pages = [
+    final List<Widget> screens = [
       const OfficerHomeScreen(),
-      const FileComplaintPage(),
+      Center(child: Text('Placeholder for Complaint')), // Excluded from tabs
       const HistoryPage(),
-      const OfficerProfileScreen(),
+      Center(child: Text('Profile Placeholder')),
     ];
 
     return Scaffold(
       body: IndexedStack(
         index: currentIndex,
-        children: pages,
+        children: screens,
       ),
-      bottomNavigationBar: const OfficerNavBar(),
+      bottomNavigationBar: _buildBottomNavigationBar(ref),
+    );
+  }
+
+  Widget _buildBottomNavigationBar(WidgetRef ref) {
+    final currentIndex = ref.watch(currentIndexProvider);
+    final theme = Theme.of(ref.context);
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16, left: 24, right: 24),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(24),
+        child: BottomNavigationBar(
+          backgroundColor: theme.colorScheme.secondary,
+          selectedItemColor: theme.colorScheme.primary,
+          unselectedItemColor: Colors.grey,
+          currentIndex: currentIndex,
+          onTap: (index) {
+          if (index == 1) { // Handle Complaint Tab Separately
+            Navigator.push(
+              ref.context,
+              MaterialPageRoute(builder: (context) => const FileComplaintPage()),
+            ).then((_) {
+              // Reset the current index back to the Home tab
+              ref.read(currentIndexProvider.notifier).state = 0;
+            });
+          } else {
+            ref.read(currentIndexProvider.notifier).state = index;
+          }
+        },
+
+
+          type: BottomNavigationBarType.fixed,
+          showSelectedLabels: true,
+          showUnselectedLabels: true,
+          selectedFontSize: 12,
+          unselectedFontSize: 12,
+          items: [
+            _buildNavbarItem(
+              ref,
+              index: 0,
+              iconPath: 'assets/images/home.svg',
+              label: 'Home',
+            ),
+            BottomNavigationBarItem(
+              icon: SvgPicture.asset(
+                'assets/images/plus.svg',
+                height: 24.0,
+                width: 24.0,
+                color: currentIndex == 1
+                    ? Theme.of(ref.context).colorScheme.primary // Active color
+                    : Colors.grey, // Inactive color
+              ),
+              label: 'Complaint',
+            ),
+            _buildNavbarItem(
+              ref,
+              index: 2,
+              iconPath: 'assets/images/history.svg',
+              label: 'History',
+            ),
+            _buildNavbarItem(
+              ref,
+              index: 3,
+              iconPath: 'assets/images/user.svg',
+              label: 'Profile',
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  BottomNavigationBarItem _buildNavbarItem(
+    WidgetRef ref, {
+    required int index,
+    required String iconPath,
+    required String label,
+  }) {
+    final currentIndex = ref.watch(currentIndexProvider);
+
+    return BottomNavigationBarItem(
+      icon: SvgPicture.asset(
+        iconPath,
+        height: 24.0,
+        width: 24.0,
+        color: currentIndex == index
+            ? Theme.of(ref.context).colorScheme.primary
+            : Colors.grey,
+      ),
+      label: label,
     );
   }
 }
+
+

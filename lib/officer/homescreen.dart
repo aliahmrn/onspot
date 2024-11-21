@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:onspot_officer/main.dart';
 import 'package:onspot_officer/officer/navbar.dart';
+import '../main.dart';
 import '../service/auth_service.dart';
-import '../widget/bell.dart';
 import '../service/history_service.dart';
+import '../widget/bell.dart';
 
 // Providers for managing state
 final officerNameProvider = StateProvider<String>((ref) => 'Officer');
@@ -41,7 +41,7 @@ class ComplaintNotifier extends StateNotifier<ComplaintState> {
   Future<void> fetchRecentComplaint() async {
     state = state.copyWith(isLoading: true, errorMessage: '');
     try {
-      // Replace with your actual complaint fetching logic
+      // Replace this with your actual complaint fetching logic
       final complaint = await fetchMostRecentComplaint();
       state = state.copyWith(recentComplaint: complaint, isLoading: false);
     } catch (e) {
@@ -87,7 +87,6 @@ class OfficerHomeScreenState extends ConsumerState<OfficerHomeScreen> {
       }
     }
   }
-
   @override
   Widget build(BuildContext context) {
     final theme = ref.watch(themeProvider);
@@ -160,15 +159,15 @@ class OfficerHomeScreenState extends ConsumerState<OfficerHomeScreen> {
                         Row(
                           children: [
                             BellProfileWidget(
-                              onBellTap: () =>
-                                  ref.read(currentIndexProvider.notifier).state =
-                                      2, // Navigate to History
+                              onBellTap: () => ref
+                                  .read(currentIndexProvider.notifier)
+                                  .state = 2, // Navigate to History Tab
                             ),
                             SizedBox(width: screenWidth * 0.025),
                             GestureDetector(
-                              onTap: () =>
-                                  ref.read(currentIndexProvider.notifier).state =
-                                      3, // Navigate to Profile
+                              onTap: () => ref
+                                  .read(currentIndexProvider.notifier)
+                                  .state = 3, // Navigate to Profile Tab
                               child: CircleAvatar(
                                 radius: screenWidth * 0.04,
                                 child: Icon(Icons.person,
@@ -194,8 +193,9 @@ class OfficerHomeScreenState extends ConsumerState<OfficerHomeScreen> {
                     ),
                     SizedBox(height: screenHeight * 0.05),
                     GestureDetector(
-                      onTap: () =>
-                          ref.read(currentIndexProvider.notifier).state = 1,
+                      onTap: () => ref
+                          .read(currentIndexProvider.notifier)
+                          .state = 1, // Navigate to Complaint Tab
                       child: Container(
                         padding: EdgeInsets.all(screenWidth * 0.04),
                         decoration: BoxDecoration(
@@ -261,8 +261,9 @@ class OfficerHomeScreenState extends ConsumerState<OfficerHomeScreen> {
                           ),
                         ),
                         GestureDetector(
-                          onTap: () =>
-                              ref.read(currentIndexProvider.notifier).state = 2,
+                          onTap: () => ref
+                              .read(currentIndexProvider.notifier)
+                              .state = 2, // Navigate to History Tab
                           child: Text(
                             'see all',
                             style: TextStyle(
@@ -281,15 +282,14 @@ class OfficerHomeScreenState extends ConsumerState<OfficerHomeScreen> {
                                 padding: EdgeInsets.all(screenWidth * 0.04),
                                 decoration: BoxDecoration(
                                   color: primaryColor,
-                                  borderRadius: BorderRadius.circular(
-                                      screenWidth * 0.03),
+                                  borderRadius:
+                                      BorderRadius.circular(screenWidth * 0.03),
                                   boxShadow: [
                                     BoxShadow(
                                       color: Colors.grey.withOpacity(0.5),
                                       spreadRadius: 2,
                                       blurRadius: 5,
-                                      offset:
-                                          Offset(0, screenHeight * 0.005),
+                                      offset: Offset(0, screenHeight * 0.005),
                                     ),
                                   ],
                                 ),

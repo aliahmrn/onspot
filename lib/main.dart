@@ -1,19 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logger/logger.dart';
-import 'package:onspot_officer/officer/history.dart';
-import 'package:onspot_officer/officer/profile.dart';
-import 'login.dart';
-import 'officer/homescreen.dart';
-import 'officer/complaint.dart';
-import 'officer/complaintdetails.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:onspot_officer/login.dart';
+import 'package:onspot_officer/officer/navbar.dart';
+import 'package:onspot_officer/officer/complaintdetails.dart';
 
-// Define a global navigator key provider
 final navigatorKeyProvider = Provider((ref) => GlobalKey<NavigatorState>());
-
-// Define the theme provider to manage the theme state
 final themeProvider = StateProvider<ThemeData>((ref) {
   return ThemeData(
     useMaterial3: false,
@@ -34,7 +27,6 @@ final themeProvider = StateProvider<ThemeData>((ref) {
       shadow: Color(0x29000000),
       brightness: Brightness.light,
     ),
-    textTheme: GoogleFonts.robotoTextTheme(),
   );
 });
 
@@ -55,21 +47,18 @@ class OnspotOfficerApp extends ConsumerWidget {
     return MaterialApp(
       navigatorKey: navigatorKey,
       debugShowCheckedModeBanner: false,
-      initialRoute: '/', // Default route
+      initialRoute: '/', // Default route is login
       theme: themeData,
       routes: {
-          '/': (context) => const LoginScreen(),
-          '/officer-home': (context) => const OfficerHomeScreen(),
-          '/file-complaint': (context) => FileComplaintPage(),
-          '/history': (context) => const HistoryPage(),
-          '/profile': (context) => const OfficerProfileScreen(),
+        '/': (context) => const LoginScreen(), // Login page
+        '/officer-home': (context) => const OfficerNavBar(), // Main app with navbar
       },
       onGenerateRoute: (settings) {
         final logger = Logger();
         logger.i("Navigating to route: ${settings.name}");
 
         switch (settings.name) {
-          case '/complaint-details':
+          case '/complaint-details': // Dynamic route for complaint details
             final args = settings.arguments as Map<String, dynamic>;
             final complaintId = args['complaintId'];
             return MaterialPageRoute(

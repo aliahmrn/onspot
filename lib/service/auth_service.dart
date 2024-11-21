@@ -19,11 +19,16 @@ class AuthService {
         'password': password,
       });
 
-      final response = await http.post(
-        Uri.parse('$baseUrl/flutterlogin'), // Endpoint for login
+    final response = await http
+      .post(
+        Uri.parse('$baseUrl/flutterlogin'),
         headers: {'Content-Type': 'application/json'},
-        body: requestBody,
-      );
+        body: jsonEncode({'login': input, 'password': password}),
+      )
+      .timeout(const Duration(seconds: 10), onTimeout: () {
+        throw Exception('Login request timed out. Please try again.');
+      });
+
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../service/history_service.dart';
-import 'navbar.dart';
 import 'complaintdetails.dart';
 import 'package:onspot_officer/widget/date.dart';
 
@@ -192,7 +191,6 @@ class HistoryPage extends ConsumerWidget {
                   ))
             : const Center(child: CircularProgressIndicator()),
       ),
-      bottomNavigationBar: const OfficerNavBar(),
     );
   }
 
