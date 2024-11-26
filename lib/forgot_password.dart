@@ -1,64 +1,100 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../service/auth_service.dart';
 import 'enter_code.dart';
 import 'login.dart';
 
-class ForgotPasswordScreen extends StatefulWidget {
-  const ForgotPasswordScreen({super.key});
+class ForgotPasswordState {
+  final bool isLoading; // Tracks loading state
+  final String message; // Stores success/error messages
+  final bool navigateToEnterCode; // Triggers navigation
 
-  @override
-  ForgotPasswordScreenState createState() => ForgotPasswordScreenState();
+  ForgotPasswordState({
+    this.isLoading = false,
+    this.message = '',
+    this.navigateToEnterCode = false,
+  });
+
+  ForgotPasswordState copyWith({
+    bool? isLoading,
+    String? message,
+    bool? navigateToEnterCode,
+  }) {
+    return ForgotPasswordState(
+      isLoading: isLoading ?? this.isLoading,
+      message: message ?? this.message,
+      navigateToEnterCode: navigateToEnterCode ?? this.navigateToEnterCode,
+    );
+  }
 }
 
-class ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
-  final TextEditingController _emailController = TextEditingController();
-  final AuthService _authService = AuthService();
-  String _message = '';
-  bool _isLoading = false;
+class ForgotPasswordNotifier extends StateNotifier<ForgotPasswordState> {
+  final AuthService _authService;
 
-  Future<void> _sendResetCode() async {
-    setState(() {
-      _isLoading = true;
-      _message = '';
-    });
+  ForgotPasswordNotifier(this._authService) : super(ForgotPasswordState());
+
+  Future<void> sendResetCode(String email) async {
+    if (email.isEmpty || !RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(email)) {
+      state = state.copyWith(message: 'Please enter a valid email address.');
+      return;
+    }
+
+    state = state.copyWith(isLoading: true, message: '', navigateToEnterCode: false);
 
     try {
-      await _authService.sendResetCode(_emailController.text);
-      setState(() {
-        _message = 'A reset code has been sent to your email.';
-      });
-
-      // Wait for 3 seconds before navigating to EnterCodeScreen
-      await Future.delayed(const Duration(seconds: 3));
-
-      if (mounted) {
-        Navigator.push(
-          context,
-          PageRouteBuilder(
-            pageBuilder: (context, animation, secondaryAnimation) => EnterCodeScreen(email: _emailController.text),
-            transitionDuration: Duration.zero,
-            reverseTransitionDuration: Duration.zero,
-          ),
-        );
-      }
+      await _authService.sendResetCode(email);
+      state = state.copyWith(
+        isLoading: false,
+        message: 'A reset code has been sent to your email.',
+        navigateToEnterCode: true, // Trigger navigation
+      );
     } catch (e) {
-      setState(() {
-        _message = 'Error: ${e.toString()}';
-      });
-    } finally {
-      setState(() {
-        _isLoading = false;
-      });
+      state = state.copyWith(
+        isLoading: false,
+        message: 'Error: ${e.toString()}',
+      );
     }
   }
 
+  /// Reset navigation state
+  void resetNavigation() {
+    state = state.copyWith(navigateToEnterCode: false);
+  }
+}
+
+final forgotPasswordProvider = StateNotifierProvider<ForgotPasswordNotifier, ForgotPasswordState>(
+  (ref) => ForgotPasswordNotifier(AuthService()),
+);
+
+class ForgotPasswordScreen extends ConsumerWidget {
+  const ForgotPasswordScreen({super.key});
+
   @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context); // Access theme colors
+  Widget build(BuildContext context, WidgetRef ref) {
+    final forgotPasswordState = ref.watch(forgotPasswordProvider);
+    final forgotPasswordNotifier = ref.read(forgotPasswordProvider.notifier);
+
+    final TextEditingController emailController = TextEditingController();
+
+    final theme = Theme.of(context);
+
+    // Handle navigation trigger
+    if (forgotPasswordState.navigateToEnterCode) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => EnterCodeScreen(email: emailController.text),
+          ),
+        );
+        // Reset navigation flag
+        forgotPasswordNotifier.resetNavigation();
+      });
+    }
 
     return Scaffold(
-      backgroundColor: theme.primaryColor, // Set background color to primary color
+      backgroundColor: theme.primaryColor,
       body: Center(
         child: SingleChildScrollView(
           child: Padding(
@@ -72,48 +108,62 @@ class ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                   style: GoogleFonts.poppins(
                     fontSize: 22,
                     fontWeight: FontWeight.w600,
-                    color: theme.colorScheme.secondary, // Use secondary color
+                    color: theme.colorScheme.secondary,
                   ),
                 ),
                 const SizedBox(height: 20),
                 Card(
-                  elevation: 5,
+                  elevation: 8,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(15),
+                    borderRadius: BorderRadius.circular(20),
                   ),
                   child: Padding(
-                    padding: const EdgeInsets.all(20.0),
+                    padding: const EdgeInsets.all(24.0),
                     child: Column(
                       children: <Widget>[
-                        _buildInputField('Email', _emailController),
-                        const SizedBox(height: 20),
+                        _buildInputField('Email', emailController),
+                        if (forgotPasswordState.message.contains('valid email'))
+                          Padding(
+                            padding: const EdgeInsets.only(top: 8.0),
+                            child: Text(
+                              forgotPasswordState.message,
+                              style: const TextStyle(color: Colors.red),
+                            ),
+                          ),
+                        const SizedBox(height: 16),
                         ElevatedButton(
-                          onPressed: _isLoading ? null : _sendResetCode,
+                          onPressed: forgotPasswordState.isLoading
+                              ? null
+                              : () {
+                                  forgotPasswordNotifier.sendResetCode(emailController.text);
+                                },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.black,
                             padding: const EdgeInsets.symmetric(vertical: 15),
-                            minimumSize: const Size(250, 40),
+                            minimumSize: const Size(150, 30), // Reduced width
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(30),
                             ),
                           ),
-                          child: _isLoading
+                          child: forgotPasswordState.isLoading
                               ? const CircularProgressIndicator(color: Colors.white)
                               : const Text('Send Reset Code', style: TextStyle(color: Colors.white)),
                         ),
-                        const SizedBox(height: 10),
-                        if (_message.isNotEmpty)
+                        const SizedBox(height: 8),
+                        if (forgotPasswordState.message.isNotEmpty &&
+                            !forgotPasswordState.message.contains('valid email'))
                           Text(
-                            _message,
-                            style: TextStyle(color: _message.contains('Error') ? Colors.red : Colors.green),
+                            forgotPasswordState.message,
+                            style: TextStyle(
+                              color: forgotPasswordState.message.contains('Error') ? Colors.red : Colors.green,
+                            ),
                           ),
                       ],
                     ),
                   ),
                 ),
-                const SizedBox(height: 20),
-                // Back to Login Button
-                TextButton(
+                const SizedBox(height: 16),
+                TextButton.icon(
                   onPressed: () {
                     Navigator.of(context).pushAndRemoveUntil(
                       PageRouteBuilder(
@@ -124,10 +174,11 @@ class ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                       (route) => false,
                     );
                   },
-                  child: Text(
+                  icon: const Icon(Icons.arrow_back, color: Colors.white),
+                  label: Text(
                     'Back to Login',
                     style: TextStyle(
-                      color: theme.colorScheme.secondary, // Use secondary color
+                      color: theme.colorScheme.secondary,
                       decoration: TextDecoration.underline,
                     ),
                   ),
@@ -141,6 +192,15 @@ class ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   }
 
   Widget _buildInputField(String label, TextEditingController controller) {
+    IconData? getIcon(String label) {
+      switch (label) {
+        case 'Email':
+          return Icons.email;
+        default:
+          return null;
+      }
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -154,10 +214,23 @@ class ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           child: TextField(
             controller: controller,
             decoration: InputDecoration(
+              prefixIcon: Icon(
+                getIcon(label),
+                color: Colors.grey, // Grey icon color for subtle design
+              ),
+              hintText: 'Enter your email',
+              hintStyle: const TextStyle(color: Colors.grey), // Soft grey for hint text
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(30),
               ),
-              hintText: 'Enter your email',
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(30),
+                borderSide: const BorderSide(color: Colors.grey),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(30),
+                borderSide: const BorderSide(color: Colors.black),
+              ),
               filled: true,
               fillColor: Colors.white,
             ),

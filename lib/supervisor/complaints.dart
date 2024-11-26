@@ -5,7 +5,7 @@ import 'assign_task.dart';
 import '../providers/complaints_provider.dart';
 
 class ComplaintPage extends ConsumerWidget {
-  const ComplaintPage({Key? key}) : super(key: key);
+  const ComplaintPage({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

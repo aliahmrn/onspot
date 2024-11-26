@@ -5,10 +5,13 @@ import 'package:intl/intl.dart';
 import '../providers/complaints_provider.dart';
 import '../widget/bell.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../providers/navigation_provider.dart';
+import '../supervisor/notifications.dart';
 
 
 class SupervisorHomeScreen extends ConsumerWidget {
-  const SupervisorHomeScreen({Key? key}) : super(key: key);
+ const SupervisorHomeScreen({super.key});
+
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -89,16 +92,19 @@ class SupervisorHomeScreen extends ConsumerWidget {
                       Row(
                         children: [
                           BellProfileWidget(onBellTap: () {
-                            Navigator.pushNamed(context, '/complaints');
+                            Navigator.push(
+                              context,
+                              PageRouteBuilder(
+                                pageBuilder: (context, animation, secondaryAnimation) => const NotificationsPage(),
+                                transitionDuration: Duration.zero, // No forward animation
+                                reverseTransitionDuration: Duration.zero, // No backward animation
+                              ),
+                            );
                           }),
                           SizedBox(width: screenWidth * 0.02),
                           GestureDetector(
                             onTap: () {
-                              Navigator.pushNamed(
-                                context,
-                                '/main-navigator',
-                                arguments: 4, // Navigate to profile page using argument 4
-                              );
+                              ref.read(currentIndexProvider.notifier).state = 4; // Set to Profile Page index
                             },
                             child: const CircleAvatar(
                               backgroundImage: AssetImage('assets/images/user.jpg'),
@@ -134,11 +140,7 @@ class SupervisorHomeScreen extends ConsumerWidget {
                       ),
                       GestureDetector(
                         onTap: () {
-                          Navigator.pushNamed(
-                            context,
-                            '/main-navigator',
-                            arguments: 2, 
-                          );
+                          ref.read(currentIndexProvider.notifier).state = 2; // Set to Complaints Page index
                         },
                         child: Container(
                           padding: EdgeInsets.symmetric(
@@ -195,13 +197,10 @@ class SupervisorHomeScreen extends ConsumerWidget {
                       final String formattedTime = DateFormat('HH:mm').format(time);
 
                       return GestureDetector(
-                      onTap: () {
-                        Navigator.pushNamed(
-                          context,
-                          '/main-navigator',
-                          arguments: 2, 
-                        );
-                      },
+                        onTap: () {
+                          // Redirect to Complaints Page
+                          ref.read(currentIndexProvider.notifier).state = 2; // Complaints Page index
+                        },
                         child: Container(
                           padding: EdgeInsets.all(screenWidth * 0.04),
                           decoration: BoxDecoration(

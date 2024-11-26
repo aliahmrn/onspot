@@ -60,12 +60,8 @@ class LoginNotifier extends StateNotifier<LoginState> {
       logger.i('Login successful!');
       return true;
     } catch (e) {
-      final errorMessage = e.toString() == 'Exception: Invalid login credentials.'
-          ? 'Invalid login credentials.'
-          : 'Failed to login: ${e.toString()}';
-
-      state = state.copyWith(errorMessage: errorMessage);
-      logger.e('Login failed: $errorMessage');
+      state = state.copyWith(errorMessage: 'Invalid username/email or password');
+      logger.e('Login failed: Invalid credentials');
       return false;
     } finally {
       state = state.copyWith(isLoading: false);
@@ -139,7 +135,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(15),
                   ),
-                  child: Padding(
+                  child: Container(
+                     decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.secondary, // Use secondary color
+                      borderRadius: BorderRadius.circular(15), 
+                     ),
                     padding: const EdgeInsets.all(20.0),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -148,44 +148,52 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         const SizedBox(height: 20),
                         _buildInputField('Password', _passwordController, obscureText: true),
                         const SizedBox(height: 20),
-                        ElevatedButton(
-                          onPressed: loginState.isLoading
-                              ? null
-                              : () async {
-                                  final input = _inputController.text;
-                                  final password = _passwordController.text;
+                          ElevatedButton(
+                            onPressed: loginState.isLoading
+                                ? null
+                                : () async {
+                                    final input = _inputController.text;
+                                    final password = _passwordController.text;
 
-                                  final success = await loginNotifier.login(
-                                    input: input,
-                                    password: password,
-                                  );
-
-                                  if (success && context.mounted) {
-                                    // Navigate to MainNavigator
-                                    Navigator.of(context).pushAndRemoveUntil(
-                                      MaterialPageRoute(builder: (context) => const MainNavigator()),
-                                      (route) => false,
+                                    final success = await loginNotifier.login(
+                                      input: input,
+                                      password: password,
                                     );
-                                  }
-                                },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.black,
-                            padding: const EdgeInsets.symmetric(vertical: 15),
-                            minimumSize: const Size(150, 40),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(30),
+
+                                    if (success && context.mounted) {
+                                      // Navigate to MainNavigator
+                                      Navigator.of(context).pushAndRemoveUntil(
+                                        MaterialPageRoute(builder: (context) => const MainNavigator()),
+                                        (route) => false,
+                                      );
+                                    }
+                                  },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.black,
+                              padding: const EdgeInsets.symmetric(vertical: 15),
+                              minimumSize: const Size(150, 40),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(30),
+                              ),
+                              textStyle: const TextStyle(fontSize: 16),
                             ),
-                            textStyle: const TextStyle(fontSize: 16),
+                            child: loginState.isLoading
+                                ? const CircularProgressIndicator(color: Colors.white)
+                                : Row(
+                                    mainAxisSize: MainAxisSize.min, // Centers content inside the button
+                                    children: [
+                                      const Icon(Icons.login, color: Colors.white), // Add your desired icon
+                                      const SizedBox(width: 8), // Add spacing between icon and text
+                                      const Text('Sign In', style: TextStyle(color: Colors.white)),
+                                    ],
+                                  ),
                           ),
-                          child: loginState.isLoading
-                              ? const CircularProgressIndicator(color: Colors.white)
-                              : const Text('Sign In', style: TextStyle(color: Colors.white)),
-                        ),
                         const SizedBox(height: 10),
                         if (loginState.errorMessage.isNotEmpty) ...[
                           Text(
                             loginState.errorMessage,
                             style: const TextStyle(color: Colors.red),
+                            textAlign: TextAlign.center, // Aligns text horizontally within its bounds
                           ),
                           const SizedBox(height: 10),
                         ],
@@ -201,9 +209,18 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               ),
                             );
                           },
-                          child: const Text(
-                            'Forgot password?',
-                            style: TextStyle(color: Colors.black),
+                          child: RichText(
+                            text: TextSpan(
+                              text: 'Forgot Password?',
+                              style: GoogleFonts.poppins(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.black,
+                                decoration: TextDecoration.underline, // Adds the underline
+                                decorationColor: Colors.grey, // Makes the underline grey
+                                decorationThickness: 1.5, // Adjusts thickness
+                              ),
+                            ),
                           ),
                         ),
                         TextButton(
@@ -218,9 +235,18 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               ),
                             );
                           },
-                          child: const Text(
-                            "Don't have an account? Register",
-                            style: TextStyle(color: Colors.black),
+                          child: RichText(
+                            text: TextSpan(
+                              text: "Don't have an account? Register",
+                              style: GoogleFonts.poppins(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.black,
+                                decoration: TextDecoration.underline, // Adds the underline
+                                decorationColor: Colors.grey, // Makes the underline grey
+                                decorationThickness: 1.5, // Adjusts thickness
+                              ),
+                            ),
                           ),
                         ),
                       ],
@@ -243,36 +269,52 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     );
   }
 
-  Widget _buildInputField(String label, TextEditingController controller, {bool obscureText = false}) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-        ),
-        const SizedBox(height: 6),
-        SizedBox(
-          width: 350,
-          child: TextField(
-            controller: controller,
-            obscureText: obscureText,
-            decoration: InputDecoration(
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(30),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(30),
-                borderSide: const BorderSide(color: Colors.grey),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(30),
-                borderSide: const BorderSide(color: Colors.black),
-              ),
+Widget _buildInputField(String label, TextEditingController controller, {bool obscureText = false}) {
+  IconData? getIcon(String label) {
+    switch (label) {
+      case 'Username or Email':
+        return Icons.person; // Icon for username or email
+      case 'Password':
+        return Icons.lock; // Icon for password
+      default:
+        return null;
+    }
+  }
+
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Text(
+        label,
+        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+      ),
+      const SizedBox(height: 6),
+      SizedBox(
+        width: 350,
+        child: TextField(
+          controller: controller,
+          obscureText: obscureText,
+          decoration: InputDecoration(
+            prefixIcon: getIcon(label) != null ? Icon(getIcon(label), color: Colors.grey) : null,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(30),
             ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(30),
+              borderSide: const BorderSide(color: Colors.grey),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(30),
+              borderSide: const BorderSide(color: Colors.black),
+            ),
+            filled: true, // Enables the background color
+            fillColor: Colors.white, // Sets the background color to white
+            hintText: 'Enter $label',
+            hintStyle: const TextStyle(color: Colors.grey), // Soft grey for hint text
           ),
         ),
-      ],
-    );
-  }
+      ),
+    ],
+  );
+}
 }

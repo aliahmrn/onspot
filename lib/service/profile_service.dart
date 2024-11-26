@@ -26,29 +26,34 @@ class ProfileService {
     }
   }
 
-  Future<void> updateProfile(String token, Map<String, String> updatedData, String? profilePicturePath) async {
-    var request = http.MultipartRequest(
-      'POST',
-      Uri.parse('$baseUrl/profile?_method=PUT'),
+Future<void> updateProfile(String token, Map<String, String> updatedData) async {
+  final uri = Uri.parse('$baseUrl/profile?_method=PUT');
+  final headers = {
+    'Authorization': 'Bearer $token',
+    'Content-Type': 'application/x-www-form-urlencoded',
+  };
+
+  // Log the token and the data being sent
+  _logger.i('Token being sent: $token');
+  _logger.i('Updated Data being sent: $updatedData');
+
+  try {
+    final response = await http.post(
+      uri,
+      headers: headers,
+      body: updatedData,
     );
-    request.headers['Authorization'] = 'Bearer $token';
 
-    updatedData.forEach((key, value) {
-      request.fields[key] = value;
-    });
-
-    if (profilePicturePath != null && profilePicturePath.isNotEmpty) {
-      request.files.add(await http.MultipartFile.fromPath('profile_pic', profilePicturePath));
-    }
-
-    final streamedResponse = await request.send();
-    final responseData = await streamedResponse.stream.bytesToString();
-
-    if (streamedResponse.statusCode == 200) {
-      _logger.i('Profile updated successfully: $responseData');
+    if (response.statusCode == 200) {
+      _logger.i('Profile updated successfully: ${response.body}');
     } else {
-      _logger.e('Failed to update profile: $responseData');
-      throw Exception('Failed to update profile: $responseData');
+      _logger.e('Error response: ${response.body}');
+      throw Exception('Failed to update profile: ${response.body}');
     }
+  } catch (e) {
+    _logger.e('Exception occurred: $e');
+    rethrow; // Rethrow the error for further handling
   }
+}
+
 }

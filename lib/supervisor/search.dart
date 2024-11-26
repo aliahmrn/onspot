@@ -158,8 +158,13 @@ class _SearchPageState extends ConsumerState<SearchPage> {
               ),
               child: cleanersState.isEmpty
                   ? Center(
-                      child: CircularProgressIndicator(
-                        color: primaryColor, // Primary color for loading indicator
+                      child: Text(
+                        'No cleaners found.',
+                        style: TextStyle(
+                          color: primaryColor,
+                          fontWeight: FontWeight.bold,
+                          fontSize: screenWidth * 0.045,
+                        ),
                       ),
                     )
                   : ListView.builder(

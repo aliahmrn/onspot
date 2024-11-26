@@ -146,7 +146,7 @@ class AssignTaskPage extends ConsumerWidget {
                               isAssignButtonEnabled
                                   ? 'Assign Complaint' // Show default text if enabled
                                   : 'No Cleaner Available', // Show alternative text if disabled
-                              style: const TextStyle(color: Colors.grey),
+                              style: const TextStyle(color: Colors.white),
                             ),
                     ),
                   ),

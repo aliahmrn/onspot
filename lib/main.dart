@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'login.dart';
-// Intentional import for post-login navigation
-// ignore: unused_import
 import 'supervisor/main_navigator.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -36,7 +34,11 @@ class OnspotSupervisorApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: const LoginScreen(), // Default screen is the LoginScreen
+      initialRoute: '/login', // Set initial route
+      routes: {
+        '/login': (context) => const LoginScreen(),
+        '/main-navigator': (context) => const MainNavigator(), // Register the MainNavigator route
+      },
       theme: ThemeData(
         scaffoldBackgroundColor: Colors.white, // Background color
         primaryColor: const Color(0xFF2E5675), // Primary color
