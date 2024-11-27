@@ -1,52 +1,103 @@
 import 'package:flutter/material.dart';
-import 'navbar.dart'; // Import reusable CleanerBottomNavBar
-
-const Color appBarColor = Color(0xFFFEF7FF); // Set AppBar color to #fef7ff
 
 class CleanerNotificationsScreen extends StatelessWidget {
   const CleanerNotificationsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+    final primaryColor = Theme.of(context).colorScheme.primary; // Fetch primary color
+
     return Scaffold(
+      backgroundColor: primaryColor, // Set the same background as tasks screen
       appBar: AppBar(
-        backgroundColor: appBarColor, // Change to specified color
+        backgroundColor: primaryColor, // Use primary color for the AppBar
         elevation: 0, // Remove shadow
         automaticallyImplyLeading: false, // Ensure no back button or space
-        title: const Text(
+        title: Text(
           'Notifications',
           style: TextStyle(
-            color: Colors.black,
-            fontSize: 20, // Same size as "Home" on the homescreen
+            color: Colors.white, // Text color for better contrast on primary color
+            fontSize: screenWidth * 0.05, // Dynamic font size
             fontWeight: FontWeight.bold,
           ),
         ),
         centerTitle: true, // Center the title
       ),
-      body: ListView(
-        padding: const EdgeInsets.all(16.0),
+      body: Stack(
         children: [
-          _buildNotificationCard('Task Completed', 'Task at Location', '9:41 AM'),
-          const SizedBox(height: 8),
-          _buildNotificationCard('Task Assigned', 'Task at Location', '9:41 AM'),
-          const SizedBox(height: 8),
-          _buildNotificationCard('Task Completed', 'Task at Location', '9:41 AM'),
+          // Primary background color
+          Container(color: primaryColor),
+          // Rounded background container
+          Positioned(
+            top: screenHeight * 0.01,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: Container(
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.secondary, // Match the secondary color
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(screenWidth * 0.06),
+                  topRight: Radius.circular(screenWidth * 0.06),
+                ),
+              ),
+              padding: EdgeInsets.all(screenWidth * 0.04), // Adjust padding based on screen width
+              child: ListView(
+                children: [
+                  _buildNotificationCard(
+                    context,
+                    screenWidth,
+                    screenHeight,
+                    'Task Completed',
+                    'Task at Location',
+                    '9:41 AM',
+                  ),
+                  SizedBox(height: screenHeight * 0.01),
+                  _buildNotificationCard(
+                    context,
+                    screenWidth,
+                    screenHeight,
+                    'Task Assigned',
+                    'Task at Location',
+                    '10:15 AM',
+                  ),
+                  SizedBox(height: screenHeight * 0.01),
+                  _buildNotificationCard(
+                    context,
+                    screenWidth,
+                    screenHeight,
+                    'Task Completed',
+                    'Task at Location',
+                    '11:00 AM',
+                  ),
+                ],
+              ),
+            ),
+          ),
         ],
-      ),
-      // Use the reusable CleanerBottomNavBar
-      bottomNavigationBar: CleanerBottomNavBar(
-        currentIndex: 2, // Set index to 2 for "Notifications"
       ),
     );
   }
 
   // Helper function to build the notification card
-  Widget _buildNotificationCard(String title, String subtitle, String time) {
+  Widget _buildNotificationCard(
+    BuildContext context,
+    double screenWidth,
+    double screenHeight,
+    String title,
+    String subtitle,
+    String time,
+  ) {
+    final primaryColor = Theme.of(context).colorScheme.primary;
+    final onPrimaryColor = Theme.of(context).colorScheme.onPrimary;
+
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(screenWidth * 0.04), // Dynamic padding
       decoration: BoxDecoration(
-        color: Color(0xFF92AEB9), // Color similar to the image
-        borderRadius: BorderRadius.circular(12),
+        color: primaryColor, // Use primary color for the card
+        borderRadius: BorderRadius.circular(screenWidth * 0.03), // Dynamic border radius
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -54,28 +105,32 @@ class CleanerNotificationsScreen extends StatelessWidget {
           Row(
             children: [
               CircleAvatar(
-                radius: 20,
-                backgroundColor: Colors.grey.shade300, // Placeholder avatar color
-                child: const Icon(Icons.task_alt, color: Colors.white), // Placeholder icon
+                radius: screenWidth * 0.05, // Dynamic avatar size
+                backgroundColor: onPrimaryColor.withOpacity(0.2), // Light contrast color
+                child: Icon(
+                  Icons.task_alt,
+                  color: onPrimaryColor,
+                  size: screenWidth * 0.05, // Dynamic icon size
+                ),
               ),
-              const SizedBox(width: 12),
+              SizedBox(width: screenWidth * 0.03),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     title,
-                    style: const TextStyle(
-                      fontSize: 16, // Adjusted font size
+                    style: TextStyle(
+                      fontSize: screenWidth * 0.045, // Dynamic font size
                       fontWeight: FontWeight.bold,
-                      color: Colors.black87,
+                      color: onPrimaryColor, // Text color matches contrast
                     ),
                   ),
-                  const SizedBox(height: 4),
+                  SizedBox(height: screenHeight * 0.005),
                   Text(
                     subtitle,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      color: Colors.black54,
+                    style: TextStyle(
+                      fontSize: screenWidth * 0.035, // Slightly smaller font size
+                      color: onPrimaryColor.withOpacity(0.8), // Slightly dimmer text
                     ),
                   ),
                 ],
@@ -84,19 +139,13 @@ class CleanerNotificationsScreen extends StatelessWidget {
           ),
           Text(
             time,
-            style: const TextStyle(
-              fontSize: 14,
-              color: Colors.black54,
+            style: TextStyle(
+              fontSize: screenWidth * 0.035, // Dynamic font size
+              color: onPrimaryColor.withOpacity(0.8),
             ),
           ),
         ],
       ),
     );
   }
-}
-
-void main() {
-  runApp(const MaterialApp(
-    home: CleanerNotificationsScreen(),
-  ));
 }

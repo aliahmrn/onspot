@@ -1,197 +1,364 @@
 import 'package:flutter/material.dart';
-import '../service/auth_service.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../providers/profile_provider.dart';
 import 'profile_edit.dart';
-import 'navbar.dart';
+import '../utils/shared_preferences_manager.dart'; 
+import '../providers/navigation_provider.dart'; // For currentIndexProvider
+import '../providers/attendance_provider.dart'; // For attendanceProvider
+import '../login.dart'; // Ensure this file defines `LoginScreen`
+import '../providers/auth_provider.dart';
 
-class CleanerProfileScreen extends StatelessWidget {
+
+
+class CleanerProfileScreen extends ConsumerWidget {
   const CleanerProfileScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final primaryColor = Theme.of(context).colorScheme.primary;
     final secondaryColor = Theme.of(context).colorScheme.secondary;
+    final onPrimaryColor = Theme.of(context).colorScheme.onPrimary;
     final screenWidth = MediaQuery.of(context).size.width;
+
+    // Watch the profileProvider
+    final profileAsyncValue = ref.watch(profileProvider);
 
     return Scaffold(
       backgroundColor: primaryColor,
-      body: Stack(
-        children: [
-          // Profile Section (moved up)
-          Positioned(
-            top: 20, // Move profile section closer to the top
-            left: 0,
-            right: 0,
-            height: 180, // Reduced height for a tighter profile section
-            child: Container(
-              decoration: BoxDecoration(
-                color: primaryColor,
-                borderRadius: const BorderRadius.only(
-                  bottomLeft: Radius.circular(40),
-                  bottomRight: Radius.circular(40),
-                ),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                child: Column(
-                  children: [
-                    const SizedBox(height: 20), // Adjust this height to move the Row down
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        CircleAvatar(
-                          radius: 50,
-                          backgroundColor: Colors.white,
-                          child: Icon(
-                            Icons.person,
-                            size: 50,
-                            color: Colors.grey[600],
-                          ),
-                        ),
-                        const SizedBox(width: 20),
-                        Column(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: const [
-                            
-                            Text(
-                              'Cleaner Name',
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
-                            ),
-                            Text(
-                              'cleaner.username',
-                              style: TextStyle(color: Colors.white70),
-                            ),
-                          ],
-                        ),
-                      ],
+      appBar: AppBar(
+        automaticallyImplyLeading: false,
+        backgroundColor: primaryColor,
+        elevation: 0,
+        centerTitle: true,
+        title: Text(
+          'Profile',
+          style: TextStyle(
+            color: onPrimaryColor,
+            fontSize: screenWidth * 0.05,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
+      body: profileAsyncValue.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (error, stackTrace) => Center(
+          child: Text(
+            'Error loading profile: $error',
+            style: const TextStyle(color: Colors.red),
+          ),
+        ),
+        data: (cleanerInfo) => _buildProfileContent(
+          context,
+          ref,
+          cleanerInfo,
+          primaryColor,
+          secondaryColor,
+          onPrimaryColor,
+          screenWidth,
+        ),
+      ),
+    );
+  }
+  
+Widget _buildProfileContent(
+  BuildContext context,
+  WidgetRef ref,
+  Map<String, dynamic> cleanerInfo,
+  Color primaryColor,
+  Color secondaryColor,
+  Color onPrimaryColor,
+  double screenWidth,
+) {
+  return LayoutBuilder(
+    builder: (context, constraints) {
+      // Ensures Stack has bounded constraints
+      return SingleChildScrollView(
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            minHeight: constraints.maxHeight, // Ensures the Stack fills available height
+          ),
+          child: IntrinsicHeight( // Allows Stack to take intrinsic height of its children
+            child: Stack(
+              children: [
+                Positioned(
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  height: 180,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: primaryColor,
+                      borderRadius: const BorderRadius.only(
+                        bottomLeft: Radius.circular(40),
+                        bottomRight: Radius.circular(40),
+                      ),
                     ),
-                  ],
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      child: Column(
+                        children: [
+                          const SizedBox(height: 20),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Container(
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  border: Border.all(color: Colors.grey.shade300, width: 2),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withOpacity(0.1),
+                                      blurRadius: 5,
+                                      offset: const Offset(0, 2),
+                                    ),
+                                  ],
+                                ),
+                                child: CircleAvatar(
+                                  radius: 50,
+                                  backgroundColor: Colors.white,
+                                  backgroundImage: cleanerInfo['profile_pic'] != null
+                                      ? NetworkImage(cleanerInfo['profile_pic'])
+                                      : null,
+                                  child: cleanerInfo['profile_pic'] == null
+                                      ? Icon(Icons.person, size: 50, color: Colors.grey[600])
+                                      : null,
+                                ),
+                              ),
+                              const SizedBox(width: 20),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    cleanerInfo['name'] ?? 'Supervisor Name',
+                                    style: const TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                  Text(
+                                    cleanerInfo['username'] ?? 'supervisor.username',
+                                    style: const TextStyle(color: Colors.white70),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                 ),
-              ),
+                Positioned(
+                  top: 160,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 20.0),
+                    decoration: BoxDecoration(
+                      color: secondaryColor,
+                      borderRadius: const BorderRadius.only(
+                        topLeft: Radius.circular(40),
+                        topRight: Radius.circular(40),
+                      ),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        const SizedBox(height: 40),
+                        _buildTextField(
+                          context,
+                          'Email',
+                          cleanerInfo['email'] ?? '',
+                          Icons.email, // Add icon for the email field
+                        ),
+                        const SizedBox(height: 20),
+                        _buildTextField(
+                          context,
+                          'Phone Number',
+                          cleanerInfo['phone_no'] ?? '',
+                          Icons.phone, // Add icon for the phone number field
+                        ),
+                        const SizedBox(height: 30),
+                        _buildButtonSection(context, ref, primaryColor, secondaryColor),
+                      ],
 
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
-          // Secondary Container (moved up)
-          Positioned(
-            top: 160, // Positioned closer to the profile section
-            left: 0,
-            right: 0,
-            bottom: 0, // Extends to the bottom of the screen
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 20.0),
-              decoration: BoxDecoration(
-                color: secondaryColor,
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(40),
-                  topRight: Radius.circular(40),
-                ),
-              ),
+        ),
+      );
+    },
+  );
+}
+
+Widget _buildTextField(BuildContext context, String label, String value, IconData icon) {
+  return Padding(
+    padding: const EdgeInsets.symmetric(vertical: 10),
+    child: Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey.shade400),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 5,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(12.0),
+        child: Row(
+          children: [
+            Icon(icon, color: Theme.of(context).colorScheme.primary, size: 24),
+            const SizedBox(width: 10),
+            Expanded(
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const SizedBox(height: 40), // Adjusted spacing from the top
-                  _buildTextField('Email', 'cleaner@gmail.com', screenWidth),
-                  const SizedBox(height: 20),
-                  _buildTextField('Phone Number', '0987654321', screenWidth),
-                  const SizedBox(height: 30),
-                  _buildButtonSection(context),
+                  Text(
+                    label,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 5),
+                  Text(
+                    value,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      color: Colors.black,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
                 ],
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
-      bottomNavigationBar: CleanerBottomNavBar(currentIndex: 3),
-    );
-  }
+    ),
+  );
+}
 
-  Widget _buildTextField(String label, String value, double screenWidth) {
-    return Center(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            label,
-            style: const TextStyle(
-              fontSize: 16,
-              color: Colors.black,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          const SizedBox(height: 5),
-          Container(
-            width: screenWidth * 0.9,
-            padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 12),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.grey),
-            ),
-            child: Text(
-              value,
-              style: const TextStyle(fontSize: 16, color: Colors.black),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
-  Widget _buildButtonSection(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        ElevatedButton.icon(
+Widget _buildButtonSection(BuildContext context,WidgetRef ref, Color primaryColor, Color secondaryColor) {
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.center,
+    children: [
+      SizedBox(
+        width: 200, // Set a fixed width for both buttons
+        child: ElevatedButton.icon(
           onPressed: () {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => CleanerProfileEditScreen()),
+              PageRouteBuilder(
+                pageBuilder: (context, animation, secondaryAnimation) => const CleanerProfileEditScreen(),
+                transitionDuration: Duration.zero,
+                reverseTransitionDuration: Duration.zero,
+              ),
             );
           },
-          icon: const Icon(Icons.edit, color: Colors.black),
+          icon: const Icon(Icons.edit, size: 18), // Slightly smaller icon
           label: const Text(
             'Edit Information',
-            style: TextStyle(color: Colors.black),
+            style: TextStyle(fontSize: 16), // Adjusted font size
           ),
           style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFFFEF7FF),
-            side: const BorderSide(color: Colors.black),
+            backgroundColor: primaryColor,
+            foregroundColor: secondaryColor,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
             ),
-            minimumSize: const Size(250, 50),
+            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20), // Adjusted padding
           ),
         ),
-        const SizedBox(height: 10),
-        ElevatedButton(
+      ),
+      const SizedBox(height: 12), // Space between the buttons
+      SizedBox(
+        width: 200, // Set the same fixed width for both buttons
+        child: ElevatedButton.icon(
           onPressed: () {
-            _logout(context);
+            _confirmLogout(context, ref);
+            
           },
+          icon: const Icon(Icons.logout, size: 18), // Logout icon
+          label: const Text(
+            'Logout',
+            style: TextStyle(fontSize: 16), // Adjusted font size
+          ),
           style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFFFEF7FF),
-            side: const BorderSide(color: Colors.black),
+            backgroundColor: primaryColor,
+            foregroundColor: secondaryColor,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
             ),
-            minimumSize: const Size(250, 50),
-          ),
-          child: const Text(
-            'Logout',
-            style: TextStyle(color: Colors.black),
+            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20), // Adjusted padding
           ),
         ),
-      ],
+      ),
+    ],
+  );
+}
+
+  void _confirmLogout(BuildContext context, WidgetRef ref) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Logout'),
+          content: const Text('Are you sure you want to log out?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                logout(context, ref);
+              },
+              child: const Text('Logout'),
+            ),
+          ],
+        );
+      },
     );
   }
 
-  void _logout(BuildContext context) async {
-    final AuthService authService = AuthService();
-    await authService.logout();
-    Navigator.pushReplacementNamed(context, '/');
+  void logout(BuildContext context, WidgetRef ref) async {
+    try {
+      final authService = ref.read(authServiceProvider); // Get AuthService instance
+      await authService.logout(); // Call logout logic from AuthService
+
+      // Clear SharedPreferences
+      SharedPreferencesManager.prefs.clear();
+
+      // Reset providers
+      ref.read(authTokenProvider.notifier).state = ''; // Reset auth token
+      ref.invalidate(profileProvider); // Invalidate profile
+      ref.invalidate(attendanceProvider); // Invalidate attendance provider
+      ref.read(currentIndexProvider.notifier).state = 0; // Reset navigation index to home page
+
+      // Navigate to login screen
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (context) => const LoginScreen()),
+        (route) => false,
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Logout failed: $e')),
+      );
+    }
   }
+
 }
+

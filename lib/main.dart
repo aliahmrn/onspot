@@ -1,13 +1,52 @@
 import 'package:flutter/material.dart';
-import 'login.dart';
-import 'cleaner/homescreen.dart'; // Import the cleaner home screen
 import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'login.dart';
+import 'cleaner/main_navigator.dart'; // Import the main navigator
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'service/attendance_service.dart'; // Import your attendance service
+import 'utils/shared_preferences_manager.dart'; // Import SharedPreferencesManager
+
+/// Define the AttendanceService provider
+final attendanceServiceProvider = FutureProvider<AttendanceService?>((ref) async {
+  final baseUrl = 'http://192.168.1.105:8000/api';
+  final authToken = ref.watch(authTokenProvider); // Access the token directly
+
+  if (authToken.isNotEmpty) {
+    print('Creating AttendanceService with token: $authToken'); // Debug log
+    return AttendanceService(baseUrl, authToken);
+  } else {
+    print('Token is empty. Returning null for AttendanceService'); // Debug log
+    return null;
+  }
+});
+
+
+final authTokenProvider = StateProvider<String>((ref) {
+  return SharedPreferencesManager.prefs.getString('token') ?? ''; // Default to an empty string
+});
+
+
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize Firebase
   await Firebase.initializeApp();
-  runApp(OnspotCleanerApp());
+
+  // Initialize SharedPreferences
+  await SharedPreferencesManager.init();
+
+  // Subscribe to cleaner notifications topic
+  FirebaseMessaging.instance.subscribeToTopic('cleaners');
+
+  // Wrap the app with ProviderScope and run it
+  runApp(
+    const ProviderScope(
+      child: OnspotCleanerApp(),
+    ),
+  );
 }
 
 class OnspotCleanerApp extends StatelessWidget {
@@ -15,17 +54,18 @@ class OnspotCleanerApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final token = SharedPreferencesManager.prefs.getString('token') ?? '';
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      initialRoute: '/',
+       initialRoute: token.isNotEmpty ? '/cleaner-home' : '/',
       routes: {
-        '/': (context) => LoginScreen(), // Set the initial route to the login screen
-        '/cleaner-home': (context) => CleanerHomeScreen(), // Protect the Cleaner home route
+        '/': (context) => const LoginScreen(),
+        '/cleaner-home': (context) => const MainNavigator(), // Protected main navigation
       },
       theme: ThemeData(
         scaffoldBackgroundColor: Colors.white, // Background color
-        primaryColor: Color(0xFF2E5675), // Primary color (AppBar, Buttons, etc.)
-        colorScheme: ColorScheme(
+        primaryColor: const Color(0xFF2E5675), // Primary color (AppBar, Buttons, etc.)
+        colorScheme: const ColorScheme(
           primary: Color(0xFF2E5675), // Card and button backgrounds
           secondary: Colors.white, // AppBar, Navbar background
           tertiary: Color.fromARGB(255, 183, 211, 233), // Accent color for less prominent elements

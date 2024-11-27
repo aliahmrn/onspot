@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:onspot_cleaner/widget/cleanicons.dart'; // Import custom icons
+import 'package:intl/intl.dart';
 
 class TaskDetailsPage extends StatefulWidget {
   final int complaintId;
@@ -43,7 +44,6 @@ class TaskDetailsPageState extends State<TaskDetailsPage> {
     final onPrimaryColor = Theme.of(context).colorScheme.onPrimary;
     final secondaryColor = Theme.of(context).colorScheme.secondary;
     final onSecondaryColor = Theme.of(context).colorScheme.onSecondary;
-    final tertiaryColor = Theme.of(context).colorScheme.tertiary;
 
     return Scaffold(
       backgroundColor: primaryColor,
@@ -97,22 +97,20 @@ class TaskDetailsPageState extends State<TaskDetailsPage> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
-                                'Image',
-                                style: TextStyle(
-                                  fontSize: screenWidth * 0.06,
-                                  fontWeight: FontWeight.bold,
-                                  color: onSecondaryColor,
-                                ),
-                              ),
                               SizedBox(height: screenHeight * 0.02),
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
                                   Row(
                                     children: [
+                                      Icon(
+                                        Icons.location_on, // Location icon
+                                        color: onSecondaryColor,
+                                        size: screenWidth * 0.05, // Adjust size based on screen
+                                      ),
+                                      SizedBox(width: screenWidth * 0.025),
                                       Text(
-                                        'Location',
+                                        'Location:',
                                         style: TextStyle(
                                           fontSize: screenWidth * 0.04,
                                           fontWeight: FontWeight.bold,
@@ -131,8 +129,14 @@ class TaskDetailsPageState extends State<TaskDetailsPage> {
                                   ),
                                   Row(
                                     children: [
+                                      Icon(
+                                        Icons.calendar_today, // Date icon
+                                        color: onSecondaryColor,
+                                        size: screenWidth * 0.05, // Adjust size based on screen
+                                      ),
+                                      SizedBox(width: screenWidth * 0.025),
                                       Text(
-                                        'Date',
+                                        'Date:',
                                         style: TextStyle(
                                           fontSize: screenWidth * 0.04,
                                           fontWeight: FontWeight.bold,
@@ -141,7 +145,7 @@ class TaskDetailsPageState extends State<TaskDetailsPage> {
                                       ),
                                       SizedBox(width: screenWidth * 0.025),
                                       Text(
-                                        widget.date,
+                                        _formatDate(widget.date), // Format the date
                                         style: TextStyle(
                                           fontSize: screenWidth * 0.04,
                                           color: onSecondaryColor,
@@ -168,7 +172,7 @@ class TaskDetailsPageState extends State<TaskDetailsPage> {
                                 begin: Alignment.topCenter,
                                 end: Alignment.bottomCenter,
                                 colors: [
-                                  tertiaryColor,
+                                  primaryColor,
                                   secondaryColor,
                                 ],
                               ),
@@ -220,12 +224,23 @@ class TaskDetailsPageState extends State<TaskDetailsPage> {
                           ),
                         ),
                         Positioned(
-                          top: screenHeight * 0.48,  // Adjusted to be closer to the image container
+                          top: screenHeight * 0.48, // Adjusted to be closer to the image container
                           left: screenWidth * 0.075,
                           right: screenWidth * 0.075,
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
+                              // Add "Description" heading
+                              Text(
+                                '  Description',
+                                style: TextStyle(
+                                  fontSize: screenWidth * 0.045, // Slightly larger font for the heading
+                                  fontWeight: FontWeight.bold,
+                                  color: onSecondaryColor, // Matches the secondary text color
+                                ),
+                              ),
+                              SizedBox(height: screenHeight * 0.01), // Spacing between heading and box
+
                               Center(
                                 child: Container(
                                   width: screenWidth * 0.8,
@@ -250,11 +265,13 @@ class TaskDetailsPageState extends State<TaskDetailsPage> {
                                   ),
                                 ),
                               ),
-                              SizedBox(height: screenHeight * 0.02),  // Adjusted for closer spacing
+                              SizedBox(height: screenHeight * 0.02), // Adjusted for closer spacing
+
+                              // Task included section remains as it is
                               Text(
-                                'Task included',
+                                '  Task included',
                                 style: TextStyle(
-                                  fontSize: screenWidth * 0.04,
+                                  fontSize: screenWidth * 0.045,
                                   fontWeight: FontWeight.bold,
                                   color: onSecondaryColor,
                                 ),
@@ -318,5 +335,15 @@ class TaskDetailsPageState extends State<TaskDetailsPage> {
         ],
       ),
     );
+  }
+
+    String _formatDate(String? rawDate) {
+    if (rawDate == null) return 'N/A';
+    try {
+      final parsedDate = DateTime.parse(rawDate); // Parse raw date string
+      return DateFormat('dd/MM/yyyy').format(parsedDate); // Format to DD/MM/YYYY
+    } catch (e) {
+      return 'Invalid Date'; // Fallback in case of error
+    }
   }
 }
