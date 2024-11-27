@@ -1,49 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:logger/logger.dart';
-import 'package:onspot_cleaner/service/task_service.dart'; // Import TaskService for API calls
-import 'task_details.dart';
-import 'package:onspot_cleaner/widget/cleanericons.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import '../providers/task_provider.dart';
+import 'task_details.dart';
+import '../widget/cleanericons.dart';
 
-class CleanerTasksScreen extends StatefulWidget {
+class CleanerTasksScreen extends ConsumerWidget {
   const CleanerTasksScreen({super.key});
 
   @override
-  CleanerTasksScreenState createState() => CleanerTasksScreenState();
-}
-
-class CleanerTasksScreenState extends State<CleanerTasksScreen> {
-  final Logger logger = Logger();
-  final TaskService taskService = TaskService();
-
-  late Future<List<Map<String, dynamic>>?> futureTasks;
-
-  @override
-  void initState() {
-    super.initState();
-    futureTasks = _fetchAndSortTasks(); // Fetch and sort tasks
-  }
-
-  Future<List<Map<String, dynamic>>?> _fetchAndSortTasks() async {
-    try {
-      final tasks = await taskService.getCleanerTasks(69); // Replace 69 with the actual cleaner ID
-      if (tasks != null) {
-        // Sort tasks by date in descending order
-        tasks.sort((a, b) {
-          final dateA = DateTime.tryParse(a['comp_date'] ?? '') ?? DateTime(0);
-          final dateB = DateTime.tryParse(b['comp_date'] ?? '') ?? DateTime(0);
-          return dateB.compareTo(dateA); // Newer dates first
-        });
-      }
-      return tasks;
-    } catch (e) {
-      logger.e('Error fetching or sorting tasks: $e');
-      return null;
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final tasksAsyncValue = ref.watch(taskProvider);
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
     final primaryColor = Theme.of(context).colorScheme.primary;
@@ -83,78 +50,57 @@ class CleanerTasksScreenState extends State<CleanerTasksScreen> {
                 ),
               ),
               padding: EdgeInsets.all(screenWidth * 0.04),
-              child: FutureBuilder<List<Map<String, dynamic>>?>(
-                future: futureTasks,
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator());
-                  } else if (snapshot.hasError) {
-                    logger.e('Error fetching tasks: ${snapshot.error}');
-                    return const Center(child: Text('Failed to load tasks.'));
-                  } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+              child: tasksAsyncValue.when(
+                data: (tasks) {
+                  if (tasks.isEmpty) {
                     return const Center(child: Text('No tasks available.'));
                   }
 
-                  final tasks = snapshot.data!;
-
-                  return Column(
-                    children: [
-                      const SizedBox(height: 16),
-                      Expanded(
-                        child: ListView.builder(
-                          itemCount: tasks.length,
-                          itemBuilder: (context, index) {
-                            final task = tasks[index];
-                            return Padding(
-                              padding: const EdgeInsets.only(bottom: 32.0),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    children: [
-                                      GestureDetector(
-                                        onTap: () {
-                                          // Action for ear icon
-                                        },
-                                        child: CleanerIcons.earIcon(context),
-                                      ),
-                                      const SizedBox(width: 8),
-                                      GestureDetector(
-                                        onTap: () {
-                                          // Action for thumbs-up icon
-                                        },
-                                        child: CleanerIcons.thumbsUpIcon(context),
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 8), // Space between icons and card
-                                  _buildTaskCard(
-                                    context,
-                                    task['comp_desc'] ?? 'No Description',
-                                    task['comp_location'] ?? 'No Location',
-                                    task['comp_date'] ?? 'No Date',
-                                    task['comp_image'],
-                                    task['complaint_id'],
-                                  ),
-                                ],
-                              ),
-                            );
-                          },
+                  return ListView.builder(
+                    itemCount: tasks.length,
+                    itemBuilder: (context, index) {
+                      final task = tasks[index];
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 32.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                GestureDetector(
+                                  onTap: () {
+                                    // Action for ear icon
+                                  },
+                                  child: CleanerIcons.earIcon(context),
+                                ),
+                                const SizedBox(width: 8),
+                                GestureDetector(
+                                  onTap: () {
+                                    // Action for thumbs-up icon
+                                  },
+                                  child: CleanerIcons.thumbsUpIcon(context),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 8), // Space between icons and card
+                            _buildTaskCard(
+                              context,
+                              task['comp_desc'] ?? 'No Description',
+                              task['comp_location'] ?? 'No Location',
+                              task['comp_date'] ?? 'No Date',
+                              task['comp_image'],
+                              task['complaint_id'],
+                            ),
+                          ],
                         ),
-                      ),
-                    ],
+                      );
+                    },
                   );
                 },
-              ),
-            ),
-          ),
-          Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
-            child: SafeArea(
-              child: Container(
-                color: secondaryColor,
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (error, stackTrace) {
+                  return const Center(child: Text('Failed to load tasks.'));
+                },
               ),
             ),
           ),
@@ -217,7 +163,6 @@ class CleanerTasksScreenState extends State<CleanerTasksScreen> {
           const SizedBox(width: 8),
           GestureDetector(
             onTap: () {
-              // Navigate without animation
               Navigator.push(
                 context,
                 PageRouteBuilder(
@@ -245,7 +190,6 @@ class CleanerTasksScreenState extends State<CleanerTasksScreen> {
     );
   }
 
-  // Helper function to format the date
   String _formatDate(String? rawDate) {
     if (rawDate == null) return 'N/A';
     try {

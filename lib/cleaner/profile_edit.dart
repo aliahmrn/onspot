@@ -297,7 +297,7 @@ class _SVProfileEditScreenState extends ConsumerState<CleanerProfileEditScreen> 
 
                     await notifier.saveProfile(token);
                     final _ = ref.refresh(profileProvider);
-                    ref.read(currentIndexProvider.notifier).state = 4;
+                    ref.read(currentIndexProvider.notifier).state = 3;
 
                     if (!context.mounted) return;
 
