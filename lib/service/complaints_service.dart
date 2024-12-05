@@ -59,34 +59,55 @@ class ComplaintsService {
   }
 
   Future<void> assignTask(String complaintId, Map<String, dynamic> body) async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? token = prefs.getString('token');
+    try {
+      // Retrieve credentials
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('token');
+      final supervisorIdStr = prefs.getString('supervisorId');
+      final supervisorId = int.tryParse(supervisorIdStr ?? '');
 
-    final modifiedBody = {
-      'cleaner_ids': body['cleaner_ids'],
-      'no_of_cleaners': int.tryParse(body['no_of_cleaners']?.toString() ?? '1'),
-      'assigned_by': body['assigned_by'],
-    };
+      if (token == null || token.isEmpty) {
+        throw Exception('Authentication token is missing.');
+      }
+      if (supervisorId == null) {
+        throw Exception('Supervisor ID is missing.');
+      }
 
-    _logger.i('Modified Request Body: ${jsonEncode(modifiedBody)}');
+      // Prepare request body
+      final modifiedBody = {
+        'cleaner_ids': body['cleaner_ids'],
+        'no_of_cleaners': body['no_of_cleaners'],
+        'assigned_by': supervisorId,
+      };
 
-    final response = await http.post(
-      Uri.parse('$baseUrl/supervisor/assign-task/$complaintId/assign'),
-      headers: {
-        'Authorization': 'Bearer $token',
-        'Content-Type': 'application/json',
-      },
-      body: jsonEncode(modifiedBody),
-    );
+      // Log debug info
+      _logger.i('Assign Task URL: $baseUrl/supervisor/assign-task/$complaintId/assign');
+      _logger.i('Request Body: ${jsonEncode(modifiedBody)}');
+      _logger.i('Token: $token');
+      _logger.i('Supervisor ID: $supervisorId');
 
-    _logger.i('Response Status: ${response.statusCode}');
-    _logger.i('Response Body: ${response.body}');
+      // Send the request
+      final response = await http.post(
+        Uri.parse('$baseUrl/supervisor/assign-task/$complaintId/assign'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode(modifiedBody),
+      );
 
-    if (response.statusCode != 200) {
-      _logger.e('Error assigning task: ${response.statusCode} - ${response.body}');
-      throw Exception('Failed to assign task: ${response.body}');
-    } else {
+      // Log response
+      _logger.i('Response Status: ${response.statusCode}');
+      _logger.i('Response Body: ${response.body}');
+
+      if (response.statusCode != 200) {
+        throw Exception('Failed to assign task: ${response.statusCode} - ${response.body}');
+      }
+
       _logger.i('Task assigned successfully!');
+    } catch (e, stackTrace) {
+      _logger.e('Error in assignTask: $e', stackTrace);
+      rethrow;
     }
   }
 

@@ -2,6 +2,34 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../providers/assign_task_provider.dart';
+import '../providers/navigation_provider.dart'; // For navigation state
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:logger/logger.dart';
+import 'dart:convert';
+import '../service/complaints_service.dart';
+
+// Provider to manage the complaints list
+final complaintListProvider = StateNotifierProvider<ComplaintListNotifier, List<Map<String, dynamic>>>((ref) {
+  return ComplaintListNotifier();
+});
+
+// Notifier to handle complaints list
+class ComplaintListNotifier extends StateNotifier<List<Map<String, dynamic>>> {
+  ComplaintListNotifier() : super([]);
+
+  final _complaintsService = ComplaintsService();
+
+  // Method to refresh complaints list
+  Future<void> refresh() async {
+    try {
+      final complaints = await _complaintsService.fetchComplaints();
+      state = complaints;
+    } catch (e) {
+      // Handle errors (e.g., log them or show a message)
+      state = [];
+    }
+  }
+}
 
 class AssignTaskPage extends ConsumerWidget {
   final String complaintId;
@@ -15,6 +43,48 @@ class AssignTaskPage extends ConsumerWidget {
     final primaryColor = Theme.of(context).primaryColor;
     final secondaryColor = Theme.of(context).colorScheme.secondary;
     final onPrimaryColor = Theme.of(context).colorScheme.onPrimary;
+
+    // Listen for changes in assignTaskProvider
+    ref.listen<AsyncValue<void>>(assignTaskProvider, (previous, next) {
+      next.whenOrNull(
+        data: (_) {
+          // Show success dialog with an "OK" button
+          showDialog(
+            context: context,
+            builder: (_) => AlertDialog(
+              title: const Text('Success'),
+              content: const Text('Task assigned successfully.'),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop(); // Close the dialog
+                    ref.read(complaintListProvider.notifier).refresh(); // Refresh complaints
+                    ref.read(currentIndexProvider.notifier).state = 2; // Redirect to Complaints Page
+                  },
+                  child: const Text('OK'),
+                ),
+              ],
+            ),
+          );
+        },
+        error: (error, _) {
+          // Show error dialog
+          showDialog(
+            context: context,
+            builder: (_) => AlertDialog(
+              title: const Text('Error'),
+              content: Text('Failed to assign task: $error'),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(), // Close the dialog
+                  child: const Text('OK'),
+                ),
+              ],
+            ),
+          );
+        },
+      );
+    });
 
     // Fetch complaint details using Riverpod
     final complaintDetailsAsync = ref.watch(complaintDetailsProvider(complaintId));
@@ -263,45 +333,60 @@ class AssignTaskPage extends ConsumerWidget {
     );
   }
 
-  void _assignTask(WidgetRef ref, String complaintId, List<Map<String, dynamic>> availableCleaners) async {
-    final cleanerIds = ref
-        .read(selectedCleanersProvider.notifier)
-        .state
-        .where((cleanerName) => cleanerName != null)
-        .map((cleanerName) {
-          final cleaner = availableCleaners.firstWhere(
-            (element) => element['cleaner_name'] == cleanerName,
-            orElse: () => {},
-          );
-          return cleaner['cleaner_id'];
-        })
-        .where((id) => id != null)
-        .toList();
+  void _assignTask(
+    WidgetRef ref,
+    String complaintId,
+    List<Map<String, dynamic>> availableCleaners,
+  ) async {
+    try {
+      // Get the list of cleaner user IDs from the selected cleaners
+      final cleanerIds = ref
+          .read(selectedCleanersProvider.notifier)
+          .state
+          .where((cleanerName) => cleanerName != null)
+          .map((cleanerName) {
+              final cleaner = availableCleaners.firstWhere(
+                  (element) => element['cleaner_name'] == cleanerName,
+                  orElse: () => {},
+              );
+              return cleaner['cleaner_id']; // Ensure cleaner_id (user_id) is used
+          })
+          .where((id) => id != null)
+          .toList();
 
-    final body = {
-      'cleaner_ids': cleanerIds,
-      'no_of_cleaners': int.parse(ref.read(selectedNumOfCleanersProvider.notifier).state ?? '1'),
-      'assigned_by': 'YOUR_SUPERVISOR_ID', // Replace with correct supervisor ID
-    };
 
-    await ref.read(assignTaskProvider.notifier).assignTask(complaintId, body);
-    ref.listen<AsyncValue<void>>(assignTaskProvider, (previous, next) {
-      next.whenOrNull(
-        data: (_) => showDialog(
-          context: ref.context,
-          builder: (_) => const AlertDialog(
-            title: Text('Success'),
-            content: Text('Task assigned successfully.'),
-          ),
-        ),
-        error: (error, stackTrace) => showDialog(
-          context: ref.context,
-          builder: (_) => AlertDialog(
-            title: const Text('Error'),
-            content: Text('Failed to assign task: $error'),
-          ),
-        ),
-      );
-    });
+      // Retrieve the supervisor ID from SharedPreferences
+      final prefs = await SharedPreferences.getInstance();
+      final supervisorIdStr = prefs.getString('supervisorId'); // Retrieve as string
+      final supervisorId = int.tryParse(supervisorIdStr ?? ''); // Convert to integer
+
+      // Ensure supervisor ID exists
+      if (supervisorId == null) {
+        Logger().e('Supervisor ID is missing.');
+        throw Exception('Supervisor ID is missing. Please log in again.');
+      }
+
+      Logger().i('Supervisor ID: $supervisorId');
+      Logger().i('Complaint ID: $complaintId');
+      Logger().i('Cleaner User IDs: $cleanerIds');
+
+      // Prepare the request body
+      final body = {
+        'cleaner_ids': cleanerIds,
+        'no_of_cleaners': int.parse(ref.read(selectedNumOfCleanersProvider.notifier).state ?? '1'),
+        'assigned_by': supervisorId, // Dynamically retrieved supervisor ID
+      };
+
+      Logger().i('Assign Task Request Body: ${jsonEncode(body)}');
+
+      // Call the provider's assignTask method
+      await ref.read(assignTaskProvider.notifier).assignTask(complaintId, body);
+    } catch (e) {
+      // Log the error
+      Logger().e('Error in _assignTask: $e');
+
+      // Re-throw to let it propagate or handle it with a UI dialog
+      rethrow;
+    }
   }
 }

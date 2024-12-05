@@ -37,11 +37,22 @@ class AuthService {
         final String phoneNo = data['user']['phone_no'];
 
         if (role == 'supervisor') {
+          // Save details to shared preferences
           await saveUserDetails(token, role, svId, email, username, name, phoneNo);
 
           // Fetch and save FCM token
           _logger.i('Fetching and saving FCM token...');
           await saveFcmTokenIfNeeded(token);
+
+          // Log saved details for debugging
+          final prefs = await SharedPreferences.getInstance();
+          _logger.i("Saved Token: ${prefs.getString('token')}");
+          _logger.i("Saved Role: ${prefs.getString('role')}");
+          _logger.i("Saved Supervisor ID: ${prefs.getString('supervisorId')}");
+          _logger.i("Saved Email: ${prefs.getString('email')}");
+          _logger.i("Saved Username: ${prefs.getString('username')}");
+          _logger.i("Saved Name: ${prefs.getString('name')}");
+          _logger.i("Saved Phone Number: ${prefs.getString('phoneNo')}");
         } else {
           throw Exception('Access denied: User is not a supervisor');
         }

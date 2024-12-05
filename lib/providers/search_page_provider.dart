@@ -53,17 +53,17 @@ class CleanersNotifier extends StateNotifier<List<Map<String, String>>> {
         final List<dynamic> cleaners = data['data'];
         logger.i('Number of cleaners fetched: ${cleaners.length}'); // Log cleaner count
 
-      _allCleaners = cleaners.map((cleaner) {
-        return {
-          'id': cleaner['id']?.toString() ?? '', 
-          'name': cleaner['cleaner_name']?.toString() ?? 'Unknown',
-          'status': cleaner['status']?.toString() ?? 'Unavailable',
-          'profile_pic': cleaner['profile_pic']?.toString() ?? '',
-          'phone_no': cleaner['cleaner_phoneNo']?.toString() ?? 'N/A',
-          'building': cleaner['building']?.toString() ?? 'N/A',
-        };
-      }).toList();
-
+        // Ensure we map `user_id` instead of `id`
+        _allCleaners = cleaners.map((cleaner) {
+          return {
+            'id': cleaner['user_id']?.toString() ?? '', // Use `user_id` for cleaner ID
+            'name': cleaner['cleaner_name']?.toString() ?? 'Unknown',
+            'status': cleaner['status']?.toString() ?? 'Unavailable',
+            'profile_pic': cleaner['profile_pic']?.toString() ?? '',
+            'phone_no': cleaner['cleaner_phoneNo']?.toString() ?? 'N/A',
+            'building': cleaner['building']?.toString() ?? 'N/A',
+          };
+        }).toList();
 
         state = _allCleaners; // Update the state with the fetched cleaners
         logger.i('State updated with cleaners: $state');
@@ -77,22 +77,22 @@ class CleanersNotifier extends StateNotifier<List<Map<String, String>>> {
     }
   }
 
-  void searchCleaners(String query, {String? status = 'all'}) {
-    if (query.isEmpty) {
-      // Apply only status filter if the query is empty
-      state = status == 'all'
-          ? _allCleaners
-          : _allCleaners.where((cleaner) => cleaner['status'] == status).toList();
-    } else {
-      // Apply both query and status filters
-      state = _allCleaners
-          .where((cleaner) =>
-              cleaner['name']!.toLowerCase().contains(query.toLowerCase()) &&
-              (status == 'all' || cleaner['status'] == status))
-          .toList();
+    void searchCleaners(String query, {String? status = 'all'}) {
+      if (query.isEmpty) {
+        // Apply only status filter if the query is empty
+        state = status == 'all'
+            ? _allCleaners
+            : _allCleaners.where((cleaner) => cleaner['status'] == status).toList();
+      } else {
+        // Apply both query and status filters
+        state = _allCleaners
+            .where((cleaner) =>
+                cleaner['name']!.toLowerCase().contains(query.toLowerCase()) &&
+                (status == 'all' || cleaner['status'] == status))
+            .toList();
+      }
     }
   }
-}
 
 final cleanerDetailProvider =
     FutureProvider.family<Map<String, dynamic>, String>((ref, cleanerId) async {
