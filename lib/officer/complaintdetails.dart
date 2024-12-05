@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:onspot_officer/service/complaintdetails_service.dart';
 import 'package:onspot_officer/widget/cleanicons.dart';
 import 'package:onspot_officer/widget/constants.dart';
+import '../utils/refresh_utils.dart';
 
 final complaintDetailsProvider = FutureProvider.family<Map<String, dynamic>?, int>((ref, complaintId) async {
   return await fetchComplaintDetails(complaintId);

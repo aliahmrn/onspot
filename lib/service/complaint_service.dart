@@ -3,10 +3,15 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
 import 'package:logger/logger.dart';
 import 'package:image_picker/image_picker.dart';
+import 'dart:convert'; // For JSON parsing
+import 'dart:async';
 
 class ComplaintService {
   final ImagePicker picker = ImagePicker();
-  final Logger _logger = Logger(); // Initialize logger
+  final Logger _logger = Logger();
+
+  // Base URL for API
+  static const String baseUrl = 'http://10.0.2.2:8000';
 
   // Get token from SharedPreferences
   Future<String?> getToken() async {
@@ -14,15 +19,10 @@ class ComplaintService {
     return prefs.getString('token');
   }
 
-    // Method to pick an image from the gallery or camera
- // Method to pick an image from either the gallery or the camera
+  // Method to pick an image from the gallery or camera
   Future<String?> pickImage({ImageSource source = ImageSource.gallery}) async {
     final XFile? pickedFile = await picker.pickImage(source: source);
-
-    if (pickedFile != null) {
-      return pickedFile.path; // Return the path of the selected image
-    }
-    return null; // Return null if no image is picked
+    return pickedFile?.path; // Return the path or null
   }
 
   // Method to submit a complaint API request
@@ -32,6 +32,11 @@ class ComplaintService {
     required DateTime date,
     String? imagePath,
   }) async {
+    // Validate input
+    if (description.isEmpty || location.isEmpty) {
+      throw Exception('Description and location are required.');
+    }
+
     String? token = await getToken();
 
     if (token == null) {
@@ -40,12 +45,12 @@ class ComplaintService {
 
     var request = http.MultipartRequest(
       'POST',
-      Uri.parse('http://10.0.2.2:8000/api/complaints'),
+      Uri.parse('$baseUrl/api/complaints'),
     );
     request.headers['Authorization'] = 'Bearer $token';
 
     request.fields['comp_date'] = DateFormat('yyyy-MM-dd').format(date);
-    request.fields['comp_time'] = DateFormat('HH:mm').format(DateTime.now().toUtc());
+    request.fields['comp_time'] = DateFormat('HH:mm').format(date); // Use the time from the scheduledDateTime
     request.fields['comp_desc'] = description;
     request.fields['comp_location'] = location;
 
@@ -54,31 +59,32 @@ class ComplaintService {
     }
 
     try {
-      var streamedResponse = await request.send();
+      var streamedResponse = await request.send().timeout(const Duration(seconds: 30));
       var response = await http.Response.fromStream(streamedResponse);
 
       // Log the response for debugging purposes
       _logger.i('Response: ${response.statusCode}, Body: ${response.body}');
 
-       if (response.statusCode == 200 || response.statusCode == 201){
-        // Check and parse the response body if necessary
-        final responseData = response.body;
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        // Parse and log the response
+        final responseData = jsonDecode(response.body);
         _logger.i('Complaint submitted successfully: $responseData');
-        return true; // Indicate successful submission
+        return true;
       } else if (response.statusCode == 401) {
         _logger.e('Unauthorized. Please log in again.');
         throw Exception('Unauthorized. Please log in again.');
       } else {
-        // Log unexpected status codes or responses
         _logger.e('Failed to submit complaint: ${response.body}');
-        return false; // Return false instead of throwing an exception
+        return false;
       }
     } catch (error) {
-      // Log and rethrow the error for debugging
-      _logger.e('Error occurred during complaint submission: $error');
-      rethrow; // Use rethrow to preserve the original error stack
+      if (error is TimeoutException) {
+        _logger.e('Request timed out: $error');
+        throw Exception('Request timed out. Please try again.');
+      } else {
+        _logger.e('Unexpected error: $error');
+        rethrow;
+      }
     }
   }
-
-  
 }

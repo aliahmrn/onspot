@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:onspot_officer/officer/navbar.dart';
 import '../main.dart';
 import '../service/auth_service.dart';
 import '../service/history_service.dart';
 import '../widget/bell.dart';
-
+import '../utils/refresh_utils.dart';
 // Providers for managing state
 final officerNameProvider = StateProvider<String>((ref) => 'Officer');
+final currentIndexProvider = StateProvider<int>((ref) => 0);
+final navbarVisibilityProvider = StateProvider<bool>((ref) => true);
 
 // Complaint Notifier and State
 class ComplaintState {
@@ -69,10 +70,15 @@ class OfficerHomeScreenState extends ConsumerState<OfficerHomeScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      // Fetch officer name and recent complaint
       _fetchOfficerName(ref);
       ref.read(complaintNotifierProvider.notifier).fetchRecentComplaint();
+
+      // Ensure navbar is visible when OfficerHomeScreen is active
+      ref.read(navbarVisibilityProvider.notifier).state = true;
     });
   }
+
 
   Future<void> _fetchOfficerName(WidgetRef ref) async {
     try {
@@ -88,60 +94,65 @@ class OfficerHomeScreenState extends ConsumerState<OfficerHomeScreen> {
     }
   }
   @override
-  Widget build(BuildContext context) {
-    final theme = ref.watch(themeProvider);
-    final officerName = ref.watch(officerNameProvider);
-    final complaintState = ref.watch(complaintNotifierProvider);
+Widget build(BuildContext context) {
+  final theme = ref.watch(themeProvider);
+  final officerName = ref.watch(officerNameProvider);
+  final complaintState = ref.watch(complaintNotifierProvider);
 
-    final recentComplaint = complaintState.recentComplaint;
-    final isLoadingComplaint = complaintState.isLoading;
+  final recentComplaint = complaintState.recentComplaint;
+  final isLoadingComplaint = complaintState.isLoading;
 
-    final screenWidth = MediaQuery.of(context).size.width;
-    final screenHeight = MediaQuery.of(context).size.height;
+  final screenWidth = MediaQuery.of(context).size.width;
+  final screenHeight = MediaQuery.of(context).size.height;
 
-    final primaryColor = theme.colorScheme.primary;
-    final secondaryColor = theme.colorScheme.secondary;
-    final onPrimaryColor = theme.colorScheme.onPrimary;
-    final onSecondaryColor = theme.colorScheme.onSecondary;
+  final primaryColor = theme.colorScheme.primary;
+  final secondaryColor = theme.colorScheme.secondary;
+  final onPrimaryColor = theme.colorScheme.onPrimary;
+  final onSecondaryColor = theme.colorScheme.onSecondary;
 
-    return Scaffold(
+  return Scaffold(
+    backgroundColor: primaryColor,
+    appBar: AppBar(
       backgroundColor: primaryColor,
-      appBar: AppBar(
-        backgroundColor: primaryColor,
-        elevation: 0,
-        automaticallyImplyLeading: false,
-        title: Center(
-          child: Text(
-            'Home',
-            style: TextStyle(
-              color: onPrimaryColor,
-              fontSize: screenWidth * 0.06,
-              fontWeight: FontWeight.bold,
-            ),
+      elevation: 0,
+      automaticallyImplyLeading: false,
+      title: Center(
+        child: Text(
+          'Home',
+          style: TextStyle(
+            color: onPrimaryColor,
+            fontSize: screenWidth * 0.06,
+            fontWeight: FontWeight.bold,
           ),
         ),
       ),
-      body: Stack(
-        children: [
-          Container(color: primaryColor),
-          Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            child: Container(
-              decoration: BoxDecoration(
-                color: secondaryColor,
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(screenWidth * 0.06),
-                  topRight: Radius.circular(screenWidth * 0.06),
-                ),
+    ),
+    body: Stack(
+      children: [
+        Container(color: primaryColor),
+        Positioned(
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          child: Container(
+            decoration: BoxDecoration(
+              color: secondaryColor,
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(screenWidth * 0.06),
+                topRight: Radius.circular(screenWidth * 0.06),
               ),
-              padding: EdgeInsets.symmetric(
-                horizontal: screenWidth * 0.04,
-                vertical: screenHeight * 0.02,
-              ),
+            ),
+            padding: EdgeInsets.symmetric(
+              horizontal: screenWidth * 0.04,
+              vertical: screenHeight * 0.02,
+            ),
+            child: RefreshIndicator(
+              onRefresh: () async {
+                await ref.read(complaintNotifierProvider.notifier).fetchRecentComplaint();
+              },
               child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -345,8 +356,9 @@ class OfficerHomeScreenState extends ConsumerState<OfficerHomeScreen> {
               ),
             ),
           ),
-        ],
-      ),
-    );
-  }
+        ),
+      ],
+    ),
+  );
+}
 }

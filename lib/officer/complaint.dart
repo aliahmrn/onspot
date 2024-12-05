@@ -4,6 +4,8 @@ import 'package:intl/intl.dart';
 import '../main.dart';
 import '../service/complaint_service.dart';
 import 'dart:io';
+import 'navbar.dart';
+import '../utils/refresh_utils.dart';
 
 // Providers
 final formKeyProvider = Provider((ref) => GlobalKey<FormState>());
@@ -12,56 +14,79 @@ final selectedLocationProvider = StateProvider<String?>((ref) => null);
 final selectedDateProvider = StateProvider<DateTime?>((ref) => null);
 final imagePathProvider = StateProvider<String?>((ref) => null);
 final loadingProvider = StateProvider<bool>((ref) => false);
+final selectedTimeProvider = StateProvider<TimeOfDay?>((ref) => null);
+
 
 class FileComplaintPage extends ConsumerWidget {
   const FileComplaintPage({super.key});
 
-  Future<void> _submitComplaint(WidgetRef ref) async {
-    final formKey = ref.read(formKeyProvider);
-    final navigatorKey = ref.read(navigatorKeyProvider);
+  Future<void> _submitComplaint(BuildContext context, WidgetRef ref) async {
+  final formKey = ref.read(formKeyProvider);
+  final selectedDate = ref.read(selectedDateProvider);
+  final selectedTime = ref.read(selectedTimeProvider);
 
-    if (formKey.currentState!.validate()) {
-      final selectedDate = ref.read(selectedDateProvider);
-      final selectedLocation = ref.read(selectedLocationProvider);
-      final descriptionController = ref.read(descriptionControllerProvider);
-      final imagePath = ref.read(imagePathProvider);
+  if (formKey.currentState!.validate()) {
+    if (selectedTime == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please select a time for the complaint')),
+      );
+      return;
+    }
 
-      if (selectedDate == null || selectedLocation == null) {
-        ScaffoldMessenger.of(navigatorKey.currentContext!).showSnackBar(
-          const SnackBar(content: Text('Please select a date and location')),
-        );
-        return;
-      }
+    if (selectedDate == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please select a date for the complaint')),
+      );
+      return;
+    }
 
+    final scheduledDateTime = DateTime(
+      selectedDate.year,
+      selectedDate.month,
+      selectedDate.day,
+      selectedTime.hour,
+      selectedTime.minute,
+    );
+
+    // Delay state update
+    Future(() {
       ref.read(loadingProvider.notifier).state = true;
+    });
 
-      try {
-        final success = await ComplaintService().submitComplaint(
-          description: descriptionController.text,
-          location: selectedLocation,
-          date: selectedDate,
-          imagePath: imagePath,
-        );
+    try {
+      final success = await ComplaintService().submitComplaint(
+        description: ref.read(descriptionControllerProvider).text,
+        location: ref.read(selectedLocationProvider) ?? '',
+        date: scheduledDateTime,
+        imagePath: ref.read(imagePathProvider),
+      );
 
-        if (success) {
-          ScaffoldMessenger.of(navigatorKey.currentContext!).showSnackBar(
-            const SnackBar(content: Text('Complaint added successfully')),
-          );
-          navigatorKey.currentState?.pushReplacementNamed('/officer-home');
-        } else {
-          ScaffoldMessenger.of(navigatorKey.currentContext!).showSnackBar(
-            const SnackBar(content: Text('Failed to submit complaint. Try again.')),
-          );
-        }
-      } catch (e) {
-        ScaffoldMessenger.of(navigatorKey.currentContext!).showSnackBar(
-          SnackBar(content: Text('Error: ${e.toString()}')),
+      if (success) {
+        Future(() {
+          ref.read(currentIndexProvider.notifier).state = 0;
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Complaint submitted successfully')),
         );
-      } finally {
-        ref.read(loadingProvider.notifier).state = false;
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to submit complaint.')),
+        );
       }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: ${e.toString()}')),
+      );
+    } finally {
+      Future(() {
+        ref.read(loadingProvider.notifier).state = false;
+      });
     }
   }
+}
+
+
 
   Future<void> _pickImage(WidgetRef ref) async {
     final selectedImagePath = await ComplaintService().pickImage();
@@ -69,17 +94,40 @@ class FileComplaintPage extends ConsumerWidget {
   }
 
   Future<void> _selectDate(WidgetRef ref) async {
-    final navigatorKey = ref.read(navigatorKeyProvider);
-    final pickedDate = await showDatePicker(
-      context: navigatorKey.currentContext!,
-      initialDate: ref.read(selectedDateProvider) ?? DateTime.now(),
-      firstDate: DateTime(2000),
-      lastDate: DateTime(2100),
-    );
-    if (pickedDate != null) {
+  final navigatorKey = ref.read(navigatorKeyProvider);
+  final pickedDate = await showDatePicker(
+    context: navigatorKey.currentContext!,
+    initialDate: ref.read(selectedDateProvider) ?? DateTime.now(),
+    firstDate: DateTime(2000),
+    lastDate: DateTime(2100),
+  );
+
+  if (pickedDate != null) {
+    // Delay state update
+    Future(() {
       ref.read(selectedDateProvider.notifier).state = pickedDate;
-    }
+    });
   }
+}
+
+Future<void> _selectTime(WidgetRef ref) async {
+  final navigatorKey = ref.read(navigatorKeyProvider);
+  final pickedTime = await showTimePicker(
+    context: navigatorKey.currentContext!,
+    initialTime: ref.read(selectedTimeProvider) ?? TimeOfDay.now(),
+  );
+
+  if (pickedTime != null) {
+    // Delay state update
+    Future(() {
+      ref.read(selectedTimeProvider.notifier).state = pickedTime;
+    });
+  }
+}
+
+
+
+
 
 @override
 Widget build(BuildContext context, WidgetRef ref) {
@@ -97,61 +145,55 @@ Widget build(BuildContext context, WidgetRef ref) {
   final descriptionController = ref.watch(descriptionControllerProvider);
   final selectedLocation = ref.watch(selectedLocationProvider);
   final selectedDate = ref.watch(selectedDateProvider);
+  final selectedTime = ref.watch(selectedTimeProvider); // Added this line
   final imagePath = ref.watch(imagePathProvider);
   final isLoading = ref.watch(loadingProvider);
 
   return Scaffold(
     backgroundColor: secondaryColor,
-    appBar: AppBar(
-      title: const Text(
-        'Request Cleaner',
-        style: TextStyle(
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-      centerTitle: true,
-      leading: IconButton(
-        icon: const Icon(Icons.arrow_back),
-        onPressed: () {
-          // Redirect to home when back is pressed
-          Navigator.of(context).pushReplacementNamed('/officer-home');
-        },
-        color: onSecondaryColor,
-      ),
-      backgroundColor: secondaryColor,
-      titleTextStyle: TextStyle(
-        color: onSecondaryColor,
-        fontWeight: FontWeight.bold,
-        fontSize: screenWidth * 0.05,
-      ),
-    ),
     body: Builder(
       builder: (context) {
         // Intercept the back button press
         return WillPopScope(
           onWillPop: () async {
-            Navigator.of(context).pushReplacementNamed('/officer-home');
-            return false; // Prevent the default back navigation
+            Future(() {
+              ref.read(currentIndexProvider.notifier).state = 0;
+            });
+            return false; // Prevent default pop
           },
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(16.0),
-            child: Form(
-              key: formKey,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildImageUploadCard(primaryColor, onPrimaryColor, screenWidth, ref),
-                  const SizedBox(height: 10),
-                  _buildImagePreview(imagePath),
-                  const SizedBox(height: 35),
-                  _buildLocationField(outlineColor, onSecondaryColor, screenWidth, selectedLocation, ref),
-                  const SizedBox(height: 16.0),
-                  _buildDateField(outlineColor, onSecondaryColor, screenWidth, selectedDate, ref),
-                  const SizedBox(height: 16.0),
-                  _buildDescriptionField(outlineColor, onSecondaryColor, screenWidth, descriptionController),
-                  const SizedBox(height: 30.0),
-                  _buildSendButton(primaryColor, onPrimaryColor, isLoading, ref),
-                ],
+          child: Scaffold(
+            appBar: AppBar(
+              title: const Text('Report the Mess'),
+              centerTitle: true,
+              leading: IconButton(
+                icon: const Icon(Icons.arrow_back),
+                onPressed: () {
+                  ref.read(currentIndexProvider.notifier).state = 0; // Navigate to Home
+                },
+              ),
+            ),
+            body: SingleChildScrollView(
+              padding: const EdgeInsets.all(16.0),
+              child: Form(
+                key: formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildImageUploadCard(primaryColor, onPrimaryColor, screenWidth, ref),
+                    const SizedBox(height: 10),
+                    _buildImagePreview(imagePath),
+                    const SizedBox(height: 35),
+                    _buildLocationField(outlineColor, onSecondaryColor, screenWidth, selectedLocation, ref),
+                    const SizedBox(height: 16.0),
+                    _buildDateField(outlineColor, onSecondaryColor, screenWidth, selectedDate, ref),
+                    const SizedBox(height: 16.0),
+                    _buildTimeField(outlineColor, onSecondaryColor, screenWidth, selectedTime, ref), // No error now
+                    const SizedBox(height: 16.0),
+                    _buildDescriptionField(outlineColor, onSecondaryColor, screenWidth, descriptionController),
+                    const SizedBox(height: 30.0),
+                    _buildSendButton(context, primaryColor, onPrimaryColor, isLoading, ref),
+                  ],
+                ),
               ),
             ),
           ),
@@ -160,6 +202,8 @@ Widget build(BuildContext context, WidgetRef ref) {
     ),
   );
 }
+
+
 
 
   Widget _buildImageUploadCard(
@@ -308,6 +352,43 @@ Widget build(BuildContext context, WidgetRef ref) {
     );
   }
 
+  Widget _buildTimeField(
+    Color outlineColor, Color onSecondaryColor, double screenWidth, TimeOfDay? selectedTime, WidgetRef ref) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Time',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: onSecondaryColor,
+            fontSize: screenWidth * 0.04,
+          ),
+        ),
+        const SizedBox(height: 8),
+        GestureDetector(
+          onTap: () => _selectTime(ref),
+          child: AbsorbPointer(
+            child: TextFormField(
+              decoration: InputDecoration(
+                hintText: selectedTime != null
+                    ? selectedTime.format(ref.read(navigatorKeyProvider).currentContext!)
+                    : 'Select time',
+                hintStyle: TextStyle(color: onSecondaryColor, fontSize: screenWidth * 0.04),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: BorderSide(color: outlineColor),
+                ),
+              ),
+              validator: (value) => selectedTime == null ? 'Please select a time' : null,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+
   Widget _buildDescriptionField(Color outlineColor, Color onSecondaryColor,
       double screenWidth, TextEditingController descriptionController) {
     return Column(
@@ -341,12 +422,12 @@ Widget build(BuildContext context, WidgetRef ref) {
   }
 
   Widget _buildSendButton(
-      Color primaryColor, Color onPrimaryColor, bool isLoading, WidgetRef ref) {
+    BuildContext context, Color primaryColor, Color onPrimaryColor, bool isLoading, WidgetRef ref) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.end,
       children: [
         TextButton(
-          onPressed: isLoading ? null : () => _submitComplaint(ref),
+          onPressed: isLoading ? null : () => _submitComplaint(context, ref),
           style: TextButton.styleFrom(
             backgroundColor: isLoading ? Colors.grey : primaryColor,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
@@ -365,4 +446,5 @@ Widget build(BuildContext context, WidgetRef ref) {
       ],
     );
   }
+
 }

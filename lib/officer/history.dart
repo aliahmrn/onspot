@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import '../service/history_service.dart';
 import 'complaintdetails.dart';
 import 'package:onspot_officer/widget/date.dart';
+import '../utils/refresh_utils.dart';
 
 // State for history
 class HistoryState {
@@ -30,14 +31,33 @@ class HistoryState {
 class HistoryNotifier extends StateNotifier<HistoryState> {
   HistoryNotifier() : super(HistoryState(historyData: [], hasFetchedData: false));
 
-  Future<void> loadComplaintHistory() async {
-    try {
-      List<dynamic> data = await fetchComplaintHistory();
-      state = state.copyWith(historyData: data, hasFetchedData: true);
-    } catch (e) {
-      state = state.copyWith(hasFetchedData: true);
-    }
+  Future<void> loadComplaintHistory({bool forceRefresh = false}) async {
+  if (!forceRefresh && state.hasFetchedData) return; // Skip fetching if already fetched and not forced
+
+  try {
+    state = state.copyWith(hasFetchedData: false); // Reset state before fetching
+    final data = await fetchComplaintHistory();
+
+    data.sort((a, b) {
+      final dateA = DateTime.tryParse(a['comp_date'] ?? '') ?? DateTime(0);
+      final dateB = DateTime.tryParse(b['comp_date'] ?? '') ?? DateTime(0);
+
+      final timeA = DateFormat('HH:mm:ss').parse(a['comp_time'] ?? '00:00:00', true);
+      final timeB = DateFormat('HH:mm:ss').parse(b['comp_time'] ?? '00:00:00', true);
+
+      final dateTimeA = DateTime(dateA.year, dateA.month, dateA.day, timeA.hour, timeA.minute, timeA.second);
+      final dateTimeB = DateTime(dateB.year, dateB.month, dateB.day, timeB.hour, timeB.minute, timeB.second);
+
+      return dateTimeB.compareTo(dateTimeA); // Latest on top
+    });
+
+    state = state.copyWith(historyData: data, hasFetchedData: true);
+  } catch (e) {
+    state = state.copyWith(hasFetchedData: true); // Mark as fetched to avoid retry loops
+    debugPrint('Error loading history: $e');
   }
+}
+
 }
 
 // Provider for history state
@@ -48,51 +68,56 @@ class HistoryPage extends ConsumerWidget {
   const HistoryPage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final historyState = ref.watch(historyProvider);
-    final historyNotifier = ref.read(historyProvider.notifier);
+Widget build(BuildContext context, WidgetRef ref) {
+  final historyState = ref.watch(historyProvider);
+  final historyNotifier = ref.read(historyProvider.notifier);
 
-    final screenWidth = MediaQuery.of(context).size.width;
-    final screenHeight = MediaQuery.of(context).size.height;
+  final screenWidth = MediaQuery.of(context).size.width;
+  final screenHeight = MediaQuery.of(context).size.height;
 
-    final primaryColor = Theme.of(context).primaryColor;
-    final secondaryColor = Theme.of(context).colorScheme.secondary;
-    final onPrimaryColor = Theme.of(context).colorScheme.onPrimary;
+  final primaryColor = Theme.of(context).primaryColor;
+  final secondaryColor = Theme.of(context).colorScheme.secondary;
+  final onPrimaryColor = Theme.of(context).colorScheme.onPrimary;
 
-    // Load data when the widget is first built
-    if (!historyState.hasFetchedData) {
-      Future.microtask(() => historyNotifier.loadComplaintHistory());
-    }
+  // Load data when the widget is first built
+  if (!historyState.hasFetchedData) {
+    Future.microtask(() => historyNotifier.loadComplaintHistory());
+  }
 
-    return Scaffold(
+  return Scaffold(
+    backgroundColor: primaryColor,
+    appBar: AppBar(
       backgroundColor: primaryColor,
-      appBar: AppBar(
-        backgroundColor: primaryColor,
-        elevation: 0,
-        automaticallyImplyLeading: false,
-        centerTitle: true,
-        title: Text(
-          'History',
-          style: TextStyle(
-            color: onPrimaryColor,
-            fontSize: screenWidth * 0.05,
-            fontWeight: FontWeight.bold,
-          ),
+      elevation: 0,
+      automaticallyImplyLeading: false,
+      centerTitle: true,
+      title: Text(
+        'History',
+        style: TextStyle(
+          color: onPrimaryColor,
+          fontSize: screenWidth * 0.05,
+          fontWeight: FontWeight.bold,
         ),
       ),
-      body: Container(
-        decoration: BoxDecoration(
-          color: secondaryColor,
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(screenWidth * 0.06),
-            topRight: Radius.circular(screenWidth * 0.06),
-          ),
+    ),
+    body: Container(
+      decoration: BoxDecoration(
+        color: secondaryColor,
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(screenWidth * 0.06),
+          topRight: Radius.circular(screenWidth * 0.06),
         ),
-        padding: EdgeInsets.all(screenWidth * 0.04),
+      ),
+      padding: EdgeInsets.all(screenWidth * 0.04),
+      child: RefreshIndicator(
+        onRefresh: () async {
+          await historyNotifier.loadComplaintHistory(forceRefresh: true); // Force refresh data
+        },
         child: historyState.hasFetchedData
             ? (historyState.historyData.isEmpty
                 ? const Center(child: Text('No complaints found'))
                 : ListView.builder(
+                    physics: const AlwaysScrollableScrollPhysics(),
                     itemCount: historyState.historyData.length,
                     itemBuilder: (context, index) {
                       final complaint = historyState.historyData[index];
@@ -191,8 +216,10 @@ class HistoryPage extends ConsumerWidget {
                   ))
             : const Center(child: CircularProgressIndicator()),
       ),
-    );
-  }
+    ),
+  );
+}
+
 
   String formatTime(String? timeString) {
     if (timeString == null || timeString.isEmpty) {
