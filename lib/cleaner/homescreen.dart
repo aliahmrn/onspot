@@ -44,20 +44,32 @@ class CleanerHomeScreenState extends ConsumerState<CleanerHomeScreen> {
     }
   }
 
-  Future<void> _fetchLatestTask() async {
-    try {
-      final tasks = await taskService.getCleanerTasks(69); // Replace 69 with the actual cleaner ID
+Future<void> _fetchLatestTask() async {
+  try {
+    final prefs = await SharedPreferences.getInstance();
+    final cleanerId = prefs.getString('cleanerId'); // Retrieve cleanerId from SharedPreferences
+
+    if (cleanerId == null) {
       setState(() {
-        latestTask = tasks != null && tasks.isNotEmpty ? tasks.first : null;
+        error = 'Cleaner ID is missing.';
         isLoading = false;
       });
-    } catch (e) {
-      setState(() {
-        error = 'Failed to load latest task: $e';
-        isLoading = false;
-      });
+      return;
     }
+
+    // Use the retrieved cleaner ID
+    final tasks = await taskService.getCleanerTasks(int.parse(cleanerId));
+    setState(() {
+      latestTask = tasks != null && tasks.isNotEmpty ? tasks.first : null;
+      isLoading = false;
+    });
+  } catch (e) {
+    setState(() {
+      error = 'Failed to load latest task: $e';
+      isLoading = false;
+    });
   }
+}
 
 Future<void> _checkAttendanceState() async {
   if (isChecked) return; // Avoid multiple calls
@@ -421,7 +433,7 @@ Future<void> _checkAttendanceState() async {
     WidgetRef ref,
     String title,
     String subtitle,
-    String date,
+    String? date, // Allow date to be nullable
   ) {
     final primaryColor = Theme.of(context).colorScheme.primary;
     final onPrimaryColor = Theme.of(context).colorScheme.onPrimary;
@@ -429,7 +441,7 @@ Future<void> _checkAttendanceState() async {
 
     return GestureDetector(
       onTap: () {
-        // Update the index to Tasks page (1)
+        // Update the index to the Tasks page (1)
         ref.read(currentIndexProvider.notifier).state = 1;
       },
       child: SizedBox(
@@ -443,25 +455,37 @@ Future<void> _checkAttendanceState() async {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Title
               Text(
-                title,
+                title, // Default title passed from the caller
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                   color: onPrimaryColor, // Text color matches the card's contrast
                 ),
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: 8),
+
+              // Divider
+              Divider(
+                color: onPrimaryColor.withOpacity(0.5), // Faint line for separation
+                thickness: 1,
+              ),
+              const SizedBox(height: 8),
+
+              // Subtitle
               Text(
-                subtitle,
+                subtitle, // Default subtitle passed from the caller
                 style: TextStyle(
                   fontSize: 14,
                   color: onPrimaryColor,
                 ),
               ),
               const SizedBox(height: 4),
+
+              // Date
               Text(
-                _formatDate(date), // Format the date
+                date != null ? _formatDate(date) : 'N/A', // Default to "N/A" if date is null
                 style: TextStyle(
                   fontSize: 12,
                   color: onPrimaryColor,

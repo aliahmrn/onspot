@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter_tts/flutter_tts.dart'; // Import the TTS package
 import '../providers/task_provider.dart';
 import 'task_details.dart';
 import '../widget/cleanericons.dart';
@@ -16,6 +17,9 @@ class CleanerTasksScreen extends ConsumerWidget {
     final primaryColor = Theme.of(context).colorScheme.primary;
     final onPrimaryColor = Theme.of(context).colorScheme.onPrimary;
     final secondaryColor = Theme.of(context).colorScheme.secondary;
+
+    // Initialize the FlutterTts instance
+    final FlutterTts flutterTts = FlutterTts();
 
     return Scaffold(
       backgroundColor: primaryColor,
@@ -69,7 +73,13 @@ class CleanerTasksScreen extends ConsumerWidget {
                               children: [
                                 GestureDetector(
                                   onTap: () {
-                                    // Action for ear icon
+                                    // Use TTS to speak task details
+                                    _speakTaskDetails(
+                                      flutterTts,
+                                      task['comp_desc'] ?? 'No Description',
+                                      task['comp_location'] ?? 'No Location',
+                                      task['comp_date'] ?? 'No Date',
+                                    );
                                   },
                                   child: CleanerIcons.earIcon(context),
                                 ),
@@ -109,6 +119,26 @@ class CleanerTasksScreen extends ConsumerWidget {
     );
   }
 
+  // Method to use TTS to speak task details
+  Future<void> _speakTaskDetails(
+    FlutterTts flutterTts,
+    String description,
+    String location,
+    String date,
+  ) async {
+    final String textToSpeak =
+        "Tugas: $description. Lokasi: $location. Tarikh: $date.";
+    try {
+      await flutterTts.setLanguage("ms-MY");
+      await flutterTts.setSpeechRate(0.3); // Adjust speech rate
+      await flutterTts.awaitSpeakCompletion(true); // Ensure it waits for the speech to complete
+      await flutterTts.speak(textToSpeak); // Speak the task details
+    } catch (e) {
+      debugPrint('Error in TTS: $e');
+    }
+  }
+
+
   Widget _buildTaskCard(
     BuildContext context,
     String title,
@@ -133,6 +163,7 @@ class CleanerTasksScreen extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // Task description
                 Text(
                   title,
                   style: TextStyle(
@@ -141,7 +172,16 @@ class CleanerTasksScreen extends ConsumerWidget {
                     color: onPrimaryColor, // Text color matches the card's contrast
                   ),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 8), // Spacing before the divider
+
+                // Divider
+                Divider(
+                  color: onPrimaryColor.withOpacity(0.5), // Faint line for separation
+                  thickness: 1,
+                ),
+                const SizedBox(height: 8), // Spacing after the divider
+
+                // Task location
                 Text(
                   subtitle,
                   style: TextStyle(
@@ -150,6 +190,8 @@ class CleanerTasksScreen extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(height: 4),
+
+                // Task date
                 Text(
                   _formatDate(date), // Format the date
                   style: TextStyle(

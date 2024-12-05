@@ -38,6 +38,9 @@ void main() async {
   // Initialize SharedPreferences
   await SharedPreferencesManager.init();
 
+  // Clear the previous token
+  SharedPreferencesManager.prefs.remove('token');
+
   // Subscribe to cleaner notifications topic
   FirebaseMessaging.instance.subscribeToTopic('cleaners');
 
@@ -57,7 +60,7 @@ class OnspotCleanerApp extends StatelessWidget {
     final token = SharedPreferencesManager.prefs.getString('token') ?? '';
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-       initialRoute: token.isNotEmpty ? '/cleaner-home' : '/',
+      initialRoute: token.isNotEmpty ? '/cleaner-home' : '/', // Redirect to login if token is cleared
       routes: {
         '/': (context) => const LoginScreen(),
         '/cleaner-home': (context) => const MainNavigator(), // Protected main navigation
