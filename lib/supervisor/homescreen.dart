@@ -80,7 +80,7 @@ class SupervisorHomeScreen extends ConsumerWidget {
                             );
                           }
                           return Text(
-                            'Welcome, ${snapshot.data}!',
+                            'Welcome, ${snapshot.data}',
                             style: TextStyle(
                               fontSize: screenWidth * 0.05,
                               fontWeight: FontWeight.bold,

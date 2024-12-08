@@ -161,7 +161,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
                       child: Text(
                         'No cleaners found.',
                         style: TextStyle(
-                          color: primaryColor,
+                          color: Colors.grey,
                           fontWeight: FontWeight.bold,
                           fontSize: screenWidth * 0.045,
                         ),

@@ -58,127 +58,134 @@ class ComplaintPage extends ConsumerWidget {
               return dateB.compareTo(dateA);
             });
 
-            return ListView.builder(
-              itemCount: complaints.length,
-              itemBuilder: (context, index) {
-                final complaint = complaints[index];
-                final timeString = complaint['comp_time']!;
-                final DateTime time = DateTime.parse('1970-01-01 $timeString');
-                final String formattedTime = DateFormat('HH:mm').format(time);
-
-                return Padding(
-                  padding: EdgeInsets.symmetric(vertical: screenHeight * 0.007),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: primaryColor,
-                      borderRadius: BorderRadius.circular(screenWidth * 0.03),
-                      border: Border.all(color: onPrimaryColor.withOpacity(0.2), width: 1),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.grey.withOpacity(0.2),
-                          spreadRadius: screenWidth * 0.003,
-                          blurRadius: screenWidth * 0.02,
-                          offset: Offset(0, screenHeight * 0.003),
-                        ),
-                      ],
-                    ),
-                    padding: EdgeInsets.all(screenWidth * 0.035),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Complaint title and time
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              'Complaint',
-                              style: TextStyle(
-                                fontSize: screenWidth * 0.045,
-                                fontWeight: FontWeight.bold,
-                                color: onPrimaryColor,
-                              ),
-                            ),
-                            Text(
-                              formattedTime,
-                              style: TextStyle(
-                                fontSize: screenWidth * 0.035,
-                                color: onPrimaryColor.withOpacity(0.7),
-                              ),
-                            ),
-                          ],
-                        ),
-                        SizedBox(height: screenHeight * 0.01),
-                        const Divider(
-                          thickness: 1,
-                          color: Colors.white24,
-                        ),
-                        SizedBox(height: screenHeight * 0.01),
-                        // Complaint description
-                        Text(
-                          complaint['comp_desc']!,
-                          style: TextStyle(
-                            fontSize: screenWidth * 0.04,
-                            color: onPrimaryColor,
-                          ),
-                        ),
-                        SizedBox(height: screenHeight * 0.01),
-                        // Complaint date
-                        Text(
-                          'Date: ${DateFormat('dd/MM/yyyy').format(DateTime.parse(complaint['comp_date']!))}',
-                          style: TextStyle(
-                            fontSize: screenWidth * 0.035,
-                            color: onPrimaryColor.withOpacity(0.7),
-                          ),
-                        ),
-                        SizedBox(height: screenHeight * 0.015),
-                        // Assign button
-                        Align(
-                          alignment: Alignment.centerRight,
-                          child: ElevatedButton(
-                            onPressed: () async {
-                              await Navigator.push(
-                                context,
-                                PageRouteBuilder(
-                                  pageBuilder: (context, animation, secondaryAnimation) => AssignTaskPage(
-                                    complaintId: complaint['id'].toString(),
-                                  ),
-                                  transitionDuration: Duration.zero, // No transition animation
-                                  reverseTransitionDuration: Duration.zero, // No reverse transition animation
-                                ),
-                              );
-                              ref.invalidate(complaintsProvider); // Refresh complaints after assigning
-                            },
-                            style: ElevatedButton.styleFrom(
-                              padding: EdgeInsets.symmetric(
-                                horizontal: screenWidth * 0.05,
-                                vertical: screenHeight * 0.015,
-                              ),
-                              backgroundColor: onPrimaryColor,
-                              foregroundColor: primaryColor,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(screenWidth * 0.03),
-                              ),
-                              elevation: 4,
-                              shadowColor: Colors.black.withOpacity(0.2),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                const Icon(Icons.assignment, size: 18),
-                                const SizedBox(width: 5),
-                                Text(
-                                  'Assign',
-                                  style: TextStyle(fontSize: screenWidth * 0.04),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                );
+            // Wrap ListView.builder with RefreshIndicator
+            return RefreshIndicator(
+              onRefresh: () async {
+                // Invalidate the provider to trigger a refresh
+                ref.invalidate(complaintsProvider);
               },
+              child: ListView.builder(
+                itemCount: complaints.length,
+                itemBuilder: (context, index) {
+                  final complaint = complaints[index];
+                  final timeString = complaint['comp_time']!;
+                  final DateTime time = DateTime.parse('1970-01-01 $timeString');
+                  final String formattedTime = DateFormat('HH:mm').format(time);
+
+                  return Padding(
+                    padding: EdgeInsets.symmetric(vertical: screenHeight * 0.007),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: primaryColor,
+                        borderRadius: BorderRadius.circular(screenWidth * 0.03),
+                        border: Border.all(color: onPrimaryColor.withOpacity(0.2), width: 1),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.grey.withOpacity(0.2),
+                            spreadRadius: screenWidth * 0.003,
+                            blurRadius: screenWidth * 0.02,
+                            offset: Offset(0, screenHeight * 0.003),
+                          ),
+                        ],
+                      ),
+                      padding: EdgeInsets.all(screenWidth * 0.035),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Complaint title and time
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                'Complaint',
+                                style: TextStyle(
+                                  fontSize: screenWidth * 0.045,
+                                  fontWeight: FontWeight.bold,
+                                  color: onPrimaryColor,
+                                ),
+                              ),
+                              Text(
+                                formattedTime,
+                                style: TextStyle(
+                                  fontSize: screenWidth * 0.035,
+                                  color: onPrimaryColor.withOpacity(0.7),
+                                ),
+                              ),
+                            ],
+                          ),
+                          SizedBox(height: screenHeight * 0.01),
+                          const Divider(
+                            thickness: 1,
+                            color: Colors.white24,
+                          ),
+                          SizedBox(height: screenHeight * 0.01),
+                          // Complaint description
+                          Text(
+                            complaint['comp_desc']!,
+                            style: TextStyle(
+                              fontSize: screenWidth * 0.04,
+                              color: onPrimaryColor,
+                            ),
+                          ),
+                          SizedBox(height: screenHeight * 0.01),
+                          // Complaint date
+                          Text(
+                            'Date: ${DateFormat('dd/MM/yyyy').format(DateTime.parse(complaint['comp_date']!))}',
+                            style: TextStyle(
+                              fontSize: screenWidth * 0.035,
+                              color: onPrimaryColor.withOpacity(0.7),
+                            ),
+                          ),
+                          SizedBox(height: screenHeight * 0.015),
+                          // Assign button
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: ElevatedButton(
+                              onPressed: () async {
+                                await Navigator.push(
+                                  context,
+                                  PageRouteBuilder(
+                                    pageBuilder: (context, animation, secondaryAnimation) => AssignTaskPage(
+                                      complaintId: complaint['id'].toString(),
+                                    ),
+                                    transitionDuration: Duration.zero, // No transition animation
+                                    reverseTransitionDuration: Duration.zero, // No reverse transition animation
+                                  ),
+                                );
+                                ref.invalidate(complaintsProvider); // Refresh complaints after assigning
+                              },
+                              style: ElevatedButton.styleFrom(
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: screenWidth * 0.05,
+                                  vertical: screenHeight * 0.015,
+                                ),
+                                backgroundColor: onPrimaryColor,
+                                foregroundColor: primaryColor,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(screenWidth * 0.03),
+                                ),
+                                elevation: 4,
+                                shadowColor: Colors.black.withOpacity(0.2),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(Icons.assignment, size: 18),
+                                  const SizedBox(width: 5),
+                                  Text(
+                                    'Assign',
+                                    style: TextStyle(fontSize: screenWidth * 0.04),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
             );
           },
         ),
