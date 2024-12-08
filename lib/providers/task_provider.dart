@@ -50,4 +50,9 @@ class TaskNotifier extends StateNotifier<AsyncValue<List<Map<String, dynamic>>>>
       state = AsyncValue.error(e, stackTrace);
     }
   }
+
+  Future<void> refreshTasks() async {
+    await fetchTasks();
+  }
+  
 }

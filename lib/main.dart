@@ -7,17 +7,19 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'service/attendance_service.dart'; // Import your attendance service
 import 'utils/shared_preferences_manager.dart'; // Import SharedPreferencesManager
+import 'package:logger/logger.dart';
 
 /// Define the AttendanceService provider
 final attendanceServiceProvider = FutureProvider<AttendanceService?>((ref) async {
   final baseUrl = 'http://192.168.1.105:8000/api';
   final authToken = ref.watch(authTokenProvider); // Access the token directly
+  final logger = Logger();
 
   if (authToken.isNotEmpty) {
-    print('Creating AttendanceService with token: $authToken'); // Debug log
+   logger.i('Creating AttendanceService with token: $authToken'); // Debug log
     return AttendanceService(baseUrl, authToken);
   } else {
-    print('Token is empty. Returning null for AttendanceService'); // Debug log
+    logger.i('Token is empty. Returning null for AttendanceService'); // Debug log
     return null;
   }
 });

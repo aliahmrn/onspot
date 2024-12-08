@@ -348,17 +348,21 @@ Widget _buildButtonSection(BuildContext context,WidgetRef ref, Color primaryColo
       ref.invalidate(attendanceProvider); // Invalidate attendance provider
       ref.read(currentIndexProvider.notifier).state = 0; // Reset navigation index to home page
 
+      if (!context.mounted) return;
+
       // Navigate to login screen
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(builder: (context) => const LoginScreen()),
         (route) => false,
       );
     } catch (e) {
+    // Ensure the widget is still mounted before showing the SnackBar
+    if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Logout failed: $e')),
       );
-    }
+     }
+   }
   }
-
 }
 

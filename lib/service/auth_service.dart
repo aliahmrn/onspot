@@ -12,7 +12,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class AuthService {
   final String baseUrl = 'http://192.168.1.105:8000/api'; // Your API base URL
-  final Logger _logger = Logger(); // Initialize Logger
+  final Logger logger = Logger(); // Initialize Logger
 
   // Login function for cleaners
   Future<void> login(String username, String password, WidgetRef ref) async {
@@ -82,13 +82,13 @@ class AuthService {
     await prefs.setString('name', name);
     await prefs.setString('phoneNo', phoneNo);
     await prefs.setString('cleanerId', id);
-    _logger.i('Cleaner details saved successfully.');
+    logger.i('Cleaner details saved successfully.');
   }
 
   Future<void> clearUserDetails() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.clear();
-    _logger.i('User details cleared.');
+    logger.i('User details cleared.');
   }
 
   // Save FCM token to the backend
@@ -110,12 +110,12 @@ class AuthService {
       );
 
       if (response.statusCode == 200) {
-        _logger.i('FCM token saved successfully.');
+        logger.i('FCM token saved successfully.');
       } else {
-        _logger.w('Failed to save FCM token: ${response.statusCode} - ${response.body}');
+        logger.w('Failed to save FCM token: ${response.statusCode} - ${response.body}');
       }
     } catch (e) {
-      _logger.e('Error while saving FCM token: $e');
+      logger.e('Error while saving FCM token: $e');
     }
   }
 
@@ -124,15 +124,15 @@ class AuthService {
     try {
       final fcmToken = await FirebaseMessaging.instance.getToken();
 
-      _logger.i('Retrieved FCM token: $fcmToken');
+      logger.i('Retrieved FCM token: $fcmToken');
 
       if (fcmToken != null) {
         await saveFcmToken(authToken, fcmToken);
       } else {
-        _logger.w('FCM token is null. Skipping save.');
+        logger.w('FCM token is null. Skipping save.');
       }
     } catch (e) {
-      _logger.e('Error retrieving FCM token: $e');
+      logger.e('Error retrieving FCM token: $e');
     }
   }
 
@@ -154,13 +154,13 @@ class AuthService {
 
       if (response.statusCode == 200) {
         await clearUserDetails(); // Clear user-specific details
-        _logger.i('Logout successful. User details cleared.');
+        logger.i('Logout successful. User details cleared.');
       } else {
-        _logger.w('Logout failed: ${response.statusCode} - ${response.body}');
+        logger.w('Logout failed: ${response.statusCode} - ${response.body}');
         throw Exception('Failed to logout: ${response.body}');
       }
     } catch (e) {
-      _logger.e('Error during logout: $e');
+      logger.e('Error during logout: $e');
       throw Exception('Error during logout: $e');
     }
   }
@@ -185,19 +185,19 @@ class AuthService {
       );
 
       if (response.statusCode == 201) {
-        _logger.i('Registration successful.');
+        logger.i('Registration successful.');
 
         final data = jsonDecode(response.body);
         final String token = data['token'];
 
-        _logger.i('Registration complete. Fetching and saving FCM token...');
+        logger.i('Registration complete. Fetching and saving FCM token...');
         await saveFcmTokenIfNeeded(token);
       } else {
-        _logger.w('Registration failed: ${response.statusCode} - ${response.body}');
+        logger.w('Registration failed: ${response.statusCode} - ${response.body}');
         throw Exception('Failed to register user: ${response.body}');
       }
     } catch (e) {
-      _logger.e('Error during registration: $e');
+      logger.e('Error during registration: $e');
       throw Exception('Error during registration: $e');
     }
   }
@@ -211,7 +211,7 @@ class AuthService {
       );
 
       if (response.statusCode == 200) {
-        _logger.i('Reset code sent successfully.');
+        logger.i('Reset code sent successfully.');
       } else {
         final data = jsonDecode(response.body);
         throw Exception(data['message'] ?? 'Failed to send reset code.');
@@ -235,7 +235,7 @@ class AuthService {
       );
 
       if (response.statusCode == 200) {
-        _logger.i('Password has been reset successfully.');
+        logger.i('Password has been reset successfully.');
       } else {
         final data = jsonDecode(response.body);
         throw Exception(data['message'] ?? 'Failed to reset password.');
@@ -269,9 +269,9 @@ class AuthService {
     );
 
     if (response.statusCode == 200) {
-      _logger.i('Device token saved successfully');
+      logger.i('Device token saved successfully');
     } else {
-      _logger.e('Failed to save device token: ${response.body}');
+      logger.e('Failed to save device token: ${response.body}');
     }
   }
 
@@ -279,7 +279,7 @@ class AuthService {
   Future<void> saveToken(String token) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('token', token);
-    print('Token saved: $token'); // Debug log
+    logger.i('Token saved: $token'); // Debug log
   }
   
 

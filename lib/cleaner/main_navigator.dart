@@ -19,7 +19,7 @@ class MainNavigator extends ConsumerWidget {
     // List of pages
     final List<Widget> pages = [
       const CleanerHomeScreen(),
-      const CleanerTasksScreen(),
+            CleanerTasksScreen(),
       const CleanerNotificationsScreen(),
       const CleanerProfileScreen(),
     ];

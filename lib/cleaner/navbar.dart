@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'main_navigator.dart'; // Use currentIndexProvider from the MainNavigator
+import 'package:logger/logger.dart';
 
 class CleanerBottomNavBar extends ConsumerWidget {
   const CleanerBottomNavBar({super.key});
@@ -12,6 +13,7 @@ class CleanerBottomNavBar extends ConsumerWidget {
     final primaryColor = Theme.of(context).primaryColor;
     final secondaryColor = Theme.of(context).colorScheme.secondary;
     final shadowColor = Colors.black.withOpacity(0.15);
+    final logger = Logger();
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 16, left: 24, right: 24),
@@ -49,7 +51,7 @@ class CleanerBottomNavBar extends ConsumerWidget {
                 unselectedItemColor: Colors.grey,
                 currentIndex: currentIndex,
                 onTap: (index) {
-                  print('Navigating to tab index: $index');
+                  logger.i('Navigating to tab index: $index');
                   ref.read(currentIndexProvider.notifier).state = index; // Update index via Riverpod
                 },
                 type: BottomNavigationBarType.fixed,

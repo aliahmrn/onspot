@@ -56,7 +56,10 @@ class BellProfileWidgetState extends State<BellProfileWidget> {
                 : 'assets/images/bell.svg', // Show bellring.svg on hover
             width: 30.0,
             height: 30.0,
-            color: Theme.of(context).colorScheme.onSecondary, // Apply onSecondary color
+           colorFilter: ColorFilter.mode(
+            Theme.of(context).colorScheme.onSecondary, // Apply onSecondary color
+            BlendMode.srcIn, // Blend mode for applying the color
+          ),
           ),
         ),
       ),

@@ -7,6 +7,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
 import '../providers/attendance_provider.dart'; // Import the attendance provider
+import 'package:logger/logger.dart';
 
 class CleanerHomeScreen extends ConsumerStatefulWidget {
   const CleanerHomeScreen({super.key});
@@ -22,6 +23,7 @@ class CleanerHomeScreenState extends ConsumerState<CleanerHomeScreen> {
   bool isLoading = true; // Loading state
   final TaskService taskService = TaskService();
   String? cleanerName; // Cleaner name
+  final _logger = Logger();
 
   @override
   void initState() {
@@ -34,15 +36,18 @@ class CleanerHomeScreenState extends ConsumerState<CleanerHomeScreen> {
   Future<void> _fetchCleanerName() async {
     try {
       final prefs = await SharedPreferences.getInstance();
+      if (!mounted) return; // Guard against using BuildContext when unmounted
       setState(() {
         cleanerName = prefs.getString('name') ?? 'Cleaner'; // Default fallback
       });
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         cleanerName = 'Cleaner'; // Fallback in case of error
       });
     }
   }
+
 
 Future<void> _fetchLatestTask() async {
   try {
@@ -54,20 +59,41 @@ Future<void> _fetchLatestTask() async {
         error = 'Cleaner ID is missing.';
         isLoading = false;
       });
+      _logger.e('Error: Cleaner ID is missing.');
       return;
     }
 
-    // Use the retrieved cleaner ID
+    // Fetch all tasks assigned to the cleaner
     final tasks = await taskService.getCleanerTasks(int.parse(cleanerId));
-    setState(() {
-      latestTask = tasks != null && tasks.isNotEmpty ? tasks.first : null;
-      isLoading = false;
-    });
+    _logger.i('Fetched tasks: $tasks');
+
+    if (tasks != null && tasks.isNotEmpty) {
+      // Sort tasks by `comp_date` in descending order
+      tasks.sort((a, b) {
+        final dateA = DateTime.parse(a['comp_date']);
+        final dateB = DateTime.parse(b['comp_date']);
+        return dateB.compareTo(dateA); // Most recent first
+      });
+
+      setState(() {
+        latestTask = tasks.first; // Take the most recent task
+        isLoading = false;
+      });
+
+      _logger.i('Latest task (sorted by date): $latestTask');
+    } else {
+      setState(() {
+        latestTask = null; // No tasks available
+        isLoading = false;
+      });
+      _logger.i('No tasks found.');
+    }
   } catch (e) {
     setState(() {
       error = 'Failed to load latest task: $e';
       isLoading = false;
     });
+    _logger.e('Error fetching tasks: $e');
   }
 }
 
@@ -105,6 +131,15 @@ Future<void> _checkAttendanceState() async {
 
     // Watch the asynchronous state of attendanceProvider
     final attendanceStateAsync = ref.watch(attendanceProvider);
+
+     // Declare status variables here
+    final String status = attendanceStateAsync.maybeWhen(
+      data: (attendanceState) => attendanceState.status ?? 'Unavailable',
+      orElse: () => 'Unavailable',
+    );
+    final Color statusColor = status.toLowerCase() == 'available'
+        ? Colors.green
+        : Colors.red;
 
     return attendanceStateAsync.when(
       data: (attendanceState) {
@@ -174,7 +209,19 @@ Future<void> _checkAttendanceState() async {
                           ),
                         ],
                       ),
-                      SizedBox(height: screenHeight * 0.02),
+                      SizedBox(height: screenHeight * 0.01),
+
+                        // Cleaner Status Section
+                        Padding(
+                          padding: EdgeInsets.only(left: screenWidth * 0.02), // Slight left padding
+                          child: _buildStatusBadge(
+                            status, // Cleaner status
+                            statusColor, // Color based on the status
+                            Theme.of(context).textTheme, // Use the text theme for consistent styling
+                            screenWidth, // Provide screen width for responsive design
+                          ),
+                        ),
+                        SizedBox(height: screenHeight * 0.02),
 
                       // Welcome Icon
                       Center(
@@ -247,24 +294,13 @@ Future<void> _checkAttendanceState() async {
                           ? const Center(child: CircularProgressIndicator())
                           : error != null
                               ? Center(child: Text(error!))
-                              : latestTask != null
-                                  ? _buildTaskCard(
-                                      context,
-                                      ref,
-                                      latestTask!['comp_desc'] ?? 'No Description',
-                                      latestTask!['comp_location'] ?? 'No Location',
-                                      latestTask!['comp_date'] ?? 'No Date',
-                                    )
-                                  : Center(
-                                      child: Text(
-                                        'No recent tasks available.',
-                                        style: TextStyle(
-                                          fontSize: screenWidth * 0.04,
-                                          fontWeight: FontWeight.bold,
-                                          color: onPrimaryColor,
-                                        ),
-                                      ),
-                                    ),
+                              : _buildTaskCard(
+                                  context,
+                                  ref,
+                                  latestTask?['comp_desc'], // Nullable description
+                                  latestTask?['comp_location'], // Nullable location
+                                  latestTask?['comp_date'], // Nullable date
+                                )
                     ],
                   ),
                 ),
@@ -299,6 +335,37 @@ Future<void> _checkAttendanceState() async {
       },
     );
   }
+
+Widget _buildStatusBadge(String status, Color statusColor, TextTheme textTheme, double screenWidth) {
+  return Container(
+    padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 12),
+    decoration: BoxDecoration(
+      color: statusColor.withOpacity(0.2),
+      borderRadius: BorderRadius.circular(20),
+      border: Border.all(color: statusColor, width: 1),
+    ),
+    child: Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(
+          status.toLowerCase() == 'available' ? Icons.check_circle : Icons.warning,
+          color: statusColor,
+          size: 20,
+        ),
+        const SizedBox(width: 8),
+        Text(
+          status,
+          style: textTheme.titleMedium?.copyWith(
+            fontSize: screenWidth * 0.04,
+            fontWeight: FontWeight.bold,
+            color: statusColor,
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
 
   Widget _buildAttendanceCard(
     double screenWidth,
@@ -341,7 +408,7 @@ Future<void> _checkAttendanceState() async {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                '${cleanerName ?? "Cleaner"}',
+                cleanerName ?? "Cleaner",
                 style: TextStyle(
                   fontSize: screenWidth * 0.045,
                   fontWeight: FontWeight.bold,
@@ -383,38 +450,50 @@ Future<void> _checkAttendanceState() async {
   }
 
 
-  Future<void> _submitAttendanceWithPopup(
-    BuildContext context,
-    WidgetRef ref,
-    String status,
-    String message,
-  ) async {
-    try {
-      await ref.read(attendanceProvider.notifier).handleSubmitAttendance(status);
-      showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: const Text('Attendance Submitted'),
-            content: Text(message),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: const Text('OK'),
-              ),
-            ],
-          );
-        },
-      );
-    } catch (e) {
-      // Optionally handle errors
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to submit attendance: $e'),
-        ),
-      );
+Future<void> _submitAttendanceWithPopup(
+  BuildContext context,
+  WidgetRef ref,
+  String status,
+  String message,
+) async {
+  try {
+    await ref.read(attendanceProvider.notifier).handleSubmitAttendance(status);
+
+    // Check if the widget is still mounted before showing the dialog
+    if (mounted) {
+      if (context.mounted) {
+        showDialog(
+          context: context,
+          builder: (BuildContext dialogContext) {
+            return AlertDialog(
+              title: const Text('Attendance Submitted'),
+              content: Text(message),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(dialogContext).pop();
+                  },
+                  child: const Text('OK'),
+                ),
+              ],
+            );
+          },
+        );
+      }
+    }
+  } catch (e) {
+    // Check mounted before using the context
+    if (mounted) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to submit attendance: $e'),
+          ),
+        );
+      }
     }
   }
+}
 
   Widget _buildAttendanceIcon(IconData icon, Color iconColor, Color backgroundColor, double screenWidth) {
     return Container(
@@ -428,76 +507,96 @@ Future<void> _checkAttendanceState() async {
   }
 }
 
-  Widget _buildTaskCard(
-    BuildContext context,
-    WidgetRef ref,
-    String title,
-    String subtitle,
-    String? date, // Allow date to be nullable
-  ) {
-    final primaryColor = Theme.of(context).colorScheme.primary;
-    final onPrimaryColor = Theme.of(context).colorScheme.onPrimary;
-    final screenWidth = MediaQuery.of(context).size.width;
+Widget _buildTaskCard(
+  BuildContext context,
+  WidgetRef ref,
+  String? title,
+  String? subtitle,
+  String? date, // Allow date to be nullable
+) {
+  final primaryColor = Theme.of(context).colorScheme.primary;
+  final onPrimaryColor = Theme.of(context).colorScheme.onPrimary;
+  final screenWidth = MediaQuery.of(context).size.width;
 
-    return GestureDetector(
-      onTap: () {
-        // Update the index to the Tasks page (1)
-        ref.read(currentIndexProvider.notifier).state = 1;
-      },
-      child: SizedBox(
-        width: screenWidth, // Ensure the card takes full width
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: primaryColor, // Use primary color for the card background
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Title
-              Text(
-                title, // Default title passed from the caller
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: onPrimaryColor, // Text color matches the card's contrast
-                ),
-              ),
-              const SizedBox(height: 8),
+  // Default values if no task details are provided
+  final displayTitle = title?.isNotEmpty == true ? title! : 'No assigned tasks yet.';
+  final displaySubtitle = subtitle?.isNotEmpty == true ? subtitle! : '';
+  final displayDate = date?.isNotEmpty == true ? _formatDate(date!) : '';
 
-              // Divider
-              Divider(
-                color: onPrimaryColor.withOpacity(0.5), // Faint line for separation
-                thickness: 1,
-              ),
-              const SizedBox(height: 8),
+  final bool isFallback = title?.isEmpty != false; // True if title is null or empty
 
-              // Subtitle
-              Text(
-                subtitle, // Default subtitle passed from the caller
-                style: TextStyle(
-                  fontSize: 14,
-                  color: onPrimaryColor,
-                ),
-              ),
-              const SizedBox(height: 4),
-
-              // Date
-              Text(
-                date != null ? _formatDate(date) : 'N/A', // Default to "N/A" if date is null
-                style: TextStyle(
-                  fontSize: 12,
-                  color: onPrimaryColor,
-                ),
-              ),
-            ],
-          ),
+  return GestureDetector(
+    onTap: () {
+      // Update the index to the Tasks page (1)
+      ref.read(currentIndexProvider.notifier).state = 1;
+    },
+    child: SizedBox(
+      width: screenWidth, // Ensure the card takes full width
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: primaryColor, // Use primary color for the card background
+          borderRadius: BorderRadius.circular(12),
         ),
-      ),
-    );
-  }
+        child: isFallback
+            ? Center(
+                child: Text(
+                  displayTitle, // Fallback message
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white, // White text for fallback
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              )
+            : Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Title
+                  Text(
+                    displayTitle, // Default title or fallback message
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: onPrimaryColor, // Normal onPrimaryColor for title
+                    ),
+                  ),
+                  const SizedBox(height: 8),
 
+                  if (displaySubtitle.isNotEmpty) ...[
+                    // Divider
+                    Divider(
+                      color: onPrimaryColor.withOpacity(0.5), // Faint line for separation
+                      thickness: 1,
+                    ),
+                    const SizedBox(height: 8),
+
+                    // Subtitle
+                    Text(
+                      displaySubtitle, // Default subtitle or empty
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: onPrimaryColor, // Normal onPrimaryColor for subtitle
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                  ],
+
+                  // Date
+                  Text(
+                    displayDate, // Formatted date or empty
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: onPrimaryColor, // Normal onPrimaryColor for date
+                    ),
+                  ),
+                ],
+              ),
+      ),
+    ),
+  );
+}
 
   // Helper function to format date
   String _formatDate(String? rawDate) {

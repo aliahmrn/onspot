@@ -5,9 +5,14 @@ import 'package:flutter_tts/flutter_tts.dart'; // Import the TTS package
 import '../providers/task_provider.dart';
 import 'task_details.dart';
 import '../widget/cleanericons.dart';
+import 'package:logger/logger.dart';
 
 class CleanerTasksScreen extends ConsumerWidget {
-  const CleanerTasksScreen({super.key});
+  // Declare Logger at the class level
+  final Logger logger = Logger();
+
+ CleanerTasksScreen({super.key});
+  
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -17,6 +22,7 @@ class CleanerTasksScreen extends ConsumerWidget {
     final primaryColor = Theme.of(context).colorScheme.primary;
     final onPrimaryColor = Theme.of(context).colorScheme.onPrimary;
     final secondaryColor = Theme.of(context).colorScheme.secondary;
+  
 
     // Initialize the FlutterTts instance
     final FlutterTts flutterTts = FlutterTts();
@@ -56,55 +62,68 @@ class CleanerTasksScreen extends ConsumerWidget {
               padding: EdgeInsets.all(screenWidth * 0.04),
               child: tasksAsyncValue.when(
                 data: (tasks) {
+                  logger.i('Tasks passed to ListView.builder: $tasks');
                   if (tasks.isEmpty) {
-                    return const Center(child: Text('No tasks available.'));
+                    return const Center(child: Text('No assigned tasks yet.'));
                   }
 
-                  return ListView.builder(
-                    itemCount: tasks.length,
-                    itemBuilder: (context, index) {
-                      final task = tasks[index];
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 32.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
+                  // Wrap the ListView.builder with RefreshIndicator
+                  return RefreshIndicator(
+                    onRefresh: () async {
+                      // Call the refresh logic for the task provider
+                      await ref.read(taskProvider.notifier).refreshTasks();
+                    },
+                    child: ListView.builder(
+                      itemCount: tasks.length,
+                      itemBuilder: (context, index) {
+                        try {
+                          final task = tasks[index];
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 32.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                GestureDetector(
-                                  onTap: () {
-                                    // Use TTS to speak task details
-                                    _speakTaskDetails(
-                                      flutterTts,
-                                      task['comp_desc'] ?? 'No Description',
-                                      task['comp_location'] ?? 'No Location',
-                                      task['comp_date'] ?? 'No Date',
-                                    );
-                                  },
-                                  child: CleanerIcons.earIcon(context),
+                                Row(
+                                  children: [
+                                    GestureDetector(
+                                      onTap: () {
+                                        // Use TTS to speak task details
+                                        _speakTaskDetails(
+                                          flutterTts,
+                                          task['comp_desc'] ?? 'No Description',
+                                          task['comp_location'] ?? 'No Location',
+                                          task['comp_date'] ?? 'No Date',
+                                        );
+                                      },
+                                      child: CleanerIcons.earIcon(context),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    GestureDetector(
+                                      onTap: () {
+                                        // Action for thumbs-up icon
+                                      },
+                                      child: CleanerIcons.thumbsUpIcon(context),
+                                    ),
+                                  ],
                                 ),
-                                const SizedBox(width: 8),
-                                GestureDetector(
-                                  onTap: () {
-                                    // Action for thumbs-up icon
-                                  },
-                                  child: CleanerIcons.thumbsUpIcon(context),
+                                const SizedBox(height: 8), // Space between icons and card
+                                _buildTaskCard(
+                                  context,
+                                  task['comp_desc'] ?? 'No Description',
+                                  task['comp_location'] ?? 'No Location',
+                                  task['comp_date'] ?? 'No Date',
+                                  task['comp_image'],
+                                  task['complaint_id'],
                                 ),
                               ],
                             ),
-                            const SizedBox(height: 8), // Space between icons and card
-                            _buildTaskCard(
-                              context,
-                              task['comp_desc'] ?? 'No Description',
-                              task['comp_location'] ?? 'No Location',
-                              task['comp_date'] ?? 'No Date',
-                              task['comp_image'],
-                              task['complaint_id'],
-                            ),
-                          ],
-                        ),
-                      );
-                    },
+                          );
+                        } catch (e) {
+                          logger.e('Error rendering task: $e');
+                          return const Text('Error rendering task.');
+                        }
+                      },
+                    ),
                   );
                 },
                 loading: () => const Center(child: CircularProgressIndicator()),
@@ -137,7 +156,6 @@ class CleanerTasksScreen extends ConsumerWidget {
       debugPrint('Error in TTS: $e');
     }
   }
-
 
   Widget _buildTaskCard(
     BuildContext context,
@@ -208,14 +226,16 @@ class CleanerTasksScreen extends ConsumerWidget {
               Navigator.push(
                 context,
                 PageRouteBuilder(
-                  pageBuilder: (context, animation, secondaryAnimation) => TaskDetailsPage(
+                  pageBuilder: (context, animation, secondaryAnimation) =>
+                      TaskDetailsPage(
                     complaintId: complaintId,
                     location: subtitle,
                     date: date,
                     imageUrl: imageUrl,
                     description: title,
                   ),
-                  transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                  transitionsBuilder:
+                      (context, animation, secondaryAnimation, child) {
                     return child; // No animation
                   },
                 ),
@@ -233,12 +253,17 @@ class CleanerTasksScreen extends ConsumerWidget {
   }
 
   String _formatDate(String? rawDate) {
+    logger.i('Raw date: $rawDate');
     if (rawDate == null) return 'N/A';
     try {
       final parsedDate = DateTime.parse(rawDate); // Parse raw date string
-      return DateFormat('dd/MM/yyyy').format(parsedDate); // Format to DD/MM/YYYY
+      final formattedDate =
+          DateFormat('dd/MM/yyyy').format(parsedDate); // Format to DD/MM/YYYY
+      logger.i('Formatted date: $formattedDate');
+      return formattedDate;
     } catch (e) {
-      return 'Invalid Date'; // Fallback in case of error
+      logger.e('Date formatting error: $e');
+      return 'Invalid Date';
     }
   }
 }
