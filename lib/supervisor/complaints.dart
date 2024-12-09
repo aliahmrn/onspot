@@ -96,29 +96,50 @@ class ComplaintPage extends ConsumerWidget {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text(
-                                'Complaint',
-                                style: TextStyle(
-                                  fontSize: screenWidth * 0.045,
-                                  fontWeight: FontWeight.bold,
-                                  color: onPrimaryColor,
-                                ),
+                              Row(
+                                children: [
+                                  Icon(
+                                    Icons.report_problem_outlined,
+                                    color: onPrimaryColor,
+                                    size: screenWidth * 0.05,
+                                  ),
+                                  SizedBox(width: screenWidth * 0.02),
+                                  Text(
+                                    'Complaint',
+                                    style: TextStyle(
+                                      fontSize: screenWidth * 0.045,
+                                      fontWeight: FontWeight.bold,
+                                      color: onPrimaryColor,
+                                    ),
+                                  ),
+                                ],
                               ),
-                              Text(
-                                formattedTime,
-                                style: TextStyle(
-                                  fontSize: screenWidth * 0.035,
-                                  color: onPrimaryColor.withOpacity(0.7),
-                                ),
+                              Row(
+                                children: [
+                                  Icon(
+                                    Icons.access_time,
+                                    color: onPrimaryColor.withOpacity(0.7),
+                                    size: screenWidth * 0.04,
+                                  ),
+                                  SizedBox(width: screenWidth * 0.01),
+                                  Text(
+                                    formattedTime,
+                                    style: TextStyle(
+                                      fontSize: screenWidth * 0.035,
+                                      color: onPrimaryColor.withOpacity(0.7),
+                                    ),
+                                  ),
+                                ],
                               ),
                             ],
                           ),
-                          SizedBox(height: screenHeight * 0.01),
+                          SizedBox(height: screenHeight * 0.005),
                           const Divider(
                             thickness: 1,
                             color: Colors.white24,
                           ),
                           SizedBox(height: screenHeight * 0.01),
+
                           // Complaint description
                           Text(
                             complaint['comp_desc']!,
@@ -128,57 +149,59 @@ class ComplaintPage extends ConsumerWidget {
                             ),
                           ),
                           SizedBox(height: screenHeight * 0.01),
-                          // Complaint date
-                          Text(
-                            'Date: ${DateFormat('dd/MM/yyyy').format(DateTime.parse(complaint['comp_date']!))}',
-                            style: TextStyle(
-                              fontSize: screenWidth * 0.035,
-                              color: onPrimaryColor.withOpacity(0.7),
-                            ),
-                          ),
-                          SizedBox(height: screenHeight * 0.015),
-                          // Assign button
-                          Align(
-                            alignment: Alignment.centerRight,
-                            child: ElevatedButton(
-                              onPressed: () async {
-                                await Navigator.push(
-                                  context,
-                                  PageRouteBuilder(
-                                    pageBuilder: (context, animation, secondaryAnimation) => AssignTaskPage(
-                                      complaintId: complaint['id'].toString(),
+
+                          // Complaint date and Assign button
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Text(
+                                'Date: ${DateFormat('dd/MM/yyyy').format(DateTime.parse(complaint['comp_date']!))}',
+                                style: TextStyle(
+                                  fontSize: screenWidth * 0.035,
+                                  color: onPrimaryColor.withOpacity(0.7),
+                                ),
+                              ),
+                              ElevatedButton(
+                                onPressed: () async {
+                                  await Navigator.push(
+                                    context,
+                                    PageRouteBuilder(
+                                      pageBuilder: (context, animation, secondaryAnimation) => AssignTaskPage(
+                                        complaintId: complaint['id'].toString(),
+                                      ),
+                                      transitionDuration: Duration.zero, // No transition animation
+                                      reverseTransitionDuration: Duration.zero, // No reverse transition animation
                                     ),
-                                    transitionDuration: Duration.zero, // No transition animation
-                                    reverseTransitionDuration: Duration.zero, // No reverse transition animation
+                                  );
+                                  ref.invalidate(complaintsProvider); // Refresh complaints after assigning
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: screenWidth * 0.05,
+                                    vertical: screenHeight * 0.01,
                                   ),
-                                );
-                                ref.invalidate(complaintsProvider); // Refresh complaints after assigning
-                              },
-                              style: ElevatedButton.styleFrom(
-                                padding: EdgeInsets.symmetric(
-                                  horizontal: screenWidth * 0.05,
-                                  vertical: screenHeight * 0.015,
-                                ),
-                                backgroundColor: onPrimaryColor,
-                                foregroundColor: primaryColor,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(screenWidth * 0.03),
-                                ),
-                                elevation: 4,
-                                shadowColor: Colors.black.withOpacity(0.2),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  const Icon(Icons.assignment, size: 18),
-                                  const SizedBox(width: 5),
-                                  Text(
-                                    'Assign',
-                                    style: TextStyle(fontSize: screenWidth * 0.04),
+                                  backgroundColor: onPrimaryColor,
+                                  foregroundColor: primaryColor,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(screenWidth * 0.03),
                                   ),
-                                ],
+                                  elevation: 4,
+                                  shadowColor: Colors.black.withOpacity(0.2),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const Icon(Icons.assignment, size: 18),
+                                    const SizedBox(width: 5),
+                                    Text(
+                                      'Assign',
+                                      style: TextStyle(fontSize: screenWidth * 0.04),
+                                    ),
+                                  ],
+                                ),
                               ),
-                            ),
+                            ],
                           ),
                         ],
                       ),

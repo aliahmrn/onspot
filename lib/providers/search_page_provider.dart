@@ -4,6 +4,17 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:logger/logger.dart';
 
+class CleanersState {
+  final bool isLoading;
+  final String? errorMessage;
+  final List<Map<String, String>> cleaners;
+
+  CleanersState({
+    this.isLoading = false,
+    this.errorMessage,
+    this.cleaners = const [],
+  });
+}
 // Logger instance
 final logger = Logger();
 
@@ -11,23 +22,26 @@ final logger = Logger();
 final selectedStatusProvider = StateProvider<String>((ref) => 'all');
 
 // Cleaners provider
-final cleanersProvider = StateNotifierProvider<CleanersNotifier, List<Map<String, String>>>(
+final cleanersProvider = StateNotifierProvider<CleanersNotifier, CleanersState>(
   (ref) => CleanersNotifier(ref),
 );
 
-class CleanersNotifier extends StateNotifier<List<Map<String, String>>> {
+
+class CleanersNotifier extends StateNotifier<CleanersState> {
   final Ref ref;
-  CleanersNotifier(this.ref) : super([]);
+
+  CleanersNotifier(this.ref) : super(CleanersState());
 
   List<Map<String, String>> _allCleaners = []; // Store all cleaners for filtering
 
   Future<void> fetchCleaners({String? status = 'all'}) async {
+    state = CleanersState(isLoading: true); // Set loading state
+
     const url = 'http://192.168.1.105:8000/api/supervisor/cleaners';
 
     try {
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString('token');
-      logger.i('Token: $token');
 
       if (token == null) {
         throw Exception('Token is null. Please log in again.');
@@ -38,10 +52,7 @@ class CleanersNotifier extends StateNotifier<List<Map<String, String>>> {
         'Content-Type': 'application/json',
       };
 
-      logger.i('Fetching cleaners with status: $status'); // Log request
       final response = await http.get(Uri.parse('$url?status=$status'), headers: headers);
-      logger.i('Response status: ${response.statusCode}');
-      logger.i('Response body: ${response.body}');
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -51,12 +62,9 @@ class CleanersNotifier extends StateNotifier<List<Map<String, String>>> {
         }
 
         final List<dynamic> cleaners = data['data'];
-        logger.i('Number of cleaners fetched: ${cleaners.length}'); // Log cleaner count
-
-        // Ensure we map `user_id` instead of `id`
         _allCleaners = cleaners.map((cleaner) {
           return {
-            'id': cleaner['user_id']?.toString() ?? '', // Use `user_id` for cleaner ID
+            'id': cleaner['user_id']?.toString() ?? '',
             'name': cleaner['cleaner_name']?.toString() ?? 'Unknown',
             'status': cleaner['status']?.toString() ?? 'Unavailable',
             'profile_pic': cleaner['profile_pic']?.toString() ?? '',
@@ -65,34 +73,33 @@ class CleanersNotifier extends StateNotifier<List<Map<String, String>>> {
           };
         }).toList();
 
-        state = _allCleaners; // Update the state with the fetched cleaners
-        logger.i('State updated with cleaners: $state');
+        state = CleanersState(cleaners: _allCleaners); // Update the state with the fetched cleaners
       } else {
         throw Exception('Failed to load cleaners: ${response.body}');
       }
     } catch (e) {
-      logger.e('Error fetching cleaners: $e');
-      _allCleaners = [];
-      state = []; // Clear the state if an error occurs
+      state = CleanersState(errorMessage: e.toString()); // Set error state
     }
   }
 
-    void searchCleaners(String query, {String? status = 'all'}) {
-      if (query.isEmpty) {
-        // Apply only status filter if the query is empty
-        state = status == 'all'
+  void searchCleaners(String query, {String? status = 'all'}) {
+    if (query.isEmpty) {
+      state = CleanersState(
+        cleaners: status == 'all'
             ? _allCleaners
-            : _allCleaners.where((cleaner) => cleaner['status'] == status).toList();
-      } else {
-        // Apply both query and status filters
-        state = _allCleaners
+            : _allCleaners.where((cleaner) => cleaner['status'] == status).toList(),
+      );
+    } else {
+      state = CleanersState(
+        cleaners: _allCleaners
             .where((cleaner) =>
                 cleaner['name']!.toLowerCase().contains(query.toLowerCase()) &&
                 (status == 'all' || cleaner['status'] == status))
-            .toList();
-      }
+            .toList(),
+      );
     }
   }
+}
 
 final cleanerDetailProvider =
     FutureProvider.family<Map<String, dynamic>, String>((ref, cleanerId) async {

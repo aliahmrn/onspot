@@ -141,41 +141,46 @@ class _SearchPageState extends ConsumerState<SearchPage> {
               ),
             ),
           ),
-          // Cleaner list section
-          Positioned(
-            top: 100,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 20.0),
-              decoration: BoxDecoration(
-                color: secondaryColor,
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(40),
-                  topRight: Radius.circular(40),
-                ),
+        // Cleaner list section
+        Positioned(
+          top: 100,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 20.0),
+            decoration: BoxDecoration(
+              color: secondaryColor,
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(40),
+                topRight: Radius.circular(40),
               ),
-              child: cleanersState.isEmpty
-                  ? Center(
-                      child: Text(
-                        'No cleaners found.',
-                        style: TextStyle(
-                          color: Colors.grey,
-                          fontWeight: FontWeight.bold,
-                          fontSize: screenWidth * 0.045,
-                        ),
-                      ),
-                    )
-                  : ListView.builder(
-                      itemCount: cleanersState.length,
-                      itemBuilder: (context, index) {
-                        final cleaner = cleanersState[index];
-                        return CleanerCard(cleaner: cleaner);
-                      },
-                    ),
             ),
+            child: cleanersState.isLoading
+                ? const Center(child: CircularProgressIndicator()) // Display loading indicator
+                : cleanersState.errorMessage != null
+                    ? Center(
+                        child: Text(
+                          cleanersState.errorMessage!,
+                          style: TextStyle(color: Colors.red),
+                        ),
+                      )
+                    : cleanersState.cleaners.isEmpty
+                        ? const Center(
+                            child: Text(
+                              'No cleaners found.',
+                              style: TextStyle(color: Colors.grey),
+                            ),
+                          )
+                        : ListView.builder(
+                            itemCount: cleanersState.cleaners.length,
+                            itemBuilder: (context, index) {
+                              final cleaner = cleanersState.cleaners[index];
+                              return CleanerCard(cleaner: cleaner);
+                            },
+                          ),
           ),
+        ),
         ],
       ),
     );

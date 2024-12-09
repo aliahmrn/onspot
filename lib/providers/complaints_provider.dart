@@ -5,9 +5,10 @@ final complaintsProvider = FutureProvider<List<Map<String, dynamic>>>((ref) asyn
   return ComplaintsService().fetchComplaints();
 });
 
-// Provider for fetching assigned tasks history
-final historyProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async {
-  return ComplaintsService().fetchAssignedTasksHistory();
+// Update historyProvider to properly use the category
+final historyProvider = FutureProvider.family<List<Map<String, dynamic>>, String>((ref, category) async {
+  final ComplaintsService complaintsService = ComplaintsService();
+  return complaintsService.fetchAssignedTasksHistory(category);
 });
 
 // Provider for fetching details of a specific task
