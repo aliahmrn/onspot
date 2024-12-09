@@ -336,36 +336,24 @@ Future<void> _checkAttendanceState() async {
     );
   }
 
-Widget _buildStatusBadge(String status, Color statusColor, TextTheme textTheme, double screenWidth) {
-  return Container(
-    padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 12),
-    decoration: BoxDecoration(
-      color: statusColor.withOpacity(0.2),
-      borderRadius: BorderRadius.circular(20),
-      border: Border.all(color: statusColor, width: 1),
-    ),
-    child: Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(
-          status.toLowerCase() == 'available' ? Icons.check_circle : Icons.warning,
+  Widget _buildStatusBadge(String status, Color statusColor, TextTheme textTheme, double screenWidth) {
+    return Container(  
+      padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 12),
+      decoration: BoxDecoration(
+        color: statusColor.withOpacity(0.2),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: statusColor, width: 1),
+      ),
+      child: Text(
+        status,
+        style: textTheme.titleMedium?.copyWith(
+          fontSize: screenWidth * 0.04,
+          fontWeight: FontWeight.bold,
           color: statusColor,
-          size: 20,
         ),
-        const SizedBox(width: 8),
-        Text(
-          status,
-          style: textTheme.titleMedium?.copyWith(
-            fontSize: screenWidth * 0.04,
-            fontWeight: FontWeight.bold,
-            color: statusColor,
-          ),
-        ),
-      ],
-    ),
-  );
-}
-
+      ),
+    );
+  }
 
   Widget _buildAttendanceCard(
     double screenWidth,

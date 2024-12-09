@@ -10,6 +10,7 @@ final taskProvider = StateNotifierProvider<TaskNotifier, AsyncValue<List<Map<Str
 class TaskNotifier extends StateNotifier<AsyncValue<List<Map<String, dynamic>>>> {
   final TaskService _taskService;
   final Logger _logger = Logger();
+ final Set<int> clickedTasks = {};
 
   TaskNotifier(this._taskService) : super(const AsyncValue.loading()) {
     fetchTasks(); // Fetch tasks on initialization
@@ -19,9 +20,8 @@ class TaskNotifier extends StateNotifier<AsyncValue<List<Map<String, dynamic>>>>
     try {
       state = const AsyncValue.loading();
 
-      // Fetch the cleaner ID dynamically from SharedPreferences
       final prefs = await SharedPreferences.getInstance();
-      final cleanerId = prefs.getString('cleanerId'); // Ensure 'cleanerId' is stored during login
+      final cleanerId = prefs.getString('cleanerId');
 
       if (cleanerId == null) {
         _logger.e('Cleaner ID is missing in shared preferences.');
@@ -34,13 +34,17 @@ class TaskNotifier extends StateNotifier<AsyncValue<List<Map<String, dynamic>>>>
       final tasks = await _taskService.getCleanerTasks(int.parse(cleanerId));
 
       if (tasks != null && tasks.isNotEmpty) {
-        // Sort tasks by date in descending order
-        tasks.sort((a, b) {
+        // Filter for ongoing tasks only
+        final ongoingTasks = tasks.where((task) => task['comp_status']?.toLowerCase() == 'ongoing').toList();
+
+        // Sort ongoing tasks by date
+        ongoingTasks.sort((a, b) {
           final dateA = DateTime.tryParse(a['comp_date'] ?? '') ?? DateTime(0);
           final dateB = DateTime.tryParse(b['comp_date'] ?? '') ?? DateTime(0);
           return dateB.compareTo(dateA);
         });
-        state = AsyncValue.data(tasks);
+
+        state = AsyncValue.data(ongoingTasks);
       } else {
         _logger.i('No tasks found for Cleaner ID: $cleanerId');
         state = const AsyncValue.data([]);
@@ -53,6 +57,30 @@ class TaskNotifier extends StateNotifier<AsyncValue<List<Map<String, dynamic>>>>
 
   Future<void> refreshTasks() async {
     await fetchTasks();
+  }
+
+  void markTaskAsClicked(int taskId) {
+    clickedTasks.add(taskId);
+
+    final currentTasks = state.value ?? [];
+    final clickedTaskIndex = currentTasks.indexWhere((task) => task['complaint_id'] == taskId);
+
+    if (clickedTaskIndex != -1) {
+      final clickedTask = currentTasks[clickedTaskIndex];
+
+      // Remove the clicked task from the list and reinsert it at the beginning
+      final reorderedTasks = [
+        clickedTask,
+        ...currentTasks.where((task) => task['complaint_id'] != taskId),
+      ];
+
+      state = AsyncValue.data(reorderedTasks); // Refresh state to trigger UI updates
+    }
+  }
+
+
+  bool isTaskClicked(int taskId) {
+    return clickedTasks.contains(taskId);
   }
   
 }
