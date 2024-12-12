@@ -89,32 +89,36 @@ class AuthService {
   }
 
   // Save FCM token to the backend
-  Future<void> saveFcmToken(String authToken, String fcmToken) async {
-    try {
-      final deviceId = await getDeviceId(); // Use device utility
+Future<void> saveFcmToken(String authToken, String fcmToken) async {
+  try {
+    final deviceId = await getDeviceId(); // Use device utility
 
-      final response = await http.post(
-        Uri.parse('$baseUrl/store-token'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $authToken',
-        },
-        body: jsonEncode({
-          'device_token': fcmToken,
-          'device_id': deviceId,
-          'device_type': Platform.isAndroid ? 'android' : 'ios',
-        }),
-      );
+    final payload = jsonEncode({
+      'device_token': fcmToken,
+      'device_id': deviceId,
+      'device_type': Platform.isAndroid ? 'android' : 'ios',
+    });
 
-      if (response.statusCode == 200) {
-        _logger.i('FCM token saved successfully.');
-      } else {
-        _logger.w('Failed to save FCM token: ${response.statusCode} - ${response.body}');
-      }
-    } catch (e) {
-      _logger.e('Error while saving FCM token: $e');
+    _logger.i('Payload being sent to backend: $payload');
+
+    final response = await http.post(
+      Uri.parse('$baseUrl/store-token'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $authToken',
+      },
+      body: payload,
+    );
+
+    if (response.statusCode == 200) {
+      _logger.i('FCM token saved successfully.');
+    } else {
+      _logger.w('Failed to save FCM token: ${response.statusCode} - ${response.body}');
     }
+  } catch (e) {
+    _logger.e('Error while saving FCM token: $e');
   }
+}
 
   // Fetch and save FCM token if needed
   Future<void> saveFcmTokenIfNeeded(String authToken) async {
