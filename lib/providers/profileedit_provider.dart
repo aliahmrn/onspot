@@ -16,7 +16,7 @@ class ProfileEditState {
   final String tempUsername;
   final String tempEmail;
   final String tempPhone;
-  final bool isLoading;
+  final bool isLoading;    
   final String? error;
   final bool success;
 
