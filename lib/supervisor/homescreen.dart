@@ -3,15 +3,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:intl/intl.dart';
 import '../providers/complaints_provider.dart';
+import '../widget/profile_picture_widget.dart'; // Import the reusable ProfilePictureWidget
 import '../widget/bell.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import '../providers/navigation_provider.dart';
 import '../supervisor/notifications.dart';
-
+import '../providers/profile_provider.dart';
 
 class SupervisorHomeScreen extends ConsumerWidget {
- const SupervisorHomeScreen({super.key});
-
+  const SupervisorHomeScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -26,6 +25,8 @@ class SupervisorHomeScreen extends ConsumerWidget {
     // Watch Riverpod providers
     final complaintsState = ref.watch(complaintsProvider);
     final latestComplaint = ref.watch(latestComplaintProvider);
+    final profileData = ref.watch(profileProvider);
+
 
     return Scaffold(
       backgroundColor: primaryColor,
@@ -66,50 +67,47 @@ class SupervisorHomeScreen extends ConsumerWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      FutureBuilder<String>(
-                        future: _getUserName(),
-                        builder: (context, snapshot) {
-                          if (snapshot.connectionState == ConnectionState.waiting) {
-                            return Text(
-                              'Welcome!',
-                              style: TextStyle(
-                                fontSize: screenWidth * 0.05,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.black87,
-                              ),
-                            );
-                          }
-                          return Text(
-                            'Welcome, ${snapshot.data}',
-                            style: TextStyle(
-                              fontSize: screenWidth * 0.05,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black87,
-                            ),
-                          );
-                        },
+                    profileData.when(
+                      loading: () => const Text(
+                        'Welcome!',
+                        style: TextStyle(fontWeight: FontWeight.bold),
                       ),
+                      error: (error, _) => const Text('Error loading profile'),
+                      data: (data) => Text(
+                        'Welcome, ${data['name'] ?? 'Supervisor'}',
+                        style: TextStyle(
+                          fontSize: screenWidth * 0.05,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black87,
+                        ),
+                      ),
+                    ),
                       Row(
                         children: [
                           BellProfileWidget(onBellTap: () {
                             Navigator.push(
                               context,
                               PageRouteBuilder(
-                                pageBuilder: (context, animation, secondaryAnimation) => const NotificationsPage(),
+                                pageBuilder: (context, animation, secondaryAnimation) =>
+                                    const NotificationsPage(),
                                 transitionDuration: Duration.zero, // No forward animation
                                 reverseTransitionDuration: Duration.zero, // No backward animation
                               ),
                             );
                           }),
                           SizedBox(width: screenWidth * 0.02),
-                          GestureDetector(
-                            onTap: () {
-                              ref.read(currentIndexProvider.notifier).state = 4; // Set to Profile Page index
-                            },
-                            child: const CircleAvatar(
-                              backgroundImage: AssetImage('assets/images/user.jpg'),
-                              radius: 20,
+
+                          // Use ProfilePictureWidget here
+                          ProfilePictureWidget(
+                            radius: 20,
+                            imageUrl: profileData.when(
+                              data: (data) => data['profile_pic'], // Fetches profile_pic URL
+                              loading: () => null, // Placeholder during loading
+                              error: (_, __) => null, // Fallback on error
                             ),
+                            onTap: () {
+                              ref.read(currentIndexProvider.notifier).state = 4;
+                            },
                           ),
                         ],
                       ),
@@ -161,7 +159,8 @@ class SupervisorHomeScreen extends ConsumerWidget {
                                   color: onSecondaryColor,
                                 ),
                               ),
-                              Icon(Icons.arrow_forward_ios, size: screenWidth * 0.035, color: onSecondaryColor),
+                              Icon(Icons.arrow_forward_ios,
+                                  size: screenWidth * 0.035, color: onSecondaryColor),
                             ],
                           ),
                         ),
@@ -274,7 +273,8 @@ class SupervisorHomeScreen extends ConsumerWidget {
                                   const Icon(Icons.calendar_today, size: 18, color: Colors.white),
                                   SizedBox(width: screenWidth * 0.02),
                                   Text(
-                                    DateFormat('dd/MM/yyyy').format(DateTime.parse(latestComplaint['comp_date']!)),
+                                    DateFormat('dd/MM/yyyy')
+                                        .format(DateTime.parse(latestComplaint['comp_date']!)),
                                     style: TextStyle(
                                       fontSize: screenWidth * 0.035,
                                       color: onPrimaryColor.withOpacity(0.7),
@@ -297,8 +297,4 @@ class SupervisorHomeScreen extends ConsumerWidget {
     );
   }
 
-  Future<String> _getUserName() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    return prefs.getString('name') ?? 'Supervisor';
-  }
 }

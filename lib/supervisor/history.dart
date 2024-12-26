@@ -246,7 +246,7 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
     );
   }
 
-  Color _getStatusColor(String status) {
+  Color getStatusColor(String status) {
     switch (status.toLowerCase()) {
       case 'completed':
         return Colors.green;

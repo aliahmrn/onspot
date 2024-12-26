@@ -93,6 +93,8 @@ flutter:
     - assets/images/thumbs_up.svg
     - assets/images/search.svg
     - assets/images/homeicon.svg
+    - assets/images/default.webp
+
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see

@@ -10,7 +10,7 @@ import 'service/notification_service.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize Firebase
+  // Initialize Firebase  
   await Firebase.initializeApp();
 
   // Initialize the Notification Service (for push notifications)
