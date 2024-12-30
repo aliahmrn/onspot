@@ -13,7 +13,7 @@ class TaskService {
   }
 
   // Fetch tasks (complaints) assigned to a specific cleaner
-  Future<List<Map<String, dynamic>>?> getCleanerTasks(int cleanerId) async {
+  Future<List<Map<String, dynamic>>?> getCleanerTasks(int cleanerId, {bool? isNotified}) async {
     String? token = await _getToken();
 
     if (token == null) {
@@ -22,8 +22,15 @@ class TaskService {
     }
 
     try {
+      // Construct URL with optional 'is_notified' query parameter
+      final uri = Uri.parse('$baseUrl/cleaner/$cleanerId/tasks').replace(
+        queryParameters: {
+          if (isNotified != null) 'notified': isNotified.toString(),
+        },
+      );
+
       final response = await http.get(
-        Uri.parse('$baseUrl/cleaner/$cleanerId/tasks'),
+        uri,
         headers: {
           'Authorization': 'Bearer $token',
           'Accept': 'application/json',
@@ -75,35 +82,64 @@ class TaskService {
   }
 
   // Fetch the latest task assigned to a specific cleaner
-Future<Map<String, dynamic>?> getLatestTask(int cleanerId) async {
-  String? token = await _getToken();
+  Future<Map<String, dynamic>?> getLatestTask(int cleanerId) async {
+    String? token = await _getToken();
 
-  if (token == null) {
-    logger.w('User not authenticated.');
-    return null;
-  }
-
-  try {
-    final response = await http.get(
-      Uri.parse('$baseUrl/cleaner/$cleanerId/tasks/latest'),
-      headers: {
-        'Authorization': 'Bearer $token',
-        'Accept': 'application/json',
-      },
-    );
-
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      return data['task']; // Ensure this key exists in the response.
-    } else {
-      logger.e('Failed to fetch latest task. Status code: ${response.statusCode}');
+    if (token == null) {
+      logger.w('User not authenticated.');
       return null;
     }
-  } catch (e) {
-    logger.e('Error fetching latest task', error: e);
-    return null;
+
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/cleaner/$cleanerId/tasks/latest'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Accept': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return data['task']; // Ensure this key exists in the response.
+      } else {
+        logger.e('Failed to fetch latest task. Status code: ${response.statusCode}');
+        return null;
+      }
+    } catch (e) {
+      logger.e('Error fetching latest task', error: e);
+      return null;
+    }
   }
-}
 
+   // Toggle the is_notified status of a task
+  Future<bool> toggleNotification(int complaintId) async {
+    String? token = await _getToken();
 
+    if (token == null) {
+      logger.w('User not authenticated.');
+      return false;
+    }
+
+    try {
+      final response = await http.put(
+        Uri.parse('$baseUrl/tasks/$complaintId/toggle-notification'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Accept': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        logger.i('Successfully toggled notification for complaint ID: $complaintId');
+        return true;
+      } else {
+        logger.e('Failed to toggle notification. Status code: ${response.statusCode}');
+        return false;
+      }
+    } catch (e) {
+      logger.e('Error toggling notification for complaint ID: $complaintId', error: e);
+      return false;
+    }
+  }
 }

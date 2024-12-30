@@ -49,4 +49,28 @@ class CleanerIcons {
       ),
     );
   }
+
+  // Checked thumbs-up icon widget with primary color background, onPrimary icon color, and outline color
+  static Widget checkedThumbIcon(BuildContext context) {
+    final primaryColor = Theme.of(context).colorScheme.primary;
+    final onPrimaryColor = Theme.of(context).colorScheme.onPrimary;
+    final outlineColor = Theme.of(context).colorScheme.outline;
+
+    return Container(
+      width: 40,
+      height: 40,
+      decoration: BoxDecoration(
+        color: primaryColor,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: outlineColor), // Outline color
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(6.0),
+        child: SvgPicture.asset(
+          'assets/images/thumbs_up_filled.svg',
+          colorFilter: ColorFilter.mode(onPrimaryColor, BlendMode.srcIn), // Icon color
+        ),
+      ),
+    );
+  }
 }

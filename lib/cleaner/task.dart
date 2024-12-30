@@ -7,22 +7,44 @@ import 'task_details.dart';
 import '../widget/cleanericons.dart';
 import 'package:logger/logger.dart';
 
-class CleanerTasksScreen extends ConsumerWidget {
-  // Declare Logger at the class level
+class CleanerTasksScreen extends ConsumerStatefulWidget {
   final Logger logger = Logger();
 
- CleanerTasksScreen({super.key});
-  
+  CleanerTasksScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  _CleanerTasksScreenState createState() => _CleanerTasksScreenState();
+}
+
+class _CleanerTasksScreenState extends ConsumerState<CleanerTasksScreen> with SingleTickerProviderStateMixin {
+  late TabController _tabController;
+
+  @override
+  void initState() {
+    super.initState();
+    // Initialize TabController
+    _tabController = TabController(length: 2, vsync: this);
+
+    // Fetch tasks when the widget is built
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(taskProvider.notifier).fetchTasks();
+    });
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final tasksAsyncValue = ref.watch(taskProvider);
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
     final primaryColor = Theme.of(context).colorScheme.primary;
     final onPrimaryColor = Theme.of(context).colorScheme.onPrimary;
     final secondaryColor = Theme.of(context).colorScheme.secondary;
-  
 
     // Initialize the FlutterTts instance
     final FlutterTts flutterTts = FlutterTts();
@@ -42,10 +64,32 @@ class CleanerTasksScreen extends ConsumerWidget {
           ),
         ),
         centerTitle: true,
+        bottom: TabBar(
+          controller: _tabController,
+          indicator: BoxDecoration(
+            border: Border(
+              bottom: BorderSide(color: Colors.transparent, width: 0), // Transparent to remove black line
+            ),
+          ),
+          labelColor: onPrimaryColor,
+          unselectedLabelColor: Colors.white70,
+          tabs: const [
+            Tab(
+              icon: Icon(Icons.notifications_off), // Icon for Not Notified
+              text: 'Not Notified',
+            ),
+            Tab(
+              icon: Icon(Icons.notifications_active), // Icon for Notified
+              text: 'Notified',
+            ),
+          ],
+        ),
       ),
       body: Stack(
         children: [
+          // Primary background color
           Container(color: primaryColor),
+          // Rounded white container
           Positioned(
             top: screenHeight * 0.01,
             left: 0,
@@ -53,88 +97,43 @@ class CleanerTasksScreen extends ConsumerWidget {
             bottom: 0,
             child: Container(
               decoration: BoxDecoration(
-                color: secondaryColor,
+                color: secondaryColor, // Use secondary color for the rounded container
                 borderRadius: BorderRadius.only(
                   topLeft: Radius.circular(screenWidth * 0.06),
                   topRight: Radius.circular(screenWidth * 0.06),
                 ),
               ),
-              padding: EdgeInsets.all(screenWidth * 0.04),
+              padding: EdgeInsets.all(screenWidth * 0.04), // Add padding for content
               child: tasksAsyncValue.when(
                 data: (tasks) {
-                  logger.i('Tasks passed to ListView.builder: $tasks');
-                  if (tasks.isEmpty) {
-                    return const Center(child: Text('No assigned tasks yet.'));
-                  }
+                  final notNotifiedTasks = tasks['notNotified'] ?? [];
+                  final notifiedTasks = tasks['notified'] ?? [];
 
-                  // Wrap the ListView.builder with RefreshIndicator
-                  return RefreshIndicator(
-                    onRefresh: () async {
-                      // Call the refresh logic for the task provider
-                      await ref.read(taskProvider.notifier).refreshTasks();
-                    },
-                    child: ListView.builder(
-                      itemCount: tasks.length,
-                      itemBuilder: (context, index) {
-                        try {
-                          final task = tasks[index];
-                          return Padding(
-                            padding: const EdgeInsets.only(bottom: 32.0),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  children: [
-                                    GestureDetector(
-                                      onTap: () {
-                                        // Use TTS to speak task details
-                                        _speakTaskDetails(
-                                          flutterTts,
-                                          task['comp_desc'] ?? 'No Description',
-                                          task['comp_location'] ?? 'No Location',
-                                          task['comp_date'] ?? 'No Date',
-                                        );
-                                      },
-                                      child: CleanerIcons.earIcon(context),
-                                    ),
-                                    const SizedBox(width: 8),
-                                    GestureDetector(
-                                      onTap: () {
-                                        // Mark the task as clicked
-                                        ref.read(taskProvider.notifier).markTaskAsClicked(task['complaint_id']);
-                                      },
-                                      child: ref.read(taskProvider.notifier).isTaskClicked(task['complaint_id'])
-                                          ? const SizedBox.shrink() // Hide the thumbs-up icon if clicked
-                                          : CleanerIcons.thumbsUpIcon(context),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 8), // Space between icons and card
-                                _buildTaskCard(
-                                  context,
-                                  ref,
-                                  task['comp_desc'] ?? 'No Description',
-                                  task['comp_location'] ?? 'No Location',
-                                  task['comp_date'] ?? 'No Date',
-                                  task['comp_image'],
-                                  task['complaint_id'],
-                                  task['comp_status'] ?? 'Unknown',
-                                ),
-                              ],
-                            ),
-                          );
-                        } catch (e) {
-                          logger.e('Error rendering task: $e');
-                          return const Text('Error rendering task.');
-                        }
-                      },
-                    ),
+                  return TabBarView(
+                    controller: _tabController,
+                    children: [
+                      _buildTaskList(
+                        context,
+                        ref,
+                        notNotifiedTasks,
+                        flutterTts,
+                        showThumbsUp: true,
+                      ),
+                      _buildTaskList(
+                        context,
+                        ref,
+                        notifiedTasks,
+                        flutterTts,
+                        showThumbsUp: false,
+                        showCompStatus: true,
+                      ),
+                    ],
                   );
                 },
                 loading: () => const Center(child: CircularProgressIndicator()),
-                error: (error, stackTrace) {
-                  return const Center(child: Text('Failed to load tasks.'));
-                },
+                error: (error, stackTrace) => const Center(
+                  child: Text('Failed to load tasks.'),
+                ),
               ),
             ),
           ),
@@ -143,15 +142,82 @@ class CleanerTasksScreen extends ConsumerWidget {
     );
   }
 
-  // Method to use TTS to speak task details
+  Widget _buildTaskList(
+    BuildContext context,
+    WidgetRef ref,
+    List<Map<String, dynamic>> tasks,
+    FlutterTts flutterTts, {
+    required bool showThumbsUp,
+    bool showCompStatus = false, // New parameter to control comp_status display
+  }) {
+    if (tasks.isEmpty) {
+      return const Center(child: Text('No tasks available.'));
+    }
+
+    return RefreshIndicator(
+      onRefresh: () async {
+        await ref.read(taskProvider.notifier).refreshTasks();
+      },
+      child: ListView.builder(
+        itemCount: tasks.length,
+        itemBuilder: (context, index) {
+          final task = tasks[index];
+
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 32.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    GestureDetector(
+                      onTap: () {
+                        _speakTaskDetails(
+                          flutterTts,
+                          task['comp_desc'] ?? 'No Description',
+                          task['comp_location'] ?? 'No Location',
+                          task['comp_date'] ?? 'No Date',
+                        );
+                      },
+                      child: CleanerIcons.earIcon(context),
+                    ),
+                    const SizedBox(width: 8),
+                    if (showThumbsUp)
+                      GestureDetector(
+                        onTap: () {
+                          ref.read(taskProvider.notifier).toggleTaskNotification(task['complaint_id']);
+                        },
+                        child: CleanerIcons.thumbsUpIcon(context),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                _buildTaskCard(
+                  context,
+                  ref,
+                  task['comp_desc'] ?? 'No Description',
+                  task['comp_location'] ?? 'No Location',
+                  task['comp_date'] ?? 'No Date',
+                  task['comp_image'],
+                  task['complaint_id'],
+                  task['comp_status'] ?? 'Unknown',
+                  compStatus: showCompStatus ? task['comp_status'] : null, // Pass comp_status for notified tab
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
   Future<void> _speakTaskDetails(
     FlutterTts flutterTts,
     String description,
     String location,
     String date,
   ) async {
-    final String textToSpeak =
-        "Tugas: $description. Lokasi: $location. Tarikh: $date.";
+    final String textToSpeak = "Tugas: $description. Lokasi: $location. Tarikh: $date.";
     try {
       await flutterTts.setLanguage("ms-MY");
       await flutterTts.setSpeechRate(0.3); // Adjust speech rate
@@ -164,136 +230,111 @@ class CleanerTasksScreen extends ConsumerWidget {
 
   Widget _buildTaskCard(
     BuildContext context,
-    WidgetRef ref, // Add WidgetRef parameter
+    WidgetRef ref,
     String title,
     String subtitle,
     String date,
     String? imageUrl,
     int complaintId,
-    String status, // Pass dynamic status
+    String status,
+    {String? compStatus} 
   ) {
     final primaryColor = Theme.of(context).colorScheme.primary;
     final onPrimaryColor = Theme.of(context).colorScheme.onPrimary;
-    final taskProviderNotifier = ref.read(taskProvider.notifier); // Use ref.read
 
-    // Determine the color for the status
+    // Function to determine the color of the badge
     Color getStatusColor(String status) {
       switch (status.toLowerCase()) {
-        case 'pending':
-          return Colors.orange;
         case 'ongoing':
-          return Colors.blue;
+          return Colors.blue; // Blue for ongoing
         case 'completed':
-          return Colors.green;
+          return Colors.green; // Green for completed
         default:
-          return Colors.grey; // Default for unknown status
+          return Colors.grey; // Default color for unknown statuses
       }
     }
 
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: primaryColor, // Use primary color for the card background
+        color: primaryColor,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Row for Task Description and Status
+          // Title and Subtitle
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              // Task description
               Expanded(
                 child: Text(
                   title,
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: onPrimaryColor, // Text color matches the card's contrast
+                    color: onPrimaryColor,
                   ),
                 ),
               ),
-              // Status badge
-              if (taskProviderNotifier.isTaskClicked(complaintId))
+              // Display comp_status as a badge if provided
+              if (compStatus != null)
                 Container(
                   padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 12),
                   decoration: BoxDecoration(
-                    color: getStatusColor(status).withOpacity(0.2),
+                    color: getStatusColor(compStatus).withOpacity(0.2), // Light background
                     borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: getStatusColor(status)),
+                    border: Border.all(color: getStatusColor(compStatus)),
                   ),
                   child: Text(
-                    "$status", // Dynamically display the `comp_status`
+                    compStatus,
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.bold,
-                      color: getStatusColor(status),
+                      color: getStatusColor(compStatus),
                     ),
                   ),
                 ),
             ],
           ),
-          const SizedBox(height: 8), // Spacing before the divider
+          const SizedBox(height: 8),
 
           // Divider
-          Divider(
-            color: onPrimaryColor.withOpacity(0.5), // Faint line for separation
-            thickness: 1,
-          ),
-          const SizedBox(height: 8), // Spacing after the divider
+          Divider(color: onPrimaryColor.withOpacity(0.5), thickness: 1),
+          const SizedBox(height: 8),
 
-          // Task location and date with navigation arrow
+          // Location and Date
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              // Task location
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      subtitle,
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: onPrimaryColor,
-                      ),
-                    ),
+                    Text(subtitle, style: TextStyle(fontSize: 14, color: onPrimaryColor)),
                     const SizedBox(height: 4),
-                    Text(
-                      _formatDate(date), // Format the date
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: onPrimaryColor,
-                      ),
-                    ),
+                    Text(_formatDate(date), style: TextStyle(fontSize: 12, color: onPrimaryColor)),
                   ],
                 ),
               ),
-              // Navigation arrow
               GestureDetector(
                 onTap: () {
                   Navigator.push(
                     context,
-                    PageRouteBuilder(
-                      pageBuilder: (context, animation, secondaryAnimation) =>
-                          TaskDetailsPage(
+                    MaterialPageRoute(
+                      builder: (context) => TaskDetailsPage(
                         complaintId: complaintId,
                         location: subtitle,
                         date: date,
                         imageUrl: imageUrl,
                         description: title,
                       ),
-                      transitionsBuilder:
-                          (context, animation, secondaryAnimation, child) {
-                        return child; // No animation
-                      },
                     ),
                   );
                 },
                 child: Icon(
                   Icons.arrow_forward_ios,
-                  color: onPrimaryColor, // Icon color matches text color
+                  color: onPrimaryColor,
                   size: 24,
                 ),
               ),
@@ -304,17 +345,12 @@ class CleanerTasksScreen extends ConsumerWidget {
     );
   }
 
+
   String _formatDate(String? rawDate) {
-    logger.i('Raw date: $rawDate');
-    if (rawDate == null) return 'N/A';
     try {
-      final parsedDate = DateTime.parse(rawDate); // Parse raw date string
-      final formattedDate =
-          DateFormat('dd/MM/yyyy').format(parsedDate); // Format to DD/MM/YYYY
-      logger.i('Formatted date: $formattedDate');
-      return formattedDate;
+      final parsedDate = DateTime.parse(rawDate ?? '');
+      return DateFormat('dd/MM/yyyy').format(parsedDate);
     } catch (e) {
-      logger.e('Date formatting error: $e');
       return 'Invalid Date';
     }
   }

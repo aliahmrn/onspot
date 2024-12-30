@@ -8,6 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
 import '../providers/attendance_provider.dart'; // Import the attendance provider
 import 'package:logger/logger.dart';
+import '../providers/profile_provider.dart';
 
 class CleanerHomeScreen extends ConsumerStatefulWidget {
   const CleanerHomeScreen({super.key});
@@ -134,8 +135,8 @@ Future<void> _checkAttendanceState() async {
 
      // Declare status variables here
     final String status = attendanceStateAsync.maybeWhen(
-      data: (attendanceState) => attendanceState.status ?? 'Unavailable',
-      orElse: () => 'Unavailable',
+      data: (attendanceState) => attendanceState.status?.toLowerCase() ?? 'unavailable', // Lowercase fallback
+      orElse: () => 'unavailable',
     );
     final Color statusColor = status.toLowerCase() == 'available'
         ? Colors.green
@@ -200,9 +201,44 @@ Future<void> _checkAttendanceState() async {
                               SizedBox(width: screenWidth * 0.025),
                               GestureDetector(
                                 onTap: () => _handleProfileTap(ref),
-                                child: CircleAvatar(
-                                  radius: screenWidth * 0.04,
-                                  child: Icon(Icons.person, size: screenWidth * 0.05),
+                                child: Consumer(
+                                  builder: (context, ref, _) {
+                                    final profileAsyncValue = ref.watch(profileProvider);
+
+                                    return profileAsyncValue.when(
+                                      data: (cleanerInfo) => CircleAvatar(
+                                        radius: screenWidth * 0.05,
+                                        backgroundColor: Colors.white,
+                                        backgroundImage: cleanerInfo['profile_pic'] != null
+                                            ? NetworkImage(cleanerInfo['profile_pic'])
+                                            : null,
+                                        child: cleanerInfo['profile_pic'] == null
+                                            ? Icon(
+                                                Icons.person,
+                                                size: screenWidth * 0.06,
+                                                color: Colors.grey[600],
+                                              )
+                                            : null,
+                                      ),
+                                      loading: () => CircleAvatar(
+                                        radius: screenWidth * 0.05,
+                                        backgroundColor: Colors.grey[300],
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          valueColor: AlwaysStoppedAnimation(primaryColor),
+                                        ),
+                                      ),
+                                      error: (error, stackTrace) => CircleAvatar(
+                                        radius: screenWidth * 0.05,
+                                        backgroundColor: Colors.grey[300],
+                                        child: Icon(
+                                          Icons.error,
+                                          size: screenWidth * 0.06,
+                                          color: Colors.red,
+                                        ),
+                                      ),
+                                    );
+                                  },
                                 ),
                               ),
                             ],

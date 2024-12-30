@@ -256,10 +256,12 @@ class CleanerProfileScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildTextField(BuildContext context, String label, String value, IconData icon, double screenWidth) {
-    return Padding(
-      padding: EdgeInsets.symmetric(vertical: screenWidth * 0.03), // Responsive spacing
+Widget _buildTextField(BuildContext context, String label, String value, IconData icon, double screenWidth) {
+  return Padding(
+    padding: EdgeInsets.symmetric(vertical: screenWidth * 0.03), // Responsive spacing
+    child: Center( // Center the container
       child: Container(
+        width: screenWidth * 0.8, // Set width to 80% of the screen width
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(12),
@@ -285,7 +287,7 @@ class CleanerProfileScreen extends ConsumerWidget {
                     Text(
                       label,
                       style: TextStyle(
-                        fontSize: screenWidth * 0.035, // Responsive font size
+                        fontSize: screenWidth * 0.04, // Responsive font size
                         color: Colors.grey,
                         fontWeight: FontWeight.w600,
                       ),
@@ -294,7 +296,7 @@ class CleanerProfileScreen extends ConsumerWidget {
                     Text(
                       value,
                       style: TextStyle(
-                        fontSize: screenWidth * 0.04, // Responsive font size
+                        fontSize: screenWidth * 0.045, // Responsive font size
                         color: Colors.black,
                         fontWeight: FontWeight.w500,
                       ),
@@ -306,8 +308,9 @@ class CleanerProfileScreen extends ConsumerWidget {
           ),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildButtonSection(BuildContext context, WidgetRef ref, Color primaryColor, Color secondaryColor, double screenWidth) {
     return Column(

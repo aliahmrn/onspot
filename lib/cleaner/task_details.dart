@@ -98,57 +98,76 @@ class TaskDetailsPageState extends State<TaskDetailsPage> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               SizedBox(height: screenHeight * 0.02),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Row(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
                                       Icon(
-                                        Icons.location_on, // Location icon
+                                        Icons.location_on,
                                         color: onSecondaryColor,
-                                        size: screenWidth * 0.05, // Adjust size based on screen
+                                        size: screenWidth * 0.05,
                                       ),
                                       SizedBox(width: screenWidth * 0.025),
-                                      Text(
-                                        'Location:',
-                                        style: TextStyle(
-                                          fontSize: screenWidth * 0.04,
-                                          fontWeight: FontWeight.bold,
-                                          color: onSecondaryColor,
-                                        ),
-                                      ),
-                                      SizedBox(width: screenWidth * 0.025),
-                                      Text(
-                                        widget.location,
-                                        style: TextStyle(
-                                          fontSize: screenWidth * 0.04,
-                                          color: onSecondaryColor,
+                                      Expanded(
+                                        child: RichText(
+                                          text: TextSpan(
+                                            children: [
+                                              TextSpan(
+                                                text: 'Location: ',
+                                                style: TextStyle(
+                                                  fontSize: screenWidth * 0.04,
+                                                  fontWeight: FontWeight.bold, // Bold for "Location:"
+                                                  color: onSecondaryColor,
+                                                ),
+                                              ),
+                                              TextSpan(
+                                                text: widget.location,
+                                                style: TextStyle(
+                                                  fontSize: screenWidth * 0.04,
+                                                  fontWeight: FontWeight.normal, // Regular for location value
+                                                  color: onSecondaryColor,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
                                         ),
                                       ),
                                     ],
                                   ),
+                                  SizedBox(height: screenHeight * 0.015), // Spacing between location and date
                                   Row(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
                                       Icon(
-                                        Icons.calendar_today, // Date icon
+                                        Icons.calendar_today,
                                         color: onSecondaryColor,
-                                        size: screenWidth * 0.05, // Adjust size based on screen
+                                        size: screenWidth * 0.05,
                                       ),
                                       SizedBox(width: screenWidth * 0.025),
-                                      Text(
-                                        'Date:',
-                                        style: TextStyle(
-                                          fontSize: screenWidth * 0.04,
-                                          fontWeight: FontWeight.bold,
-                                          color: onSecondaryColor,
-                                        ),
-                                      ),
-                                      SizedBox(width: screenWidth * 0.025),
-                                      Text(
-                                        _formatDate(widget.date), // Format the date
-                                        style: TextStyle(
-                                          fontSize: screenWidth * 0.04,
-                                          color: onSecondaryColor,
+                                      Expanded(
+                                        child: RichText(
+                                          text: TextSpan(
+                                            children: [
+                                              TextSpan(
+                                                text: 'Date: ',
+                                                style: TextStyle(
+                                                  fontSize: screenWidth * 0.04,
+                                                  fontWeight: FontWeight.bold, // Bold for "Date:"
+                                                  color: onSecondaryColor,
+                                                ),
+                                              ),
+                                              TextSpan(
+                                                text: _formatDate(widget.date),
+                                                style: TextStyle(
+                                                  fontSize: screenWidth * 0.04,
+                                                  fontWeight: FontWeight.normal, // Regular for date value
+                                                  color: onSecondaryColor,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
                                         ),
                                       ),
                                     ],

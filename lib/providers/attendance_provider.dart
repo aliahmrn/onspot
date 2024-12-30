@@ -31,7 +31,8 @@ class AttendanceNotifier extends StateNotifier<AsyncValue<AttendanceState>> {
 
       // Extract data from the response
       final hasSubmitted = response['attended'] ?? false; // Default to false if 'attended' is missing
-      final status = response['status'] ?? 'Unavailable'; // Default to "Unavailable"
+      final status = response['status']?.toLowerCase() ?? 'unavailable'; // Ensure lowercase fallback
+
       
       // Get cleaner name from shared preferences
       final prefs = await SharedPreferences.getInstance();
@@ -71,7 +72,7 @@ class AttendanceNotifier extends StateNotifier<AsyncValue<AttendanceState>> {
         AttendanceState(
           showCard: false, // Do not show the card after submission
           cleanerName: state.value?.cleanerName,
-          status: status == 'present' ? 'Available' : 'Unavailable', // Update status
+          status: status == 'present' ? 'available' : 'unavailable', // Update status
         ),
       );
     } catch (e, stackTrace) {
