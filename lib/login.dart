@@ -93,183 +93,186 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     super.dispose();
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final loginState = ref.watch(loginProvider);
-    final loginNotifier = ref.read(loginProvider.notifier);
 
-    return Scaffold(
-      backgroundColor: const Color(0xFF2E5675),
-      body: Center(
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(20.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: <Widget>[
-                const SizedBox(height: 60),
-                Column(
-                  children: [
-                    Text(
-                      'OnSpot',
-                      style: GoogleFonts.poppins(
-                        fontSize: 32,
-                        fontWeight: FontWeight.w800,
-                        color: Colors.white,
-                      ),
+@override
+Widget build(BuildContext context) {
+  final loginState = ref.watch(loginProvider);
+  final loginNotifier = ref.read(loginProvider.notifier);
+
+  return Scaffold(
+    backgroundColor: const Color(0xFF2E5675),
+    body: Center(
+      child: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: <Widget>[
+              const SizedBox(height: 60),
+              Column(
+                children: [
+                  Text(
+                    'OnSpot',
+                    style: GoogleFonts.poppins(
+                      fontSize: 32,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.white,
                     ),
-                    Text(
-                      'Facility',
-                      style: GoogleFonts.poppins(
-                        fontSize: 32,
-                        fontWeight: FontWeight.w800,
-                        color: Colors.white,
-                      ),
+                  ),
+                  Text(
+                    'Facility',
+                    style: GoogleFonts.poppins(
+                      fontSize: 32,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.white,
                     ),
-                  ],
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              Card(
+                elevation: 5,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(15),
                 ),
-                const SizedBox(height: 20),
-                Card(
-                  elevation: 5,
-                  shape: RoundedRectangleBorder(
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.secondary, // Use secondary color
                     borderRadius: BorderRadius.circular(15),
                   ),
-                  child: Container(
-                     decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.secondary, // Use secondary color
-                      borderRadius: BorderRadius.circular(15), 
-                     ),
-                    padding: const EdgeInsets.all(20.0),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: <Widget>[
-                        _buildInputField('Username or Email', _inputController),
-                        const SizedBox(height: 20),
-                        _buildInputField('Password', _passwordController, obscureText: true),
-                        const SizedBox(height: 20),
-                          ElevatedButton(
-                            onPressed: loginState.isLoading
-                                ? null
-                                : () async {
-                                    final input = _inputController.text;
-                                    final password = _passwordController.text;
+                  padding: const EdgeInsets.all(20.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      _buildInputField('Username or Email', _inputController, isEnabled: !loginState.isLoading),
+                      const SizedBox(height: 20),
+                      _buildInputField('Password', _passwordController, obscureText: true, isEnabled: !loginState.isLoading),
+                      const SizedBox(height: 20),
+                      ElevatedButton(
+                        onPressed: loginState.isLoading
+                            ? null
+                            : () async {
+                                final input = _inputController.text;
+                                final password = _passwordController.text;
 
-                                    final success = await loginNotifier.login(
-                                      input: input,
-                                      password: password,
-                                    );
+                                final success = await loginNotifier.login(
+                                  input: input,
+                                  password: password,
+                                );
 
-                                    if (success && context.mounted) {
-                                      // Navigate to MainNavigator
-                                      Navigator.of(context).pushAndRemoveUntil(
-                                        MaterialPageRoute(builder: (context) => const MainNavigator()),
-                                        (route) => false,
-                                      );
-                                    }
-                                  },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.black,
-                              padding: const EdgeInsets.symmetric(vertical: 15),
-                              minimumSize: const Size(150, 40),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(30),
-                              ),
-                              textStyle: const TextStyle(fontSize: 16),
-                            ),
-                            child: loginState.isLoading
-                                ? const CircularProgressIndicator(color: Colors.white)
-                                : Row(
-                                    mainAxisSize: MainAxisSize.min, // Centers content inside the button
-                                    children: [
-                                      const Icon(Icons.login, color: Colors.white), // Add your desired icon
-                                      const SizedBox(width: 8), // Add spacing between icon and text
-                                      const Text('Sign In', style: TextStyle(color: Colors.white)),
-                                    ],
-                                  ),
+                                if (success && context.mounted) {
+                                  // Navigate to MainNavigator
+                                  Navigator.of(context).pushAndRemoveUntil(
+                                    MaterialPageRoute(builder: (context) => const MainNavigator()),
+                                    (route) => false,
+                                  );
+                                }
+                              },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.black,
+                          padding: const EdgeInsets.symmetric(vertical: 15),
+                          minimumSize: const Size(150, 40),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(30),
                           ),
+                          textStyle: const TextStyle(fontSize: 16),
+                        ),
+                        child: loginState.isLoading
+                            ? const CircularProgressIndicator(color: Colors.white)
+                            : Row(
+                                mainAxisSize: MainAxisSize.min, // Centers content inside the button
+                                children: [
+                                  const Icon(Icons.login, color: Colors.white), // Add your desired icon
+                                  const SizedBox(width: 8), // Add spacing between icon and text
+                                  const Text('Sign In', style: TextStyle(color: Colors.white)),
+                                ],
+                              ),
+                      ),
+                      const SizedBox(height: 10),
+                      if (loginState.errorMessage.isNotEmpty) ...[
+                        Text(
+                          loginState.errorMessage,
+                          style: const TextStyle(color: Colors.red),
+                          textAlign: TextAlign.center, // Aligns text horizontally within its bounds
+                        ),
                         const SizedBox(height: 10),
-                        if (loginState.errorMessage.isNotEmpty) ...[
-                          Text(
-                            loginState.errorMessage,
-                            style: const TextStyle(color: Colors.red),
-                            textAlign: TextAlign.center, // Aligns text horizontally within its bounds
-                          ),
-                          const SizedBox(height: 10),
-                        ],
-                        TextButton(
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              PageRouteBuilder(
-                                pageBuilder: (context, animation, secondaryAnimation) =>
-                                    const ForgotPasswordScreen(),
-                                transitionDuration: Duration.zero,
-                                reverseTransitionDuration: Duration.zero,
-                              ),
-                            );
-                          },
-                          child: RichText(
-                            text: TextSpan(
-                              text: 'Forgot Password?',
-                              style: GoogleFonts.poppins(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w500,
-                                color: Colors.black,
-                                decoration: TextDecoration.underline, // Adds the underline
-                                decorationColor: Colors.grey, // Makes the underline grey
-                                decorationThickness: 1.5, // Adjusts thickness
-                              ),
-                            ),
-                          ),
-                        ),
-                        TextButton(
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              PageRouteBuilder(
-                                pageBuilder: (context, animation, secondaryAnimation) =>
-                                    const RegistrationScreen(),
-                                transitionDuration: Duration.zero,
-                                reverseTransitionDuration: Duration.zero,
-                              ),
-                            );
-                          },
-                          child: RichText(
-                            text: TextSpan(
-                              text: "Don't have an account? Register",
-                              style: GoogleFonts.poppins(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w500,
-                                color: Colors.black,
-                                decoration: TextDecoration.underline, // Adds the underline
-                                decorationColor: Colors.grey, // Makes the underline grey
-                                decorationThickness: 1.5, // Adjusts thickness
-                              ),
-                            ),
-                          ),
-                        ),
                       ],
-                    ),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            PageRouteBuilder(
+                              pageBuilder: (context, animation, secondaryAnimation) =>
+                                  const ForgotPasswordScreen(),
+                              transitionDuration: Duration.zero,
+                              reverseTransitionDuration: Duration.zero,
+                            ),
+                          );
+                        },
+                        child: RichText(
+                          text: TextSpan(
+                            text: 'Forgot Password?',
+                            style: GoogleFonts.poppins(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.black,
+                              decoration: TextDecoration.underline, // Adds the underline
+                              decorationColor: Colors.grey, // Makes the underline grey
+                              decorationThickness: 1.5, // Adjusts thickness
+                            ),
+                          ),
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            PageRouteBuilder(
+                              pageBuilder: (context, animation, secondaryAnimation) =>
+                                  const RegistrationScreen(),
+                              transitionDuration: Duration.zero,
+                              reverseTransitionDuration: Duration.zero,
+                            ),
+                          );
+                        },
+                        child: RichText(
+                          text: TextSpan(
+                            text: "Don't have an account? Register",
+                            style: GoogleFonts.poppins(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.black,
+                              decoration: TextDecoration.underline, // Adds the underline
+                              decorationColor: Colors.grey, // Makes the underline grey
+                              decorationThickness: 1.5, // Adjusts thickness
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                const SizedBox(height: 60),
-                Transform.rotate(
-                  angle: -90 * 3.1415926535 / 180,
-                  child: Image.asset(
-                    'assets/images/vacuum.png',
-                    height: 200,
-                  ),
+              ),
+              const SizedBox(height: 60),
+              Transform.rotate(
+                angle: -90 * 3.1415926535 / 180,
+                child: Image.asset(
+                  'assets/images/vacuum.png',
+                  height: 200,
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
-    );
-  }
+    )
+  );
+}
 
-Widget _buildInputField(String label, TextEditingController controller, {bool obscureText = false}) {
+Widget _buildInputField(
+    String label, TextEditingController controller,
+    {bool obscureText = false, required bool isEnabled}) {
   IconData? getIcon(String label) {
     switch (label) {
       case 'Username or Email':
@@ -294,8 +297,10 @@ Widget _buildInputField(String label, TextEditingController controller, {bool ob
         child: TextField(
           controller: controller,
           obscureText: obscureText,
+          enabled: isEnabled, // Dynamically control enabled state
           decoration: InputDecoration(
-            prefixIcon: getIcon(label) != null ? Icon(getIcon(label), color: Colors.grey) : null,
+            prefixIcon:
+                getIcon(label) != null ? Icon(getIcon(label), color: Colors.grey) : null,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(30),
             ),

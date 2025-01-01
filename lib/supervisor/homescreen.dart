@@ -67,21 +67,28 @@ class SupervisorHomeScreen extends ConsumerWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                    profileData.when(
-                      loading: () => const Text(
-                        'Welcome!',
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      error: (error, _) => const Text('Error loading profile'),
-                      data: (data) => Text(
-                        'Welcome, ${data['name'] ?? 'Supervisor'}',
-                        style: TextStyle(
-                          fontSize: screenWidth * 0.05,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black87,
+                      profileData.when(
+                        loading: () => const SizedBox.shrink(),
+                        error: (error, _) => const Text('Error loading profile'),
+                        data: (data) => RichText(
+                          text: TextSpan(
+                            text: 'Welcome, ',
+                            style: TextStyle(
+                              fontSize: screenWidth * 0.05,
+                              fontWeight: FontWeight.normal, // Regular weight for "Welcome"
+                              color: Colors.black87,
+                            ),
+                            children: [
+                              TextSpan(
+                                text: data['name'] ?? 'Supervisor',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold, // Bold weight for the name
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
-                    ),
                       Row(
                         children: [
                           BellProfileWidget(onBellTap: () {
