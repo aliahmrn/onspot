@@ -145,9 +145,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: <Widget>[
-                        _buildInputField('Username or Email', _inputController),
+                       _buildInputField('Username or Email', _inputController, isEnabled: !loginState.isLoading),
                         const SizedBox(height: 20),
-                        _buildInputField('Password', _passwordController, obscureText: true),
+                       _buildInputField('Password', _passwordController, obscureText: true, isEnabled: !loginState.isLoading),
                         const SizedBox(height: 20),
                           ElevatedButton(
                           onPressed: loginState.isLoading
@@ -273,52 +273,53 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     );
   }
 
-Widget _buildInputField(String label, TextEditingController controller, {bool obscureText = false}) {
-  IconData? getIcon(String label) {
-    switch (label) {
-      case 'Username or Email':
-        return Icons.person; // Icon for username or email
-      case 'Password':
-        return Icons.lock; // Icon for password
-      default:
-        return null;
+  Widget _buildInputField(String label, TextEditingController controller, {bool obscureText = false, required bool isEnabled}) {
+    IconData? getIcon(String label) {
+      switch (label) {
+        case 'Username or Email':
+          return Icons.person; // Icon for username or email
+        case 'Password':
+          return Icons.lock; // Icon for password
+        default:
+          return null;
+      }
     }
-  }
 
-  return Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      Text(
-        label,
-        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-      ),
-      const SizedBox(height: 6),
-      SizedBox(
-        width: 350,
-        child: TextField(
-          controller: controller,
-          obscureText: obscureText,
-          decoration: InputDecoration(
-            prefixIcon: getIcon(label) != null ? Icon(getIcon(label), color: Colors.grey) : null,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(30),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+        ),
+        const SizedBox(height: 6),
+        SizedBox(
+          width: 350,
+          child: TextField(
+            controller: controller,
+            obscureText: obscureText,
+            enabled: isEnabled, // Toggle enabled state
+            decoration: InputDecoration(
+              prefixIcon: getIcon(label) != null ? Icon(getIcon(label), color: Colors.grey) : null,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(30),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(30),
+                borderSide: const BorderSide(color: Colors.grey),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(30),
+                borderSide: const BorderSide(color: Colors.black),
+              ),
+              filled: true, // Enables the background color
+              fillColor: Colors.white, // Sets the background color to white
+              hintText: 'Enter $label',
+              hintStyle: const TextStyle(color: Colors.grey), // Soft grey for hint text
             ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(30),
-              borderSide: const BorderSide(color: Colors.grey),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(30),
-              borderSide: const BorderSide(color: Colors.black),
-            ),
-            filled: true, // Enables the background color
-            fillColor: Colors.white, // Sets the background color to white
-            hintText: 'Enter $label',
-            hintStyle: const TextStyle(color: Colors.grey), // Soft grey for hint text
           ),
         ),
-      ),
-    ],
-  );
-}
+      ],
+    );
+  }
 }

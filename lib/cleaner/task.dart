@@ -64,26 +64,6 @@ class _CleanerTasksScreenState extends ConsumerState<CleanerTasksScreen> with Si
           ),
         ),
         centerTitle: true,
-        bottom: TabBar(
-          controller: _tabController,
-          indicator: BoxDecoration(
-            border: Border(
-              bottom: BorderSide(color: Colors.transparent, width: 0), // Transparent to remove black line
-            ),
-          ),
-          labelColor: onPrimaryColor,
-          unselectedLabelColor: Colors.white70,
-          tabs: const [
-            Tab(
-              icon: Icon(Icons.notifications_off), // Icon for Not Notified
-              text: 'Not Notified',
-            ),
-            Tab(
-              icon: Icon(Icons.notifications_active), // Icon for Notified
-              text: 'Notified',
-            ),
-          ],
-        ),
       ),
       body: Stack(
         children: [
@@ -103,37 +83,84 @@ class _CleanerTasksScreenState extends ConsumerState<CleanerTasksScreen> with Si
                   topRight: Radius.circular(screenWidth * 0.06),
                 ),
               ),
-              padding: EdgeInsets.all(screenWidth * 0.04), // Add padding for content
-              child: tasksAsyncValue.when(
-                data: (tasks) {
-                  final notNotifiedTasks = tasks['notNotified'] ?? [];
-                  final notifiedTasks = tasks['notified'] ?? [];
+              child: Column(
+                children: [
+                  // TabBar
+                  Container(
+                    decoration: BoxDecoration(
+                      color: secondaryColor,
+                      borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(screenWidth * 0.06),
+                        topRight: Radius.circular(screenWidth * 0.06),
+                      ),
+                    ),
+                    child: TabBar(
+                      controller: _tabController,
+                      indicatorColor: primaryColor,
+                      labelColor: primaryColor,
+                      unselectedLabelColor: Colors.black45,
+                      tabs: [
+                        Tab(
+                          icon: Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              Icon(Icons.circle, size: 24, color: Colors.grey), // Background circle for "Not Notified"
+                              Icon(Icons.notifications_off, size: 18, color: Colors.white), // "Not Notified" icon
+                            ],
+                          ),
+                          text: 'Not Notified',
+                        ),
+                        Tab(
+                          icon: Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              Icon(Icons.circle, size: 24, color: primaryColor), // Background circle for "Notified"
+                              Icon(Icons.notifications_active, size: 18, color: Colors.white), // "Notified" icon
+                            ],
+                          ),
+                          text: 'Notified',
+                        ),
+                      ],
+                    ),
+                  ),
+                  // Content for tabs
+                  Expanded(
+                    child: Padding(
+                      padding: EdgeInsets.all(screenWidth * 0.04),
+                      child: tasksAsyncValue.when(
+                        data: (tasks) {
+                          final notNotifiedTasks = tasks['notNotified'] ?? [];
+                          final notifiedTasks = tasks['notified'] ?? [];
 
-                  return TabBarView(
-                    controller: _tabController,
-                    children: [
-                      _buildTaskList(
-                        context,
-                        ref,
-                        notNotifiedTasks,
-                        flutterTts,
-                        showThumbsUp: true,
+                          return TabBarView(
+                            controller: _tabController,
+                            children: [
+                              _buildTaskList(
+                                context,
+                                ref,
+                                notNotifiedTasks,
+                                flutterTts,
+                                showThumbsUp: true,
+                              ),
+                              _buildTaskList(
+                                context,
+                                ref,
+                                notifiedTasks,
+                                flutterTts,
+                                showThumbsUp: false,
+                                showCompStatus: true,
+                              ),
+                            ],
+                          );
+                        },
+                        loading: () => const Center(child: CircularProgressIndicator()),
+                        error: (error, stackTrace) => const Center(
+                          child: Text('Failed to load tasks.'),
+                        ),
                       ),
-                      _buildTaskList(
-                        context,
-                        ref,
-                        notifiedTasks,
-                        flutterTts,
-                        showThumbsUp: false,
-                        showCompStatus: true,
-                      ),
-                    ],
-                  );
-                },
-                loading: () => const Center(child: CircularProgressIndicator()),
-                error: (error, stackTrace) => const Center(
-                  child: Text('Failed to load tasks.'),
-                ),
+                    ),
+                  ),
+                ],
               ),
             ),
           ),

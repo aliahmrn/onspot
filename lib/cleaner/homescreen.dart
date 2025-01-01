@@ -185,12 +185,22 @@ Future<void> _checkAttendanceState() async {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(
-                            'Welcome, ${attendanceState.cleanerName ?? "Cleaner"}',
-                            style: TextStyle(
-                              fontSize: screenWidth * 0.05,
-                              fontWeight: FontWeight.bold,
-                              color: onSecondaryColor,
+                          RichText(
+                            text: TextSpan(
+                              text: 'Welcome, ',
+                              style: TextStyle(
+                                fontSize: screenWidth * 0.05,
+                                fontWeight: FontWeight.normal, // Normal font weight for "Welcome, "
+                                color: onSecondaryColor,
+                              ),
+                              children: [
+                                TextSpan(
+                                  text: attendanceState.cleanerName ?? 'Cleaner', // Cleaner name
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold, // Bold font weight for the name
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                           Row(
@@ -222,7 +232,7 @@ Future<void> _checkAttendanceState() async {
                                       ),
                                       loading: () => CircleAvatar(
                                         radius: screenWidth * 0.05,
-                                        backgroundColor: Colors.grey[300],
+                                        backgroundColor: Colors.grey,
                                         child: CircularProgressIndicator(
                                           strokeWidth: 2,
                                           valueColor: AlwaysStoppedAnimation(primaryColor),
