@@ -5,15 +5,18 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../providers/profileedit_provider.dart';
 import '../cleaner/main_navigator.dart';
 import '../providers/profile_provider.dart';
+import 'package:logger/logger.dart';
+import '../widget/profile_picture_widget.dart';
 
 class CleanerProfileEditScreen extends ConsumerStatefulWidget {
   const CleanerProfileEditScreen({super.key});
 
   @override
-  ConsumerState<CleanerProfileEditScreen> createState() => _SVProfileEditScreenState();
+  ConsumerState<CleanerProfileEditScreen> createState() =>
+      _CleanerProfileEditScreenState();
 }
 
-class _SVProfileEditScreenState extends ConsumerState<CleanerProfileEditScreen> {
+class _CleanerProfileEditScreenState extends ConsumerState<CleanerProfileEditScreen> {
   late TextEditingController nameController;
   late TextEditingController usernameController;
   late TextEditingController emailController;
@@ -24,10 +27,12 @@ class _SVProfileEditScreenState extends ConsumerState<CleanerProfileEditScreen> 
   @override
   void initState() {
     super.initState();
-    // Ensure profile data is loaded when entering the screen
-    Future.microtask(() => ref.refresh(profileLoaderProvider));
-
-    // Initialize controllers with empty strings; values will be updated once data is loaded
+    Future.microtask(() async {
+      if (mounted) {
+        ref.invalidate(profileEditProvider);
+        await ref.read(profileLoaderProvider.future);
+      }
+    });
     nameController = TextEditingController();
     usernameController = TextEditingController();
     emailController = TextEditingController();
@@ -45,6 +50,8 @@ class _SVProfileEditScreenState extends ConsumerState<CleanerProfileEditScreen> 
 
   Future<void> _showImageOptions(BuildContext context, WidgetRef ref) async {
     final picker = ImagePicker();
+    final Logger logger = Logger();
+
     final String? action = await showDialog<String>(
       context: context,
       builder: (BuildContext context) {
@@ -68,17 +75,56 @@ class _SVProfileEditScreenState extends ConsumerState<CleanerProfileEditScreen> 
       },
     );
 
+    logger.i('💡 User selected action: $action');
+
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('token');
+    if (token == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Error: Token not found. Please log in.')),
+      );
+      return;
+    }
+
     if (action == 'Upload') {
       final XFile? image = await picker.pickImage(source: ImageSource.gallery);
       if (image != null) {
-        ref.read(profileEditProvider.notifier).updateProfilePicture(image.path);
+        logger.i('💡 User selected image: ${image.path}');
+        ref.read(profileEditProvider.notifier).updateTempProfilePicture(image.path);
       }
     } else if (action == 'Delete') {
-      ref.read(profileEditProvider.notifier).updateProfilePicture(null);
+      final confirmDelete = await _showDeleteConfirmationDialog(context);
+      if (confirmDelete == true) {
+        logger.i('💡 User confirmed to delete profile picture.');
+        ref.read(profileEditProvider.notifier).handleProfilePictureDeletion(token);
+      }
     }
   }
 
-  Future<bool> _showCancelConfirmationDialog(BuildContext context) async {
+  Future<bool> _showDeleteConfirmationDialog(BuildContext context) async {
+    final bool? result = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Confirm Deletion'),
+          content: const Text('Are you sure you want to delete your profile picture?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: const Text('Delete'),
+            ),
+          ],
+        );
+      },
+    );
+    return result ?? false;
+  }
+
+  Future<bool> _showCancelConfirmationDialog(BuildContext context, WidgetRef ref) async {
     final bool? result = await showDialog<bool>(
       context: context,
       builder: (BuildContext context) {
@@ -87,32 +133,34 @@ class _SVProfileEditScreenState extends ConsumerState<CleanerProfileEditScreen> 
           content: const Text('Are you sure you want to cancel editing? Unsaved changes will be lost.'),
           actions: [
             TextButton(
-              onPressed: () => Navigator.of(context).pop(false), // Stay on the page
+              onPressed: () => Navigator.of(context).pop(false),
               child: const Text('No'),
             ),
             TextButton(
-              onPressed: () => Navigator.of(context).pop(true), // Confirm cancellation
+              onPressed: () {
+                ref.read(profileEditProvider.notifier).cancelChanges();
+                Navigator.of(context).pop(true);
+              },
               child: const Text('Yes'),
             ),
           ],
         );
       },
     );
-    return result ?? false; // Return false if dialog is dismissed
+    return result ?? false;
   }
 
   @override
   Widget build(BuildContext context) {
     final profileLoader = ref.watch(profileLoaderProvider);
     final primaryColor = Theme.of(context).colorScheme.primary;
-    final secondaryColor = Theme.of(context).colorScheme.secondary;
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
 
     return WillPopScope(
       onWillPop: () async {
-        final shouldExit = await _showCancelConfirmationDialog(context);
-        return shouldExit; // Return true to exit, false to stay
+        final shouldExit = await _showCancelConfirmationDialog(context, ref);
+        return shouldExit;
       },
       child: Scaffold(
         backgroundColor: primaryColor,
@@ -131,214 +179,219 @@ class _SVProfileEditScreenState extends ConsumerState<CleanerProfileEditScreen> 
           leading: IconButton(
             icon: Icon(Icons.arrow_back, color: Colors.white, size: screenWidth * 0.06),
             onPressed: () async {
-              final shouldExit = await _showCancelConfirmationDialog(context);
-              if (!context.mounted) return; // Ensure context is still valid
+              final shouldExit = await _showCancelConfirmationDialog(context, ref);
+              if (!context.mounted) return;
               if (shouldExit) Navigator.pop(context);
             },
           ),
         ),
-        body: Stack(
-          children: [
-            // Rounded White Section at the Bottom
-            Positioned(
-              top: screenHeight * 0.20,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(screenWidth * 0.08),
-                    topRight: Radius.circular(screenWidth * 0.08),
-                  ),
-                ),
+        body: RefreshIndicator(
+          onRefresh: () async {
+            ref.invalidate(profileLoaderProvider);
+            ref.invalidate(profileEditProvider);
+          },
+          child: profileLoader.when(
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (error, stackTrace) => Center(
+              child: Text(
+                'Error: $error',
+                style: const TextStyle(color: Colors.red),
               ),
             ),
+            data: (_) {
+              final profileState = ref.watch(profileEditProvider);
 
-            // Main Profile Content
-            profileLoader.when(
-              loading: () => Stack(
-                children: [
-                  Positioned(
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    height: screenHeight * 0.25,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: primaryColor,
-                        borderRadius: BorderRadius.only(
-                          bottomLeft: Radius.circular(screenWidth * 0.08),
-                          bottomRight: Radius.circular(screenWidth * 0.08),
-                        ),
-                      ),
-                    ),
-                  ),
-                  Positioned(
-                    top: screenHeight * 0.20,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: secondaryColor,
-                        borderRadius: BorderRadius.only(
-                          topLeft: Radius.circular(screenWidth * 0.08),
-                          topRight: Radius.circular(screenWidth * 0.08),
-                        ),
-                      ),
-                      child: const Center(
-                        child: CircularProgressIndicator(),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              error: (error, stackTrace) => Center(
-                child: Text(
-                  'Error: $error',
-                  style: const TextStyle(color: Colors.red),
-                ),
-              ),
-              data: (_) {
-                if (!_isInitialized) {
-                  final profileState = ref.read(profileEditProvider);
-                  nameController.text = profileState.name;
-                  usernameController.text = profileState.username;
-                  emailController.text = profileState.email;
-                  phoneController.text = profileState.phone;
-                  _isInitialized = true;
-                }
-                return _buildProfileContent(context, primaryColor, secondaryColor, screenWidth, screenHeight);
-              },
-            ),
-          ],
+              if (!_isInitialized && !profileState.isLoading && profileState.error == null) {
+                nameController.text = profileState.tempName;
+                usernameController.text = profileState.tempUsername;
+                emailController.text = profileState.tempEmail;
+                phoneController.text = profileState.tempPhone;
+                _isInitialized = true;
+              }
+
+              return _buildProfileContent(
+                context,
+                primaryColor,
+                screenWidth,
+                screenHeight,
+                ref,
+              );
+            },
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildProfileContent(BuildContext context, Color primaryColor, Color secondaryColor, double screenWidth, double screenHeight) {
+  Widget _buildProfileContent(
+    BuildContext context,
+    Color primaryColor,
+    double screenWidth,
+    double screenHeight,
+    WidgetRef ref,
+  ) {
     final notifier = ref.read(profileEditProvider.notifier);
+    final profileState = ref.watch(profileEditProvider);
 
-    return Column(
+    final bool isLoading = profileState.isLoading;
+
+    return Stack(
       children: [
-        SizedBox(
-          height: screenHeight * 0.20,
-          child: Center(
-            child: Stack(
-              alignment: Alignment.bottomRight,
-              children: [
-                CircleAvatar(
-                  radius: screenWidth * 0.15,
-                  backgroundColor: Colors.grey[300],
-                  backgroundImage: ref.watch(profileEditProvider).profilePic != null
-                      ? NetworkImage(ref.watch(profileEditProvider).profilePic!)
-                      : null,
-                  child: ref.watch(profileEditProvider).profilePic == null
-                      ? Icon(Icons.person, size: screenWidth * 0.15, color: Colors.white)
-                      : null,
-                ),
-                GestureDetector(
-                  onTap: () => _showImageOptions(context, ref),
-                  child: CircleAvatar(
-                    radius: screenWidth * 0.05,
-                    backgroundColor: Colors.white,
-                    child: Icon(Icons.edit, size: screenWidth * 0.05, color: Colors.black),
+        // Profile Picture Section
+        Positioned(
+          top: -20,
+          left: 0,
+          right: 0,
+          height: screenHeight * 0.25,
+          child: Container(
+            decoration: BoxDecoration(
+              color: primaryColor,
+              borderRadius: const BorderRadius.only(
+                bottomLeft: Radius.circular(40),
+                bottomRight: Radius.circular(40),
+              ),
+            ),
+            child: Center(
+              child: Stack(
+                alignment: Alignment.bottomRight,
+                children: [
+                  ProfilePictureWidget(
+                    radius: 60,
+                    imageUrl: profileState.tempProfilePic ?? 'assets/images/default.webp',
+                    onTap: isLoading
+                        ? null
+                        : () => _showImageOptions(context, ref),
                   ),
-                ),
-              ],
+                  if (!isLoading)
+                    GestureDetector(
+                      onTap: () => _showImageOptions(context, ref),
+                      child: CircleAvatar(
+                        radius: screenWidth * 0.05,
+                        backgroundColor: Colors.white,
+                        child: Icon(
+                          profileState.tempProfilePic == null ? Icons.cloud_upload : Icons.edit,
+                          size: screenWidth * 0.05,
+                          color: Colors.black,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
             ),
           ),
         ),
+        // Form Section
+        Positioned(
+          top: screenHeight * 0.2,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          child: Container(
+            padding: EdgeInsets.symmetric(
+              horizontal: screenWidth * 0.05,
+              vertical: screenHeight * 0.03,
+            ),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(40),
+                topRight: Radius.circular(40),
+              ),
+            ),
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  _buildTextField(
+                    label: 'Name',
+                    controller: nameController,
+                    onChanged: (value) => notifier.updateField('name', value),
+                    enabled: !isLoading,
+                  ),
+                  SizedBox(height: screenHeight * 0.03),
+                  _buildTextField(
+                    label: 'Username',
+                    controller: usernameController,
+                    onChanged: (value) => notifier.updateField('username', value),
+                    enabled: !isLoading,
+                  ),
+                  SizedBox(height: screenHeight * 0.03),
+                  _buildTextField(
+                    label: 'Email',
+                    controller: emailController,
+                    onChanged: (value) => notifier.updateField('email', value),
+                    enabled: !isLoading,
+                  ),
+                  SizedBox(height: screenHeight * 0.03),
+                  _buildTextField(
+                    label: 'Phone Number',
+                    controller: phoneController,
+                    onChanged: (value) => notifier.updateField('phone', value),
+                    enabled: !isLoading,
+                  ),
+                  SizedBox(height: screenHeight * 0.05),
+                  ElevatedButton.icon(
+                    onPressed: isLoading
+                        ? null
+                        : () async {
+                            if (nameController.text.isEmpty || emailController.text.isEmpty) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Name and Email are required')),
+                              );
+                              return;
+                            }
 
-        Expanded(
-          child: SingleChildScrollView(
-            padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.05, vertical: screenHeight * 0.02),
-            child: Column(
-              children: [
-                _buildTextField(
-                  label: 'Name',
-                  controller: nameController,
-                  onChanged: (value) => notifier.updateField('name', value),
-                ),
-                SizedBox(height: screenHeight * 0.03),
-                _buildTextField(
-                  label: 'Username',
-                  controller: usernameController,
-                  onChanged: (value) => notifier.updateField('username', value),
-                ),
-                SizedBox(height: screenHeight * 0.03),
-                _buildTextField(
-                  label: 'Email',
-                  controller: emailController,
-                  onChanged: (value) => notifier.updateField('email', value),
-                ),
-                SizedBox(height: screenHeight * 0.03),
-                _buildTextField(
-                  label: 'Phone Number',
-                  controller: phoneController,
-                  onChanged: (value) => notifier.updateField('phone', value),
-                ),
-                SizedBox(height: screenHeight * 0.05),
-                ElevatedButton.icon(
-                  onPressed: () async {
-                    final prefs = await SharedPreferences.getInstance();
-                    final token = prefs.getString('token');
+                            final prefs = await SharedPreferences.getInstance();
+                            final token = prefs.getString('token');
 
-                    if (token == null) {
-                      if (!context.mounted) return;
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Error: Token not found. Please log in again.')),
-                      );
-                      return;
-                    }
+                            if (token == null) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Error: Token not found. Please log in.')),
+                              );
+                              return;
+                            }
 
-                    await notifier.saveProfile(token);
-                    final _ = ref.refresh(profileProvider);
-                    ref.read(currentIndexProvider.notifier).state = 3;
+                            await notifier.saveProfile(token);
+                            ref.invalidate(profileProvider);
+                            await ref.read(profileProvider.future);
 
-                    if (!context.mounted) return;
+                            if (!context.mounted) return;
 
-                    showDialog(
-                      context: context,
-                      barrierDismissible: false,
-                      builder: (BuildContext context) {
-                        return AlertDialog(
-                          title: const Text('Success'),
-                          content: const Text('Profile updated successfully!'),
-                          actions: [
-                            TextButton(
-                              onPressed: () {
-                                Navigator.pop(context);
-                                Navigator.pushReplacement(
-                                  context,
-                                  MaterialPageRoute(builder: (_) => const MainNavigator()),
-                                );
-                              },
-                              child: const Text('OK'),
+                            await _showSuccessDialog(context);
+
+                            Navigator.pushAndRemoveUntil(
+                              context,
+                              MaterialPageRoute(builder: (_) => const MainNavigator()),
+                              (route) => false,
+                            );
+                          },
+                    icon: isLoading
+                        ? Container()
+                        : const Icon(Icons.save, size: 18),
+                    label: isLoading
+                        ? const SizedBox(
+                            height: 16,
+                            width: 16,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
                             ),
-                          ],
-                        );
-                      },
-                    );
-                  },
-                  icon: const Icon(Icons.save, size: 18, color: Colors.white),
-                  label: Text(
-                    'Save',
-                    style: TextStyle(color: Colors.white, fontSize: screenWidth * 0.045),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: primaryColor,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(screenWidth * 0.03),
+                          )
+                        : const Text(
+                            'Save',
+                            style: TextStyle(fontSize: 16),
+                          ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: primaryColor,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      fixedSize: const Size(200, 48),
                     ),
-                    padding: EdgeInsets.symmetric(vertical: screenHeight * 0.02),
-                    minimumSize: Size(screenWidth * 0.7, screenHeight * 0.07),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
@@ -350,6 +403,7 @@ class _SVProfileEditScreenState extends ConsumerState<CleanerProfileEditScreen> 
     required String label,
     required TextEditingController controller,
     required ValueChanged<String> onChanged,
+    required bool enabled,
   }) {
     final primaryColor = Theme.of(context).colorScheme.primary;
     final screenWidth = MediaQuery.of(context).size.width;
@@ -368,6 +422,7 @@ class _SVProfileEditScreenState extends ConsumerState<CleanerProfileEditScreen> 
         TextField(
           controller: controller,
           onChanged: onChanged,
+          enabled: enabled,
           decoration: InputDecoration(
             prefixIcon: Icon(
               _getIconForLabel(label),
@@ -378,10 +433,31 @@ class _SVProfileEditScreenState extends ConsumerState<CleanerProfileEditScreen> 
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(screenWidth * 0.03),
             ),
-            contentPadding: EdgeInsets.symmetric(horizontal: screenWidth * 0.04, vertical: screenWidth * 0.035),
+            contentPadding: EdgeInsets.symmetric(
+              horizontal: screenWidth * 0.04,
+              vertical: screenWidth * 0.035,
+            ),
           ),
         ),
       ],
+    );
+  }
+
+  Future<void> _showSuccessDialog(BuildContext context) async {
+    await showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Success'),
+          content: const Text('Your profile has been updated successfully!'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('OK'),
+            ),
+          ],
+        );
+      },
     );
   }
 
