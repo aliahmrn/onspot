@@ -133,7 +133,40 @@ final cleanerDetailProvider =
         throw Exception('Data not found in API response.');
       }
 
-      return data['data'];
+      final cleanerDetails = data['data'];
+
+      // Parse latest_complaints and include assigned_by (supervisor name)
+      final List<dynamic> latestComplaints =
+          cleanerDetails['latest_complaints'] ?? [];
+
+      // Map the complaints to include supervisor details
+      final complaintsWithSupervisor = latestComplaints.map((complaint) {
+        return {
+          'complaint_id': complaint['complaint_id']?.toString(),
+          'comp_date': complaint['comp_date'],
+          'comp_time': complaint['comp_time'],
+          'comp_desc': complaint['comp_desc'],
+          'comp_location': complaint['comp_location'],
+          'comp_image': complaint['comp_image'],
+          'comp_status': complaint['comp_status'],
+          'assigned_date': complaint['assigned_date'],
+          'assigned_by': complaint['assigned_by'] ?? 'Unknown', // Supervisor name
+        };
+      }).toList();
+
+      // Format data for UI
+      return {
+        'user_id': cleanerDetails['user_id'],
+        'cleaner_name': cleanerDetails['cleaner_name'],
+        'cleaner_phoneNo': cleanerDetails['cleaner_phoneNo'],
+        'profile_pic': cleanerDetails['profile_pic'],
+        'cleaner_username': cleanerDetails['cleaner_username'],
+        'status': cleanerDetails['status'],
+        'created_at': cleanerDetails['created_at'],
+        'updated_at': cleanerDetails['updated_at'],
+        'building': cleanerDetails['building'],
+        'latest_complaints': complaintsWithSupervisor,
+      };
     } else {
       throw Exception('Failed to load cleaner details: ${response.body}');
     }
@@ -142,3 +175,4 @@ final cleanerDetailProvider =
     throw Exception('Error fetching cleaner details: $e');
   }
 });
+

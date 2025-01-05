@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:convert';
 import '../providers/search_page_provider.dart';
+import 'package:intl/intl.dart';
 
 class CleanerDetailPage extends ConsumerWidget {
   final String cleanerId; // Cleaner ID to fetch details
@@ -93,6 +94,8 @@ class CleanerDetailPage extends ConsumerWidget {
           final String profilePic = cleanerDetails['profile_pic'] ?? '';
           final String cleanerPhoneNo = cleanerDetails['cleaner_phoneNo'] ?? 'N/A';
           final String building = cleanerDetails['building'] ?? 'N/A';
+          final List<dynamic> latestComplaints =
+              cleanerDetails['latest_complaints'] ?? [];
 
           // Determine status color based on cleaner status
           final Color statusColor = cleanerStatus.toLowerCase() == 'available'
@@ -144,55 +147,74 @@ class CleanerDetailPage extends ConsumerWidget {
                       topRight: Radius.circular(40),
                     ),
                   ),
-                  child: Column(
-                    children: [
-                      const SizedBox(height: 10),
-                      // Status badge
-                      _buildStatusBadge(cleanerStatus, statusColor, textTheme, screenWidth),
-                      const SizedBox(height: 20),
-                      // Cleaner details card
-                      Card(
-                        color: primaryColor,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        elevation: 3,
-                        child: Padding(
-                          padding: const EdgeInsets.all(20.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              _buildDetailRow(
-                                Icons.person,
-                                "Name",
-                                cleanerName,
-                                onPrimaryColor,
-                                textTheme,
-                                screenWidth,
-                              ),
-                              const Divider(color: Colors.white54, height: 30),
-                              _buildDetailRow(
-                                Icons.phone,
-                                "Contact",
-                                cleanerPhoneNo,
-                                onPrimaryColor,
-                                textTheme,
-                                screenWidth,
-                              ),
-                              const Divider(color: Colors.white54, height: 30),
-                              _buildDetailRow(
-                                Icons.location_city,
-                                "Building",
-                                building,
-                                onPrimaryColor,
-                                textTheme,
-                                screenWidth,
-                              ),
-                            ],
+                  child: SingleChildScrollView( // Added for scrollable content
+                    child: Column(
+                      children: [
+                        const SizedBox(height: 10),
+                        // Status badge
+                        _buildStatusBadge(cleanerStatus, statusColor, textTheme, screenWidth),
+                        const SizedBox(height: 20),
+                        // Cleaner details card
+                        Card(
+                          color: primaryColor,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          elevation: 3,
+                          child: Padding(
+                            padding: const EdgeInsets.all(20.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                _buildDetailRow(
+                                  Icons.person,
+                                  "Name",
+                                  cleanerName,
+                                  onPrimaryColor,
+                                  textTheme,
+                                  screenWidth,
+                                ),
+                                const Divider(color: Colors.white54, height: 30),
+                                _buildDetailRow(
+                                  Icons.phone,
+                                  "Contact",
+                                  cleanerPhoneNo,
+                                  onPrimaryColor,
+                                  textTheme,
+                                  screenWidth,
+                                ),
+                                const Divider(color: Colors.white54, height: 30),
+                                _buildDetailRow(
+                                  Icons.location_city,
+                                  "Building",
+                                  building,
+                                  onPrimaryColor,
+                                  textTheme,
+                                  screenWidth,
+                                ),
+                                const Divider(color: Colors.white54, height: 30),
+                              if (latestComplaints.isNotEmpty)
+                                _buildTaskCard(
+                                  latestComplaints[0],
+                                  primaryColor, // Use the same color as the cleaner details card
+                                  textTheme,
+                                  screenWidth,
+                                )
+                              else
+                                Center(
+                                  child: Text(
+                                    "No assigned complaints.",
+                                    style: textTheme.bodyMedium?.copyWith(
+                                      color: Colors.white70,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -203,8 +225,8 @@ class CleanerDetailPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildDetailRow(
-      IconData icon, String label, String value, Color iconColor, TextTheme textTheme, double screenWidth) {
+  Widget _buildDetailRow(IconData icon, String label, String value, Color iconColor,
+      TextTheme textTheme, double screenWidth) {
     return Row(
       children: [
         Icon(icon, color: iconColor, size: 24),
@@ -234,6 +256,115 @@ class CleanerDetailPage extends ConsumerWidget {
       ],
     );
   }
+
+Widget _buildTaskCard(
+    Map<String, dynamic> complaint, Color primaryColor, TextTheme textTheme, double screenWidth) {
+  // Determine badge color based on complaint status
+  Color getStatusColor(String status) {
+    switch (status.toLowerCase()) {
+      case 'ongoing':
+        return const Color.fromARGB(255, 94, 155, 204);
+      case 'completed':
+        return Colors.green;
+      case 'pending':
+        return Colors.orange;
+      default:
+        return Colors.grey;
+    }
+  }
+
+  // Format the date
+  String formatDate(String? date) {
+    if (date == null || date.isEmpty) return "Unknown Date";
+    try {
+      final parsedDate = DateTime.parse(date); // Parse the date string
+      return DateFormat('dd/MM/yyyy').format(parsedDate); // Format to DD/MM/YYYY
+    } catch (e) {
+      return "Invalid Date";
+    }
+  }
+
+  return SizedBox(
+    width: screenWidth * 0.9, // Set width to 90% of the screen
+    child: Container(
+      decoration: BoxDecoration(
+        color: Colors.white, // White background for the card
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1), // Subtle shadow color
+            blurRadius: 8, // Blur radius for shadow
+            offset: const Offset(0, 4), // Offset for shadow position
+          ),
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  "Assigned Complaint",
+                  style: textTheme.titleMedium?.copyWith(
+                    fontSize: screenWidth * 0.040,
+                    fontWeight: FontWeight.bold,
+                    color: primaryColor, // Use primary color for the font
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 12),
+                  decoration: BoxDecoration(
+                    color: getStatusColor(complaint['comp_status']),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    complaint['comp_status'] ?? 'Unknown',
+                    style: textTheme.bodySmall?.copyWith(
+                      color: Colors.white, // Text color for the badge
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Text(
+              "Description: ${complaint['comp_desc']}",
+              style: textTheme.bodyMedium?.copyWith(
+                color: primaryColor, // Use primary color for text
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              "Location: ${complaint['comp_location']}",
+              style: textTheme.bodyMedium?.copyWith(
+                color: primaryColor.withOpacity(0.7), // Slightly lighter primary color
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              "Assigned by: ${complaint['assigned_by'] ?? 'Unknown'}", // Display supervisor name
+              style: textTheme.bodyMedium?.copyWith(
+                color: primaryColor.withOpacity(0.7), // Slightly lighter primary color
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              "Date: ${formatDate(complaint['comp_date'])}", // Format the date
+              style: textTheme.bodyMedium?.copyWith(
+                color: primaryColor.withOpacity(0.7), // Slightly lighter primary color
+              ),
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
+}
+
   Widget _buildStatusBadge(String status, Color statusColor, TextTheme textTheme, double screenWidth) {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 12),
