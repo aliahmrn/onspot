@@ -87,11 +87,11 @@ class _SVProfileEditScreenState extends ConsumerState<SVProfileEditScreen> {
       return;
     }
 
-    if (action == 'Upload') {
-      final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+  if (action == 'Upload') {
+    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
       if (image != null) {
         logger.i('💡 User selected image: ${image.path}');
-        ref.read(profileEditProvider.notifier).updateTempProfilePicture(image.path); // Removed `await`
+        ref.read(profileEditProvider.notifier).updateTempProfilePicture(image.path);
       }
     } else if (action == 'Delete') {
         final confirmDelete = await _showDeleteConfirmationDialog(context);
@@ -165,44 +165,104 @@ class _SVProfileEditScreenState extends ConsumerState<SVProfileEditScreen> {
             },
           ),
         ),
-        body: RefreshIndicator(
-          onRefresh: () async {
-            ref.invalidate(profileLoaderProvider);
-            ref.invalidate(profileEditProvider);
-          },
-          child: profileLoader.when(
-            loading: () => const Center(child: CircularProgressIndicator()),
-            error: (error, stackTrace) => Center(
-              child: Text(
-                'Error: $error',
-                style: const TextStyle(color: Colors.red),
-              ),
+        body: Stack(
+          children: [
+            // Background UI for both loading and loaded states
+            _buildBackgroundUI(
+              primaryColor: primaryColor,
+              screenWidth: screenWidth,
+              screenHeight: screenHeight,
             ),
-            data: (_) {
-              final profileState = ref.watch(profileEditProvider);
+            // Handle loading, error, and data states
+            profileLoader.when(
+              loading: () => _buildLoadingIndicator(screenHeight),
+              error: (error, stackTrace) => Center(
+                child: Text(
+                  'Error: $error',
+                  style: const TextStyle(color: Colors.red),
+                ),
+              ),
+              data: (_) {
+                final profileState = ref.watch(profileEditProvider);
 
-              if (!_isInitialized && !profileState.isLoading && profileState.error == null) {
-                nameController.text = profileState.tempName;
-                usernameController.text = profileState.tempUsername;
-                emailController.text = profileState.tempEmail;
-                phoneController.text = profileState.tempPhone;
-                _isInitialized = true;
-              }
+                if (!_isInitialized && !profileState.isLoading && profileState.error == null) {
+                  nameController.text = profileState.tempName;
+                  usernameController.text = profileState.tempUsername;
+                  emailController.text = profileState.tempEmail;
+                  phoneController.text = profileState.tempPhone;
+                  _isInitialized = true;
+                }
 
-              return _buildProfileContent(
-                context,
-                primaryColor,
-                secondaryColor,
-                screenWidth,
-                screenHeight,
-                ref,
-              );
-            },
-          ),
+                return _buildProfileContent(
+                  context,
+                  primaryColor,
+                  secondaryColor,
+                  screenWidth,
+                  screenHeight,
+                  ref,
+                );
+              },
+            ),
+          ],
         ),
       ),
     );
   }
+
+  Widget _buildBackgroundUI({
+    required Color primaryColor,
+    required double screenWidth,
+    required double screenHeight,
+  }) {
+    return Stack(
+      children: [
+        // Blue background section
+        Positioned(
+          top: -20,
+          left: 0,
+          right: 0,
+          height: screenHeight * 0.25,
+          child: Container(
+            decoration: BoxDecoration(
+              color: primaryColor,
+              borderRadius: const BorderRadius.only(
+                bottomLeft: Radius.circular(40),
+                bottomRight: Radius.circular(40),
+              ),
+            ),
+          ),
+        ),
+        // White rounded section
+        Positioned(
+          top: screenHeight * 0.2,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          child: Container(
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(40),
+                topRight: Radius.circular(40),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildLoadingIndicator(double screenHeight) {
+    return Positioned(
+      top: screenHeight * 0.4, // Center the spinner in the white rounded section
+      left: 0,
+      right: 0,
+      child: const Center(
+        child: CircularProgressIndicator(),
+      ),
+    );
+  }
+
 
   Future<bool> _showCancelConfirmationDialog(BuildContext context, WidgetRef ref) async {
     final bool? result = await showDialog<bool>(
@@ -266,10 +326,10 @@ class _SVProfileEditScreenState extends ConsumerState<SVProfileEditScreen> {
                 children: [
                   ProfilePictureWidget(
                     radius: 60,
-                    imageUrl: profileState.tempProfilePic ?? 'assets/images/default.webp',
-                    onTap: isLoading
-                        ? null // Disable interaction while loading
-                        : () => _showImageOptions(context, ref),
+                    imageUrl: profileState.tempProfilePic?.isNotEmpty == true
+                        ? profileState.tempProfilePic
+                        : 'assets/images/default.webp',
+                    onTap: isLoading ? null : () => _showImageOptions(context, ref),
                   ),
                   if (!isLoading)
                     GestureDetector(

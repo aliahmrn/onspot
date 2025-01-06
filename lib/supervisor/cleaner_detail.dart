@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'dart:convert';
 import '../providers/search_page_provider.dart';
 import 'package:intl/intl.dart';
 
@@ -123,8 +122,8 @@ class CleanerDetailPage extends ConsumerWidget {
                       radius: 50,
                       backgroundColor: Colors.grey[300],
                       backgroundImage: profilePic.isNotEmpty
-                          ? MemoryImage(base64Decode(profilePic))
-                          : null,
+                          ? NetworkImage(profilePic) // Use NetworkImage for URL
+                          : const AssetImage('assets/images/default-profile.png') as ImageProvider,
                       child: profilePic.isEmpty
                           ? const Icon(Icons.person, size: 50, color: Colors.white)
                           : null,

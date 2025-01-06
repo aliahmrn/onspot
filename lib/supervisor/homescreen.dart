@@ -3,10 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:intl/intl.dart';
 import '../providers/complaints_provider.dart';
-import '../widget/profile_picture_widget.dart'; // Import the reusable ProfilePictureWidget
+import '../widget/profile_picture_widget.dart'; 
 import '../widget/bell.dart';
 import '../providers/navigation_provider.dart';
 import '../supervisor/notifications.dart';
+import '../providers/user_provider.dart'; 
 import '../providers/profile_provider.dart';
 
 class SupervisorHomeScreen extends ConsumerWidget {
@@ -25,8 +26,8 @@ class SupervisorHomeScreen extends ConsumerWidget {
     // Watch Riverpod providers
     final complaintsState = ref.watch(complaintsProvider);
     final latestComplaint = ref.watch(latestComplaintProvider);
+    final supervisorName = ref.watch(userNameProvider);
     final profileData = ref.watch(profileProvider);
-
 
     return Scaffold(
       backgroundColor: primaryColor,
@@ -34,6 +35,7 @@ class SupervisorHomeScreen extends ConsumerWidget {
         backgroundColor: primaryColor,
         elevation: 0,
         automaticallyImplyLeading: false,
+        centerTitle: true,
         title: Text(
           'Home',
           style: TextStyle(
@@ -42,7 +44,6 @@ class SupervisorHomeScreen extends ConsumerWidget {
             fontWeight: FontWeight.bold,
           ),
         ),
-        centerTitle: true,
       ),
       body: Stack(
         children: [
@@ -67,22 +68,23 @@ class SupervisorHomeScreen extends ConsumerWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      profileData.when(
-                        loading: () => const SizedBox.shrink(),
-                        error: (error, _) => const Text('Error loading profile'),
-                        data: (data) => RichText(
+                      // Supervisor Name
+                      supervisorName.when(
+                        loading: () => const CircularProgressIndicator(),
+                        error: (error, _) => const Text('Error loading name'),
+                        data: (name) => RichText(
                           text: TextSpan(
                             text: 'Welcome, ',
                             style: TextStyle(
                               fontSize: screenWidth * 0.05,
-                              fontWeight: FontWeight.normal, // Regular weight for "Welcome"
+                              fontWeight: FontWeight.normal,
                               color: Colors.black87,
                             ),
                             children: [
                               TextSpan(
-                                text: data['name'] ?? 'Supervisor',
+                                text: name,
                                 style: TextStyle(
-                                  fontWeight: FontWeight.bold, // Bold weight for the name
+                                  fontWeight: FontWeight.bold,
                                 ),
                               ),
                             ],
@@ -91,26 +93,29 @@ class SupervisorHomeScreen extends ConsumerWidget {
                       ),
                       Row(
                         children: [
-                          BellProfileWidget(onBellTap: () {
-                            Navigator.push(
-                              context,
-                              PageRouteBuilder(
-                                pageBuilder: (context, animation, secondaryAnimation) =>
-                                    const NotificationsPage(),
-                                transitionDuration: Duration.zero, // No forward animation
-                                reverseTransitionDuration: Duration.zero, // No backward animation
-                              ),
-                            );
-                          }),
+                          // Notification Bell
+                          BellProfileWidget(
+                            onBellTap: () {
+                              Navigator.push(
+                                context,
+                                PageRouteBuilder(
+                                  pageBuilder: (context, animation, secondaryAnimation) =>
+                                      const NotificationsPage(),
+                                  transitionDuration: Duration.zero,
+                                  reverseTransitionDuration: Duration.zero,
+                                ),
+                              );
+                            },
+                          ),
                           SizedBox(width: screenWidth * 0.02),
 
-                          // Use ProfilePictureWidget here
+                          // Profile Picture
                           ProfilePictureWidget(
                             radius: 20,
                             imageUrl: profileData.when(
-                              data: (data) => data['profile_pic'], // Fetches profile_pic URL
-                              loading: () => null, // Placeholder during loading
-                              error: (_, __) => null, // Fallback on error
+                              data: (data) => data['profile_pic'],
+                              loading: () => null,
+                              error: (_, __) => null,
                             ),
                             onTap: () {
                               ref.read(currentIndexProvider.notifier).state = 4;
@@ -145,7 +150,7 @@ class SupervisorHomeScreen extends ConsumerWidget {
                       ),
                       GestureDetector(
                         onTap: () {
-                          ref.read(currentIndexProvider.notifier).state = 2; // Set to Complaints Page index
+                          ref.read(currentIndexProvider.notifier).state = 2;
                         },
                         child: Container(
                           padding: EdgeInsets.symmetric(
@@ -166,8 +171,11 @@ class SupervisorHomeScreen extends ConsumerWidget {
                                   color: onSecondaryColor,
                                 ),
                               ),
-                              Icon(Icons.arrow_forward_ios,
-                                  size: screenWidth * 0.035, color: onSecondaryColor),
+                              Icon(
+                                Icons.arrow_forward_ios,
+                                size: screenWidth * 0.035,
+                                color: onSecondaryColor,
+                              ),
                             ],
                           ),
                         ),
@@ -182,7 +190,9 @@ class SupervisorHomeScreen extends ConsumerWidget {
                   // Complaints Section
                   complaintsState.when(
                     loading: () => const Center(child: CircularProgressIndicator()),
-                    error: (e, _) => Center(child: Text('Failed to load complaints: $e')),
+                    error: (e, _) => Center(
+                      child: Text('Failed to load complaints: $e'),
+                    ),
                     data: (_) {
                       if (latestComplaint == null) {
                         return Center(
@@ -204,8 +214,7 @@ class SupervisorHomeScreen extends ConsumerWidget {
 
                       return GestureDetector(
                         onTap: () {
-                          // Redirect to Complaints Page
-                          ref.read(currentIndexProvider.notifier).state = 2; // Complaints Page index
+                          ref.read(currentIndexProvider.notifier).state = 2;
                         },
                         child: Container(
                           padding: EdgeInsets.all(screenWidth * 0.04),
@@ -303,5 +312,4 @@ class SupervisorHomeScreen extends ConsumerWidget {
       ),
     );
   }
-
 }

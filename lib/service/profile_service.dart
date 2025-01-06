@@ -13,10 +13,11 @@ class ProfileService {
       final response = await http.get(
         url,
         headers: {'Authorization': 'Bearer $token'},
-      ).timeout(const Duration(seconds: 15)); // Increased timeout duration
+      ).timeout(const Duration(seconds: 15));
 
       if (response.statusCode == 200) {
-        return jsonDecode(response.body); // Return profile data
+        final profileData = jsonDecode(response.body);
+        return profileData; // Include all returned fields, including 'building'
       } else if (response.statusCode == 401) {
         throw Exception('Unauthorized. Please log in again.');
       } else {

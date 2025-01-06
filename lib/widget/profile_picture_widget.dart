@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
+import 'dart:io';
+
 
 class ProfilePictureWidget extends StatelessWidget {
   final double radius;
@@ -19,11 +21,16 @@ class ProfilePictureWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final Logger logger = Logger();
 
-    final bool isValidNetworkImage = imageUrl != null &&
-        imageUrl!.isNotEmpty &&
+    // Determine if the image is a valid network URL or a local file path
+    final bool isNetworkImage = imageUrl != null &&
         Uri.tryParse(imageUrl!)?.isAbsolute == true;
 
-    logger.i('💡 Rendering profile picture. Valid image URL: $isValidNetworkImage');
+    final bool isLocalFile = imageUrl != null &&
+        !isNetworkImage &&
+        imageUrl!.startsWith('/'); // Local file paths typically start with '/'
+
+    logger.i(
+        '💡 Rendering profile picture. Image URL: $imageUrl, Is Network: $isNetworkImage, Is Local File: $isLocalFile');
 
     return GestureDetector(
       onTap: onTap,
@@ -32,12 +39,14 @@ class ProfilePictureWidget extends StatelessWidget {
         children: [
           CircleAvatar(
             radius: radius,
-            backgroundImage: isValidNetworkImage
+            backgroundImage: isNetworkImage
                 ? NetworkImage(imageUrl!)
-                : const AssetImage('assets/images/default.webp') as ImageProvider,
+                : isLocalFile
+                    ? FileImage(File(imageUrl!)) // Use FileImage for local files
+                    : const AssetImage('assets/images/default.webp') as ImageProvider,
             backgroundColor: Colors.grey[200], // Placeholder background
             onBackgroundImageError: (error, stackTrace) {
-            logger.e('❌ Error loading network image: $imageUrl. Falling back to default.');
+              logger.e('❌ Error loading image: $imageUrl. Falling back to default.');
             },
           ),
           if (overlay != null) overlay!,

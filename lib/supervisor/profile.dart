@@ -5,6 +5,7 @@ import '../widget/profile_picture_widget.dart';
 import '../service/auth_service.dart';
 import 'profileedit.dart';
 import '../supervisor/main_navigator.dart';
+import '../providers/navigation_provider.dart';
 
 class SVProfileScreen extends ConsumerWidget {
   const SVProfileScreen({super.key});
@@ -55,80 +56,128 @@ class SVProfileScreen extends ConsumerWidget {
       child: Column(
         children: [
           // Blue Header Section
-          Container(
-            height: 190,
-            width: double.infinity,
-            color: primaryColor,
-            child: Padding(
-              padding: const EdgeInsets.only(top: 0.0),
-              child: Transform.translate(
-                offset: const Offset(0, -30),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    // Profile Picture
-                    Consumer(builder: (_, ref, __) {
-                      final profile = ref.watch(profileProvider);
-                      return ProfilePictureWidget(
-                        radius: 50,
-                        imageUrl: profile.when(
-                          data: (data) => data['profile_pic'] ??
-                              'http://192.168.1.105:8000/storage/profile_pic/default.webp',
-                          loading: () => null,
-                          error: (_, __) => null,
-                        ),
-                      );
-                    }),
-                    const SizedBox(width: 16),
-                    // Name and Username
-                    Consumer(builder: (_, ref, __) {
-                      final profile = ref.watch(profileProvider);
-                      return profile.when(
-                        loading: () => const Text(
-                          'Loading...',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        ),
-                        error: (_, __) => const Text(
-                          'Error',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        ),
-                        data: (data) => Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              data['name'] ?? 'Name not available',
-                              style: const TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
-                            ),
-                            Text(
-                              data['username'] ?? 'Username not available',
-                              style: const TextStyle(
-                                fontSize: 14,
-                                color: Colors.white70,
-                              ),
-                            ),
-                          ],
-                        ),
-                      );
-                    }),
-                  ],
+Container(
+  height: 190,
+  width: double.infinity,
+  color: primaryColor,
+  child: Padding(
+    padding: const EdgeInsets.only(top: 0.0),
+    child: Transform.translate(
+      offset: const Offset(0, -30),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center, // Center items horizontally
+        crossAxisAlignment: CrossAxisAlignment.center, // Align items vertically
+        children: [
+          // Profile Picture
+          Consumer(builder: (_, ref, __) {
+            final profile = ref.watch(profileProvider);
+            return ProfilePictureWidget(
+              radius: 50,
+              imageUrl: profile.when(
+                data: (data) => data['profile_pic'] ??
+                    'http://192.168.1.105:8000/storage/profile_pic/default.webp',
+                loading: () => null,
+                error: (_, __) => null,
+              ),
+            );
+          }),
+          const SizedBox(width: 16),
+          // Name, Username, and Building
+          Consumer(builder: (_, ref, __) {
+            final profile = ref.watch(profileProvider);
+            return profile.when(
+              loading: () => const Text(
+                'Loading...',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
                 ),
               ),
-            ),
-          ),
+              error: (_, __) => const Text(
+                'Error',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+              data: (data) => Column(
+                crossAxisAlignment: CrossAxisAlignment.start, // Align text to the start
+                mainAxisAlignment: MainAxisAlignment.center, // Center the column vertically
+                children: [
+                  // Building Badge
+                  if (data['building'] != null && data['building'].isNotEmpty)
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white, // White badge background
+                        borderRadius: BorderRadius.circular(20), // Rounded corners
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.1), // Subtle shadow
+                            blurRadius: 4,
+                            offset: const Offset(0, 2), // Shadow position
+                          ),
+                        ],
+                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.location_city,
+                            size: 16,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            data['building'],
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  else
+                    Text(
+                      'Building not assigned',
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.white70,
+                      ),
+                    ),
+                  const SizedBox(height: 8),
+
+                  // Name
+                  Text(
+                    data['name'] ?? 'Name not available',
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                  // Username
+                  Text(
+                    data['username'] ?? 'Username not available',
+                    style: const TextStyle(
+                      fontSize: 14,
+                      color: Colors.white70,
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }),
+        ],
+      ),
+    ),
+  ),
+),
 
           // White Rounded Section
           Transform.translate(
@@ -286,7 +335,7 @@ class SVProfileScreen extends ConsumerWidget {
           width: 200,
           child: ElevatedButton.icon(
             onPressed: () {
-              _confirmLogout(context);
+              _confirmLogout(context, ref);
             },
             icon: const Icon(Icons.logout, size: 18),
             label: const Text(
@@ -306,7 +355,7 @@ class SVProfileScreen extends ConsumerWidget {
     );
   }
 
-  void _confirmLogout(BuildContext context) {
+  void _confirmLogout(BuildContext context,  WidgetRef ref) {
     showDialog(
       context: context,
       builder: (context) {
@@ -320,7 +369,7 @@ class SVProfileScreen extends ConsumerWidget {
             ),
             TextButton(
               onPressed: () {
-                _logout(context);
+                _logout(context, ref);
               },
               child: const Text('Logout'),
             ),
@@ -330,12 +379,17 @@ class SVProfileScreen extends ConsumerWidget {
     );
   }
 
-  void _logout(BuildContext context) async {
+  void _logout(BuildContext context, WidgetRef ref) async {
     final AuthService authService = AuthService();
+
+    // Clear user details and app state
     await authService.logout();
 
-    if (!context.mounted) return;
+    // Reset navigation index to Home
+    ref.read(currentIndexProvider.notifier).state = 0;
 
-    Navigator.pushReplacementNamed(context, '/login');
+    // Navigate to login page
+    if (!context.mounted) return;
+    Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
   }
 }
