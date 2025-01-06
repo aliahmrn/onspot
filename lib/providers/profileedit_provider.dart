@@ -173,6 +173,7 @@ class ProfileEditNotifier extends StateNotifier<ProfileEditState> {
     state = state.copyWith(
       tempProfilePic: path ?? defaultProfilePictureUrl,
     );
+    _logger.i('State after updating temp profile picture: $state');
   }
 
   Future<void> saveProfile(String token) async {
@@ -204,7 +205,7 @@ class ProfileEditNotifier extends StateNotifier<ProfileEditState> {
         'username': state.tempUsername,
         'email': state.tempEmail,
         'phone_no': state.tempPhone,
-        'profile_pic': uploadedProfilePicUrl ?? '',
+        'profile_pic': uploadedProfilePicUrl,
         '_method': 'PUT',
       };
 

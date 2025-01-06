@@ -6,47 +6,34 @@ class ProfileService {
   final String baseUrl = 'http://192.168.1.105:8000/api';
   final Logger _logger = Logger();
 
-  /// Fetch profile data
   Future<Map<String, dynamic>> fetchProfile(String token) async {
     final url = Uri.parse('$baseUrl/profile');
 
     try {
       final response = await http.get(
         url,
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Content-Type': 'application/json',
-        },
-      ).timeout(const Duration(seconds: 15)); // Timeout added
+        headers: {'Authorization': 'Bearer $token'},
+      ).timeout(const Duration(seconds: 15));
 
       if (response.statusCode == 200) {
-        final profileData = json.decode(response.body);
-        _logger.i('Profile data fetched successfully: $profileData');
-        return profileData;
+        final profileData = jsonDecode(response.body);
+        return profileData; // Include all returned fields, including 'building'
       } else if (response.statusCode == 401) {
-        _logger.e('Unauthorized access. Please log in again.');
         throw Exception('Unauthorized. Please log in again.');
       } else {
-        _logger.e('Failed to fetch profile: ${response.body}');
         throw Exception('Failed to fetch profile: ${response.statusCode}');
       }
     } catch (e) {
-      _logger.e('Error during profile fetch: $e');
       throw Exception('Failed to fetch profile. Error: $e');
     }
   }
 
-  /// Update profile data
-  Future<void> updateProfile(String token, Map<String, String> updatedData) async {
-    final uri = Uri.parse('$baseUrl/profile?_method=PUT');
+  Future<void> updateProfile(String token, Map<String, dynamic> updatedData) async {
+    final uri = Uri.parse('$baseUrl/profile');
     final headers = {
       'Authorization': 'Bearer $token',
       'Content-Type': 'application/x-www-form-urlencoded',
     };
-
-    // Log the token and the data being sent
-    _logger.i('Token being sent: $token');
-    _logger.i('Updated Data being sent: $updatedData');
 
     try {
       final response = await http.post(
@@ -56,18 +43,16 @@ class ProfileService {
       );
 
       if (response.statusCode == 200) {
-        _logger.i('Profile updated successfully: ${response.body}');
+        return; // Update successful
       } else {
-        _logger.e('Error during profile update: ${response.body}');
         throw Exception('Failed to update profile: ${response.body}');
       }
     } catch (e) {
-      _logger.e('Exception occurred during profile update: $e');
       throw Exception('Error during profile update: $e');
     }
   }
 
-  /// Upload profile picture
+
   Future<String> uploadProfilePicture(String token, String filePath) async {
     final uri = Uri.parse('$baseUrl/profile/picture');
     final headers = {'Authorization': 'Bearer $token'};
@@ -81,21 +66,16 @@ class ProfileService {
       final response = await http.Response.fromStream(streamedResponse);
 
       if (response.statusCode == 200) {
-        final responseData = json.decode(response.body);
-        final profilePicUrl = responseData['profile_pic'];
-        _logger.i('Profile picture uploaded successfully: $profilePicUrl');
-        return profilePicUrl;
+        final responseData = jsonDecode(response.body);
+        return responseData['profile_pic']; // Returns the updated profile picture URL
       } else {
-        _logger.e('Failed to upload profile picture: ${response.body}');
         throw Exception('Failed to upload profile picture: ${response.body}');
       }
     } catch (e) {
-      _logger.e('Error during profile picture upload: $e');
       throw Exception('Error during profile picture upload: $e');
     }
   }
 
-  /// Delete profile picture
   Future<String?> deleteProfilePicture(String token) async {
     final uri = Uri.parse('$baseUrl/profile/picture');
     final headers = {'Authorization': 'Bearer $token'};
@@ -104,16 +84,14 @@ class ProfileService {
       final response = await http.delete(uri, headers: headers);
 
       if (response.statusCode == 200) {
-        final responseData = json.decode(response.body);
+        final responseData = jsonDecode(response.body);
         final profilePic = responseData['profile_pic'];
-        _logger.i('Profile picture deleted successfully. New profile picture: $profilePic');
-        return profilePic;
+        _logger.i('✅ Profile picture deleted successfully. New profilePic: $profilePic');
+        return profilePic; // Return the updated profile picture URL
       } else {
-        _logger.e('Failed to delete profile picture: ${response.body}');
         throw Exception('Failed to delete profile picture: ${response.body}');
       }
     } catch (e) {
-      _logger.e('Error during profile picture deletion: $e');
       throw Exception('Error during profile picture deletion: $e');
     }
   }

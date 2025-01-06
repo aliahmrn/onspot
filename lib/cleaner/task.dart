@@ -348,14 +348,16 @@ class _CleanerTasksScreenState extends ConsumerState<CleanerTasksScreen> with Si
                 onTap: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(
-                      builder: (context) => TaskDetailsPage(
+                    PageRouteBuilder(
+                      pageBuilder: (context, animation, secondaryAnimation) => TaskDetailsPage(
                         complaintId: complaintId,
                         location: subtitle,
                         date: date,
                         imageUrl: imageUrl,
                         description: title,
                       ),
+                      transitionDuration: Duration.zero, // Disable transition duration
+                      reverseTransitionDuration: Duration.zero, // Disable reverse transition
                     ),
                   );
                 },

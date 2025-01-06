@@ -4,9 +4,9 @@ import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../providers/profileedit_provider.dart';
 import '../cleaner/main_navigator.dart';
+import '../widget/profile_picture_widget.dart';
 import '../providers/profile_provider.dart';
 import 'package:logger/logger.dart';
-import '../widget/profile_picture_widget.dart';
 
 class CleanerProfileEditScreen extends ConsumerStatefulWidget {
   const CleanerProfileEditScreen({super.key});
@@ -86,19 +86,19 @@ class _CleanerProfileEditScreenState extends ConsumerState<CleanerProfileEditScr
       return;
     }
 
-    if (action == 'Upload') {
-      final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+  if (action == 'Upload') {
+    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
       if (image != null) {
         logger.i('💡 User selected image: ${image.path}');
         ref.read(profileEditProvider.notifier).updateTempProfilePicture(image.path);
       }
     } else if (action == 'Delete') {
-      final confirmDelete = await _showDeleteConfirmationDialog(context);
-      if (confirmDelete == true) {
-        logger.i('💡 User confirmed to delete profile picture.');
-        ref.read(profileEditProvider.notifier).handleProfilePictureDeletion(token);
+        final confirmDelete = await _showDeleteConfirmationDialog(context);
+        if (confirmDelete == true) {
+          logger.i('💡 User confirmed to delete profile picture.');
+          ref.read(profileEditProvider.notifier).handleProfilePictureDeletion(token); // Mark for deletion
+        }
       }
-    }
   }
 
   Future<bool> _showDeleteConfirmationDialog(BuildContext context) async {
@@ -110,11 +110,11 @@ class _CleanerProfileEditScreenState extends ConsumerState<CleanerProfileEditScr
           content: const Text('Are you sure you want to delete your profile picture?'),
           actions: [
             TextButton(
-              onPressed: () => Navigator.of(context).pop(false),
+              onPressed: () => Navigator.of(context).pop(false), // User cancels
               child: const Text('Cancel'),
             ),
             TextButton(
-              onPressed: () => Navigator.of(context).pop(true),
+              onPressed: () => Navigator.of(context).pop(true), // User confirms
               child: const Text('Delete'),
             ),
           ],
@@ -123,6 +123,145 @@ class _CleanerProfileEditScreenState extends ConsumerState<CleanerProfileEditScr
     );
     return result ?? false;
   }
+
+  @override
+  Widget build(BuildContext context) {
+    final profileLoader = ref.watch(profileLoaderProvider);
+    final primaryColor = Theme.of(context).colorScheme.primary;
+    final secondaryColor = Theme.of(context).colorScheme.secondary;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+
+    return WillPopScope(
+      onWillPop: () async {
+        final shouldExit = await _showCancelConfirmationDialog(context, ref);
+        if (shouldExit) {
+          Navigator.pop(context);
+          return true;
+        }
+        return false;
+      },
+      child: Scaffold(
+        backgroundColor: primaryColor,
+        appBar: AppBar(
+          elevation: 0,
+          backgroundColor: primaryColor,
+          title: Text(
+            'Edit Profile',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: screenWidth * 0.05,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          centerTitle: true,
+          leading: IconButton(
+            icon: Icon(Icons.arrow_back, color: Colors.white, size: screenWidth * 0.06),
+            onPressed: () async {
+              final shouldExit = await _showCancelConfirmationDialog(context, ref);
+              if (!context.mounted) return;
+              if (shouldExit) Navigator.pop(context);
+            },
+          ),
+        ),
+        body: Stack(
+          children: [
+            // Background UI for both loading and loaded states
+            _buildBackgroundUI(
+              primaryColor: primaryColor,
+              screenWidth: screenWidth,
+              screenHeight: screenHeight,
+            ),
+            // Handle loading, error, and data states
+            profileLoader.when(
+              loading: () => _buildLoadingIndicator(screenHeight),
+              error: (error, stackTrace) => Center(
+                child: Text(
+                  'Error: $error',
+                  style: const TextStyle(color: Colors.red),
+                ),
+              ),
+              data: (_) {
+                final profileState = ref.watch(profileEditProvider);
+
+                if (!_isInitialized && !profileState.isLoading && profileState.error == null) {
+                  nameController.text = profileState.tempName;
+                  usernameController.text = profileState.tempUsername;
+                  emailController.text = profileState.tempEmail;
+                  phoneController.text = profileState.tempPhone;
+                  _isInitialized = true;
+                }
+
+                return _buildProfileContent(
+                  context,
+                  primaryColor,
+                  secondaryColor,
+                  screenWidth,
+                  screenHeight,
+                  ref,
+                );
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBackgroundUI({
+    required Color primaryColor,
+    required double screenWidth,
+    required double screenHeight,
+  }) {
+    return Stack(
+      children: [
+        // Blue background section
+        Positioned(
+          top: -20,
+          left: 0,
+          right: 0,
+          height: screenHeight * 0.25,
+          child: Container(
+            decoration: BoxDecoration(
+              color: primaryColor,
+              borderRadius: const BorderRadius.only(
+                bottomLeft: Radius.circular(40),
+                bottomRight: Radius.circular(40),
+              ),
+            ),
+          ),
+        ),
+        // White rounded section
+        Positioned(
+          top: screenHeight * 0.2,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          child: Container(
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(40),
+                topRight: Radius.circular(40),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildLoadingIndicator(double screenHeight) {
+    return Positioned(
+      top: screenHeight * 0.4, // Center the spinner in the white rounded section
+      left: 0,
+      right: 0,
+      child: const Center(
+        child: CircularProgressIndicator(),
+      ),
+    );
+  }
+
 
   Future<bool> _showCancelConfirmationDialog(BuildContext context, WidgetRef ref) async {
     final bool? result = await showDialog<bool>(
@@ -150,82 +289,10 @@ class _CleanerProfileEditScreenState extends ConsumerState<CleanerProfileEditScr
     return result ?? false;
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final profileLoader = ref.watch(profileLoaderProvider);
-    final primaryColor = Theme.of(context).colorScheme.primary;
-    final screenWidth = MediaQuery.of(context).size.width;
-    final screenHeight = MediaQuery.of(context).size.height;
-
-    return WillPopScope(
-      onWillPop: () async {
-        final shouldExit = await _showCancelConfirmationDialog(context, ref);
-        return shouldExit;
-      },
-      child: Scaffold(
-        backgroundColor: primaryColor,
-        appBar: AppBar(
-          elevation: 0,
-          backgroundColor: primaryColor,
-          title: Text(
-            'Edit Profile',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: screenWidth * 0.05,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          centerTitle: true,
-          leading: IconButton(
-            icon: Icon(Icons.arrow_back, color: Colors.white, size: screenWidth * 0.06),
-            onPressed: () async {
-              final shouldExit = await _showCancelConfirmationDialog(context, ref);
-              if (!context.mounted) return;
-              if (shouldExit) Navigator.pop(context);
-            },
-          ),
-        ),
-        body: RefreshIndicator(
-          onRefresh: () async {
-            ref.invalidate(profileLoaderProvider);
-            ref.invalidate(profileEditProvider);
-          },
-          child: profileLoader.when(
-            loading: () => const Center(child: CircularProgressIndicator()),
-            error: (error, stackTrace) => Center(
-              child: Text(
-                'Error: $error',
-                style: const TextStyle(color: Colors.red),
-              ),
-            ),
-            data: (_) {
-              final profileState = ref.watch(profileEditProvider);
-
-              if (!_isInitialized && !profileState.isLoading && profileState.error == null) {
-                nameController.text = profileState.tempName;
-                usernameController.text = profileState.tempUsername;
-                emailController.text = profileState.tempEmail;
-                phoneController.text = profileState.tempPhone;
-                _isInitialized = true;
-              }
-
-              return _buildProfileContent(
-                context,
-                primaryColor,
-                screenWidth,
-                screenHeight,
-                ref,
-              );
-            },
-          ),
-        ),
-      ),
-    );
-  }
-
   Widget _buildProfileContent(
     BuildContext context,
     Color primaryColor,
+    Color secondaryColor,
     double screenWidth,
     double screenHeight,
     WidgetRef ref,
@@ -257,10 +324,10 @@ class _CleanerProfileEditScreenState extends ConsumerState<CleanerProfileEditScr
                 children: [
                   ProfilePictureWidget(
                     radius: 60,
-                    imageUrl: profileState.tempProfilePic ?? 'assets/images/default.webp',
-                    onTap: isLoading
-                        ? null
-                        : () => _showImageOptions(context, ref),
+                    imageUrl: profileState.tempProfilePic?.isNotEmpty == true
+                        ? profileState.tempProfilePic
+                        : 'assets/images/default.webp',
+                    onTap: isLoading ? null : () => _showImageOptions(context, ref),
                   ),
                   if (!isLoading)
                     GestureDetector(
@@ -269,7 +336,9 @@ class _CleanerProfileEditScreenState extends ConsumerState<CleanerProfileEditScr
                         radius: screenWidth * 0.05,
                         backgroundColor: Colors.white,
                         child: Icon(
-                          profileState.tempProfilePic == null ? Icons.cloud_upload : Icons.edit,
+                          profileState.tempProfilePic == null
+                              ? Icons.cloud_upload
+                              : Icons.edit,
                           size: screenWidth * 0.05,
                           color: Colors.black,
                         ),
@@ -297,6 +366,13 @@ class _CleanerProfileEditScreenState extends ConsumerState<CleanerProfileEditScr
                 topLeft: Radius.circular(40),
                 topRight: Radius.circular(40),
               ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 5,
+                  offset: const Offset(0, -2),
+                ),
+              ],
             ),
             child: SingleChildScrollView(
               child: Column(
@@ -332,7 +408,7 @@ class _CleanerProfileEditScreenState extends ConsumerState<CleanerProfileEditScr
                   SizedBox(height: screenHeight * 0.05),
                   ElevatedButton.icon(
                     onPressed: isLoading
-                        ? null
+                        ? null // Disable button while loading
                         : () async {
                             if (nameController.text.isEmpty || emailController.text.isEmpty) {
                               ScaffoldMessenger.of(context).showSnackBar(
@@ -357,8 +433,10 @@ class _CleanerProfileEditScreenState extends ConsumerState<CleanerProfileEditScr
 
                             if (!context.mounted) return;
 
+                            // Show success popup
                             await _showSuccessDialog(context);
 
+                            // Redirect to the profile page
                             Navigator.pushAndRemoveUntil(
                               context,
                               MaterialPageRoute(builder: (_) => const MainNavigator()),
@@ -366,7 +444,7 @@ class _CleanerProfileEditScreenState extends ConsumerState<CleanerProfileEditScr
                             );
                           },
                     icon: isLoading
-                        ? Container()
+                        ? Container() // Empty container for spacing
                         : const Icon(Icons.save, size: 18),
                     label: isLoading
                         ? const SizedBox(
@@ -403,7 +481,7 @@ class _CleanerProfileEditScreenState extends ConsumerState<CleanerProfileEditScr
     required String label,
     required TextEditingController controller,
     required ValueChanged<String> onChanged,
-    required bool enabled,
+    required bool enabled, // Add this to enable or disable the text field
   }) {
     final primaryColor = Theme.of(context).colorScheme.primary;
     final screenWidth = MediaQuery.of(context).size.width;
@@ -422,7 +500,7 @@ class _CleanerProfileEditScreenState extends ConsumerState<CleanerProfileEditScr
         TextField(
           controller: controller,
           onChanged: onChanged,
-          enabled: enabled,
+          enabled: enabled, // Disable the text field when `enabled` is false
           decoration: InputDecoration(
             prefixIcon: Icon(
               _getIconForLabel(label),
@@ -443,7 +521,7 @@ class _CleanerProfileEditScreenState extends ConsumerState<CleanerProfileEditScr
     );
   }
 
-  Future<void> _showSuccessDialog(BuildContext context) async {
+    Future<void> _showSuccessDialog(BuildContext context) async {
     await showDialog(
       context: context,
       builder: (context) {
@@ -452,7 +530,7 @@ class _CleanerProfileEditScreenState extends ConsumerState<CleanerProfileEditScr
           content: const Text('Your profile has been updated successfully!'),
           actions: [
             TextButton(
-              onPressed: () => Navigator.of(context).pop(),
+              onPressed: () => Navigator.of(context).pop(), // Close the dialog
               child: const Text('OK'),
             ),
           ],

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/profile_provider.dart';
 import 'profile_edit.dart';
-import '../utils/shared_preferences_manager.dart'; 
+import '../utils/shared_preferences_manager.dart';
 import '../providers/navigation_provider.dart'; // For currentIndexProvider
 import '../providers/attendance_provider.dart'; // For attendanceProvider
 import '../login.dart'; // Ensure this file defines `LoginScreen`
@@ -118,56 +118,33 @@ class CleanerProfileScreen extends ConsumerWidget {
                               mainAxisAlignment: MainAxisAlignment.center,
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                // Profile Picture
-                                Container(
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    border: Border.all(
-                                      color: Colors.grey.shade300,
-                                      width: 2,
-                                    ),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.black.withOpacity(0.1),
-                                        blurRadius: 5,
-                                        offset: const Offset(0, 2),
-                                      ),
-                                    ],
-                                  ),
-                                  child: CircleAvatar(
-                                    radius: screenWidth * 0.12, // Responsive size
-                                    backgroundColor: Colors.white,
-                                    backgroundImage: cleanerInfo['profile_pic'] != null
-                                        ? NetworkImage(cleanerInfo['profile_pic'])
-                                        : null,
-                                    child: cleanerInfo['profile_pic'] == null
-                                        ? Icon(Icons.person, size: screenWidth * 0.12, color: Colors.grey[600])
-                                        : null,
-                                  ),
-                                ),
-                                SizedBox(width: screenWidth * 0.05), // Responsive spacing
-                                // Name, Username, and Status
+                                // Profile Picture and Status Badge
                                 Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    // Name
-                                    Text(
-                                      cleanerInfo['name'] ?? 'Supervisor Name',
-                                      style: TextStyle(
-                                        fontSize: screenWidth * 0.045, // Responsive font size
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.white,
+                                    // Profile Picture
+                                    Container(
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: Colors.black.withOpacity(0.1),
+                                            blurRadius: 5,
+                                            offset: const Offset(0, 2),
+                                          ),
+                                        ],
+                                      ),
+                                      child: CircleAvatar(
+                                        radius: screenWidth * 0.12, // Responsive size
+                                        backgroundColor: Colors.transparent, // No white background
+                                        backgroundImage: cleanerInfo['profile_pic'] != null
+                                            ? NetworkImage(cleanerInfo['profile_pic'])
+                                            : null,
+                                        child: cleanerInfo['profile_pic'] == null
+                                            ? Icon(Icons.person, size: screenWidth * 0.12, color: Colors.grey[600])
+                                            : null,
                                       ),
                                     ),
-                                    // Username
-                                    Text(
-                                      cleanerInfo['username'] ?? 'supervisor.username',
-                                      style: TextStyle(
-                                        fontSize: screenWidth * 0.04, // Responsive font size
-                                        color: Colors.white70,
-                                      ),
-                                    ),
-                                    SizedBox(height: screenWidth * 0.02), // Responsive spacing
+                                    const SizedBox(height: 8), // Space between avatar and badge
                                     // Status Badge
                                     Container(
                                       padding: EdgeInsets.symmetric(
@@ -194,6 +171,76 @@ class CleanerProfileScreen extends ConsumerWidget {
                                               ? Colors.green
                                               : Colors.red,
                                         ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                SizedBox(width: screenWidth * 0.05), // Responsive spacing
+                                // Name, Username, and Building Badge
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    // Building Badge
+                                    if (cleanerInfo['building'] != null && cleanerInfo['building'].isNotEmpty)
+                                      Container(
+                                        decoration: BoxDecoration(
+                                          color: Colors.white,
+                                          borderRadius: BorderRadius.circular(20),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: Colors.black.withOpacity(0.1),
+                                              blurRadius: 4,
+                                              offset: const Offset(0, 2),
+                                            ),
+                                          ],
+                                        ),
+                                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Icon(
+                                              Icons.location_city,
+                                              size: screenWidth * 0.045, // Responsive size
+                                              color: primaryColor,
+                                            ),
+                                            const SizedBox(width: 6),
+                                            Text(
+                                              cleanerInfo['building'],
+                                              style: TextStyle(
+                                                fontSize: screenWidth * 0.04,
+                                                fontWeight: FontWeight.w600,
+                                                color: primaryColor,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      )
+                                    else
+                                      Text(
+                                        'Building not assigned',
+                                        style: const TextStyle(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w500,
+                                          color: Colors.white70,
+                                        ),
+                                      ),
+                                    const SizedBox(height: 8),
+                                    // Name
+                                    Text(
+                                      cleanerInfo['name'] ?? 'Supervisor Name',
+                                      style: TextStyle(
+                                        fontSize: screenWidth * 0.045, // Responsive font size
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                    // Username
+                                    Text(
+                                      cleanerInfo['username'] ?? 'supervisor.username',
+                                      style: TextStyle(
+                                        fontSize: screenWidth * 0.04, // Responsive font size
+                                        color: Colors.white70,
                                       ),
                                     ),
                                   ],
@@ -256,61 +303,61 @@ class CleanerProfileScreen extends ConsumerWidget {
     );
   }
 
-Widget _buildTextField(BuildContext context, String label, String value, IconData icon, double screenWidth) {
-  return Padding(
-    padding: EdgeInsets.symmetric(vertical: screenWidth * 0.03), // Responsive spacing
-    child: Center( // Center the container
-      child: Container(
-        width: screenWidth * 0.8, // Set width to 80% of the screen width
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.grey.shade400),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 5,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Padding(
-          padding: EdgeInsets.all(screenWidth * 0.03), // Responsive padding
-          child: Row(
-            children: [
-              Icon(icon, color: Theme.of(context).colorScheme.primary, size: screenWidth * 0.06), // Responsive icon
-              SizedBox(width: screenWidth * 0.03), // Responsive spacing
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      label,
-                      style: TextStyle(
-                        fontSize: screenWidth * 0.04, // Responsive font size
-                        color: Colors.grey,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    SizedBox(height: screenWidth * 0.01), // Responsive spacing
-                    Text(
-                      value,
-                      style: TextStyle(
-                        fontSize: screenWidth * 0.045, // Responsive font size
-                        color: Colors.black,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ),
+  Widget _buildTextField(BuildContext context, String label, String value, IconData icon, double screenWidth) {
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: screenWidth * 0.03), // Responsive spacing
+      child: Center( // Center the container
+        child: Container(
+          width: screenWidth * 0.8, // Set width to 80% of the screen width
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Colors.grey.shade400),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.05),
+                blurRadius: 5,
+                offset: const Offset(0, 2),
               ),
             ],
           ),
+          child: Padding(
+            padding: EdgeInsets.all(screenWidth * 0.03), // Responsive padding
+            child: Row(
+              children: [
+                Icon(icon, color: Theme.of(context).colorScheme.primary, size: screenWidth * 0.06), // Responsive icon
+                SizedBox(width: screenWidth * 0.03), // Responsive spacing
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        label,
+                        style: TextStyle(
+                          fontSize: screenWidth * 0.04, // Responsive font size
+                          color: Colors.grey,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      SizedBox(height: screenWidth * 0.01), // Responsive spacing
+                      Text(
+                        value,
+                        style: TextStyle(
+                          fontSize: screenWidth * 0.045, // Responsive font size
+                          color: Colors.black,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
-    ),
-  );
-}
+    );
+  }
 
   Widget _buildButtonSection(BuildContext context, WidgetRef ref, Color primaryColor, Color secondaryColor, double screenWidth) {
     return Column(
@@ -373,7 +420,6 @@ Widget _buildTextField(BuildContext context, String label, String value, IconDat
       ],
     );
   }
-}
 
   void _confirmLogout(BuildContext context, WidgetRef ref) {
     showDialog(
@@ -421,13 +467,12 @@ Widget _buildTextField(BuildContext context, String label, String value, IconDat
         (route) => false,
       );
     } catch (e) {
-    // Ensure the widget is still mounted before showing the SnackBar
-    if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Logout failed: $e')),
-      );
+      // Ensure the widget is still mounted before showing the SnackBar
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Logout failed: $e')),
+        );
+      }
     }
   }
 }
-
-
