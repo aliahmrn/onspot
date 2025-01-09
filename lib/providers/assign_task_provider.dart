@@ -3,7 +3,7 @@ import '../service/complaints_service.dart';
 
 // Fetch complaint details
 final complaintDetailsProvider = FutureProvider.family<Map<String, dynamic>, String>((ref, complaintId) async {
-  return ComplaintsService().getComplaintDetails(complaintId);
+  return ComplaintsService().fetchAssignedTaskDetails(complaintId);
 });
 
 // Provider to track the selected number of cleaners
@@ -11,7 +11,6 @@ final selectedNumOfCleanersProvider = StateProvider<String?>((ref) => null);
 
 // Provider to track the list of selected cleaners
 final selectedCleanersProvider = StateProvider<List<String?>>((ref) => []);
-
 
 // Task assignment logic
 class AssignTaskNotifier extends StateNotifier<AsyncValue<void>> {

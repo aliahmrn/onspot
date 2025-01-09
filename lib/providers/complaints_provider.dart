@@ -1,4 +1,3 @@
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../service/complaints_service.dart';
 
@@ -10,7 +9,7 @@ final complaintsProvider = FutureProvider<List<Map<String, dynamic>>>((ref) asyn
 final historyProvider = FutureProvider.family<List<Map<String, dynamic>>, String>((ref, category) async {
   try {
     final ComplaintsService complaintsService = ComplaintsService();
-    return await complaintsService.fetchAssignedTasksHistory(category);
+    return await complaintsService.fetchComplaints();
   } catch (e) {
     print('Error in historyProvider: $e');
     throw Exception('Failed to load history');
@@ -29,14 +28,9 @@ final latestComplaintProvider = Provider<Map<String, dynamic>?>((ref) {
   );
 
   if (complaints.isEmpty) {
+    print("g");
     return null;
   }
-
-  complaints.sort((a, b) {
-    DateTime dateA = DateTime.parse(a['comp_date']);
-    DateTime dateB = DateTime.parse(b['comp_date']);
-    return dateB.compareTo(dateA);
-  });
 
   return complaints.first;
 });

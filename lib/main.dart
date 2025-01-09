@@ -5,13 +5,45 @@ import 'login.dart';
 import 'supervisor/main_navigator.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'service/notification_service.dart';
+//import 'service/notification_service.dart';
+import 'service/notification_service_supabase.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:permission_handler/permission_handler.dart';
+
+final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+    // Request permission for notifications
+  if (await Permission.notification.isDenied) {
+    await Permission.notification.request();
+  }
+
+    // Initialization for Android
+  const AndroidInitializationSettings initializationSettingsAndroid =
+      AndroidInitializationSettings('@mipmap/ic_launcher');
+
+  // Initialization settings for both platforms
+  final InitializationSettings initializationSettings = InitializationSettings(
+    android: initializationSettingsAndroid,
+  );
+
+   await flutterLocalNotificationsPlugin.initialize(
+    initializationSettings,
+    onDidReceiveNotificationResponse: (NotificationResponse response) {
+      debugPrint('Notification clicked with payload: ${response.payload}');
+    },
+  );
   // Initialize Firebase  
   await Firebase.initializeApp();
+
+    // Initialize Supabase
+  await Supabase.initialize(
+    url: 'https://ghfcpddpywmathkhmkff.supabase.co',
+    anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdoZmNwZGRweXdtYXRoa2hta2ZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQzMTk5NTcsImV4cCI6MjA0OTg5NTk1N30.pD09VuhLHIjww0hIbCbltJL9IvFyxZZp0ipfcswUIy0',
+  );
 
   // Initialize the Notification Service (for push notifications)
   await NotificationService().initialize(); // Initialize Notification Service
@@ -61,4 +93,6 @@ class OnspotSupervisorApp extends StatelessWidget {
       ),
     );
   }
+
+
 }
