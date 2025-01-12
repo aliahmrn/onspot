@@ -7,7 +7,7 @@ import 'package:firebase_messaging/firebase_messaging.dart'; // Firebase Messagi
 import '../utils/device_utils.dart'; // Correctly imported device utility
 
 class AuthService {
-  final String baseUrl = 'http://10.212.18.230/api'; // Your API base URL
+  final String baseUrl = 'http:// 192.168.1.105:8000/api'; // Your API base URL
   final Logger _logger = Logger(); // Initialize Logger
 
   // Login function for supervisors

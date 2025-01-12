@@ -349,9 +349,10 @@ class AssignTaskPage extends ConsumerWidget {
                   (element) => element['cleaner_name'] == cleanerName,
                   orElse: () => {},
               );
-              return cleaner['cleaner_id']; // Ensure cleaner_id (user_id) is used
+              return cleaner['cleaner_id']?.toString(); // Ensure cleaner_id (user_id) is used
           })
           .where((id) => id != null)
+          .cast<String>() 
           .toList();
 
 
@@ -380,7 +381,7 @@ class AssignTaskPage extends ConsumerWidget {
       Logger().i('Assign Task Request Body: ${jsonEncode(body)}');
 
       // Call the provider's assignTask method
-      await ref.read(assignTaskProvider.notifier).assignTask(complaintId, body);
+      await ref.read(assignTaskProvider.notifier).assignTask(complaintId, body, cleanerIds);
     } catch (e) {
       // Log the error
       Logger().e('Error in _assignTask: $e');

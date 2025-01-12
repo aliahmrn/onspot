@@ -41,5 +41,33 @@ class ComplaintsService {
       throw response.error!;
     }
   }
+
+
+  Future<void> assignTaskAndNotify(
+    String complaintId,
+    Map<String, dynamic> body,
+    List<String> cleanerIds,
+    String assignedBy, // Supervisor ID
+  ) async {
+    // Assign the task (update the complaints table)
+    await Supabase.instance.client
+        .from('complaints')
+        .update(body)
+        .eq('id', complaintId);
+
+    // Insert task assignments into the complaint_cleaner table
+    final assignments = cleanerIds.map((cleanerId) {
+      return {
+        'complaint_id': complaintId,
+        'cleaner_id': cleanerId,
+        'assigned_by': assignedBy,
+        'assigned_date': DateTime.now().toIso8601String(),
+      };
+    }).toList();
+
+    await Supabase.instance.client
+        .from('complaint_cleaner')
+        .insert(assignments);
+  }
   
 }
