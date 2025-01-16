@@ -2,31 +2,33 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../providers/assign_task_provider.dart';
-import '../providers/navigation_provider.dart'; // For navigation state
+import '../providers/navigation_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:logger/logger.dart';
-import 'dart:convert';
 import '../service/complaints_service.dart';
 
-// Provider to manage the complaints list
 final complaintListProvider = StateNotifierProvider<ComplaintListNotifier, List<Map<String, dynamic>>>((ref) {
   return ComplaintListNotifier();
 });
 
-// Notifier to handle complaints list
 class ComplaintListNotifier extends StateNotifier<List<Map<String, dynamic>>> {
   ComplaintListNotifier() : super([]);
 
   final _complaintsService = ComplaintsService();
 
-  // Method to refresh complaints list
   Future<void> refresh() async {
     try {
-      final complaints = await _complaintsService.fetchComplaints();
+      print('Fetching complaints...');
+      final complaints = await _complaintsService
+          .fetchComplaints()
+          .timeout(const Duration(seconds: 10), onTimeout: () {
+        throw Exception('Timeout while fetching complaints.');
+      });
+      print('Complaints fetched: $complaints');
       state = complaints;
     } catch (e) {
-      // Handle errors (e.g., log them or show a message)
-      state = [];
+      print('Error fetching complaints: $e');
+      state = []; // Ensure the state resets to avoid UI freezes
     }
   }
 }
@@ -44,54 +46,60 @@ class AssignTaskPage extends ConsumerWidget {
     final secondaryColor = Theme.of(context).colorScheme.secondary;
     final onPrimaryColor = Theme.of(context).colorScheme.onPrimary;
 
-    // Listen for changes in assignTaskProvider
-    ref.listen<AsyncValue<void>>(assignTaskProvider, (previous, next) {
-      next.whenOrNull(
-        data: (_) {
-          // Show success dialog with an "OK" button
+ref.listen<AsyncValue<Map<String, dynamic>>>(assignTaskProvider, (previous, next) {
+  if (next is AsyncLoading) return; // Ignore loading state here
+
+  next.when(
+    data: (_) {
+      if (previous is AsyncLoading) {
+        // Prevent redundant refresh calls
+        Future.delayed(const Duration(milliseconds: 200), () {
           showDialog(
             context: context,
             builder: (_) => AlertDialog(
-              title: const Text('Success'),
-              content: const Text('Task assigned successfully.'),
+              title: const Text('Berjaya'),
+              content: const Text('Aduan berjaya ditugaskan.'),
               actions: [
                 TextButton(
                   onPressed: () {
-                    Navigator.of(context).pop(); // Close the dialog
-                    ref.read(complaintListProvider.notifier).refresh(); // Refresh complaints
-                    ref.read(currentIndexProvider.notifier).state = 2; // Redirect to Complaints Page
+                    Navigator.of(context).pop();
+                    Navigator.of(context).pop();
+                    ref.read(currentIndexProvider.notifier).state = 2;
+                    ref.read(complaintListProvider.notifier).refresh();
                   },
                   child: const Text('OK'),
                 ),
               ],
             ),
           );
-        },
-        error: (error, _) {
-          // Show error dialog
-          showDialog(
-            context: context,
-            builder: (_) => AlertDialog(
-              title: const Text('Error'),
-              content: Text('Failed to assign task: $error'),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(), // Close the dialog
-                  child: const Text('OK'),
-                ),
-              ],
+        });
+      }
+    },
+    error: (error, _) {
+      showDialog(
+        context: context,
+        builder: (_) => AlertDialog(
+          title: const Text('Error'),
+          content: Text('Aduan tidak berjaya ditugaskan: $error'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('OK'),
             ),
-          );
-        },
+          ],
+        ),
       );
-    });
+    },
+    loading: () => {}, // Ignore loading state
+  );
+});
 
-    // Fetch complaint details using Riverpod
     final complaintDetailsAsync = ref.watch(complaintDetailsProvider(complaintId));
+    print('Fetching complaint details for complaintId: $complaintId');
     final assignTaskState = ref.watch(assignTaskProvider);
 
     return Scaffold(
-      backgroundColor: primaryColor, // Match primary background color
+      backgroundColor: primaryColor,
       appBar: AppBar(
         elevation: 0,
         backgroundColor: primaryColor,
@@ -101,7 +109,7 @@ class AssignTaskPage extends ConsumerWidget {
         ),
         centerTitle: true,
         title: Text(
-          'Assign Complaint',
+          'Tugaskan Aduan',
           style: TextStyle(
             color: onPrimaryColor,
             fontSize: screenWidth * 0.05,
@@ -109,136 +117,174 @@ class AssignTaskPage extends ConsumerWidget {
           ),
         ),
       ),
-      body: Container(
-        decoration: BoxDecoration(
-          color: secondaryColor, // Match the secondary color (white background)
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(screenWidth * 0.06), // Same rounded corner design
-            topRight: Radius.circular(screenWidth * 0.06),
-          ),
-        ),
-        padding: EdgeInsets.all(screenWidth * 0.04), // Match the padding
-        child: complaintDetailsAsync.when(
-          loading: () => const Center(child: CircularProgressIndicator()),
-          error: (error, _) => Center(child: Text('Error: $error')),
-          data: (complaintDetails) {
-            final availableCleaners =
-                List<Map<String, dynamic>>.from(complaintDetails['available_cleaners']);
-            final formattedDate =
-                DateFormat('dd/MM/yyyy').format(DateTime.parse(complaintDetails['comp_date']));
-            final imageUrl = complaintDetails['comp_image_url'];
+      body: SafeArea(
+        child: Column(
+          children: [
+            Expanded(
+              child: Container(
+                decoration: BoxDecoration(
+                  color: secondaryColor, // White background
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(screenWidth * 0.06), // Rounded corners
+                    topRight: Radius.circular(screenWidth * 0.06),
+                  ),
+                ),
+                padding: EdgeInsets.all(screenWidth * 0.04),
+                child: complaintDetailsAsync.when(
+                  loading: () => const Center(child: CircularProgressIndicator()),
+                  error: (error, _) => Center(child: Text('Error: $error')),
+                  data: (complaintDetails) {
+                    if (complaintDetails.isEmpty) {
+                      return const Center(child: Text('No complaint details available.'));
+                    }
+                    final availableCleaners = List<Map<String, dynamic>>.from(
+                      complaintDetails['available_cleaners'] ?? [],
+                    );
+                    final formattedDate = DateFormat('dd/MM/yyyy').format(
+                      DateTime.parse(complaintDetails['comp_date']),
+                    );
+                    final imageUrl = complaintDetails['comp_image_url'];
+                    final isAssignButtonEnabled = availableCleaners.isNotEmpty;
 
-            // Button enable condition
-            final bool isAssignButtonEnabled = availableCleaners.isNotEmpty;
-
-            // UI with updated design
-            return SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Image Section
-                  Container(
-                    width: double.infinity,
-                    height: screenHeight * 0.25, // Dynamically adjust height
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.grey.shade300),
-                      boxShadow: const [
-                        BoxShadow(
-                          color: Colors.black12,
-                          offset: Offset(0, 4),
-                          blurRadius: 6,
-                        ),
-                      ],
-                      image: imageUrl != null
-                          ? DecorationImage(image: NetworkImage(imageUrl), fit: BoxFit.cover)
-                          : null,
-                    ),
-                    child: imageUrl == null
-                        ? Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(Icons.image_not_supported, size: 50, color: Colors.grey[400]),
-                                const SizedBox(height: 10),
-                                Text(
-                                  'No Image Available',
-                                  style: TextStyle(color: Colors.grey[600], fontSize: 14),
+                    return SingleChildScrollView(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Image Section
+                          Container(
+                            width: double.infinity,
+                            height: screenHeight * 0.25,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: Colors.grey.shade300),
+                              boxShadow: const [
+                                BoxShadow(
+                                  color: Colors.black12,
+                                  offset: Offset(0, 4),
+                                  blurRadius: 6,
                                 ),
                               ],
+                              image: imageUrl != null
+                                  ? DecorationImage(image: NetworkImage(imageUrl), fit: BoxFit.cover)
+                                  : null,
                             ),
-                          )
-                        : null,
-                  ),
-                  const SizedBox(height: 25),
+                            child: imageUrl == null
+                                ? Center(
+                                    child: Column(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        Icon(Icons.image_not_supported,
+                                            size: screenWidth * 0.1, color: Colors.grey[400]),
+                                        const SizedBox(height: 10),
+                                        Text(
+                                          'Gambar Tidak Tersedia',
+                                          style: TextStyle(color: Colors.grey[600], fontSize: screenWidth * 0.04),
+                                        ),
+                                      ],
+                                    ),
+                                  )
+                                : null,
+                          ),
+                          SizedBox(height: screenHeight * 0.02),
 
-                  // Complaint Details Section
-                  _buildDetailRow(Icons.location_on, 'Location',
-                      complaintDetails['comp_location'] ?? 'No Location'),
-                  const Divider(color: Colors.grey, thickness: 0.5),
-                  _buildDetailRow(Icons.date_range, 'Date', formattedDate),
-                  const Divider(color: Colors.grey, thickness: 0.5),
-                  _buildDetailRow(Icons.description, 'Description',
-                      complaintDetails['comp_desc'] ?? 'No Description'),
-                  const SizedBox(height: 20),
+                          // Complaint Details Section
+                          _buildMultilineDetailRow(
+                            Icons.location_on,
+                            'Lokasi',
+                            complaintDetails['comp_location'] ?? 'Tiada Lokasi',
+                            screenWidth,
+                          ),
+                          const Divider(color: Colors.grey, thickness: 0.5),
+                          _buildMultilineDetailRow(
+                            Icons.date_range,
+                            'Tarikh',
+                            formattedDate,
+                            screenWidth,
+                          ),
+                          const Divider(color: Colors.grey, thickness: 0.5),
+                          _buildMultilineDetailRow(
+                            Icons.description,
+                            'Penerangan',
+                            complaintDetails['comp_desc'] ?? 'Tiada Penerangan',
+                            screenWidth,
+                          ),
+                          SizedBox(height: screenHeight * 0.03),
 
-                  // Number of Cleaners Section
-                  _buildCleanersDropdownSection(
-                    ref: ref,
-                    availableCleaners: availableCleaners,
-                    complaintId: complaintId,
-                    primaryColor: primaryColor,
-                    secondaryColor: secondaryColor,
-                    isAssignButtonEnabled: isAssignButtonEnabled,
-                  ),
+                          // Number of Cleaners Section
+                          _buildCleanersDropdownSection(
+                            ref: ref,
+                            availableCleaners: availableCleaners,
+                            complaintId: complaintId,
+                            primaryColor: primaryColor,
+                            secondaryColor: secondaryColor,
+                            isAssignButtonEnabled: isAssignButtonEnabled,
+                            screenWidth: screenWidth,
+                            screenHeight: screenHeight,
+                          ),
 
-                  const SizedBox(height: 30),
+                          SizedBox(height: screenHeight * 0.04),
 
-                  // Assign Button Section
-                  Center(
-                    child: ElevatedButton(
-                      onPressed: isAssignButtonEnabled
-                          ? () => _assignTask(ref, complaintId, availableCleaners)
-                          : null, // Disable button if no cleaners are available
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 16),
-                        backgroundColor: isAssignButtonEnabled ? primaryColor : Colors.grey, // Adjust color
-                        foregroundColor: secondaryColor,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        elevation: isAssignButtonEnabled ? 4 : 0, // No elevation when disabled
-                        shadowColor: Colors.black.withOpacity(0.2),
+                          // Assign Button Section
+                          Center(
+                            child: ElevatedButton(
+                              onPressed: isAssignButtonEnabled
+                                  ? () => _assignTask(ref, complaintId, availableCleaners)
+                                  : null,
+                              style: ElevatedButton.styleFrom(
+                                padding: EdgeInsets.symmetric(
+                                    horizontal: screenWidth * 0.2, vertical: screenHeight * 0.02),
+                                backgroundColor: isAssignButtonEnabled ? primaryColor : Colors.grey,
+                                foregroundColor: secondaryColor,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                              ),
+                              child: assignTaskState.isLoading
+                                  ? const CircularProgressIndicator()
+                                  : Text(
+                                      isAssignButtonEnabled ? 'Tugaskan Aduan' : 'Tiada Pembersih Tersedia',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: screenWidth * 0.045,
+                                      ),
+                                    ),
+                            ),
+                          ),
+                        ],
                       ),
-                      child: assignTaskState.isLoading
-                          ? const CircularProgressIndicator()
-                          : Text(
-                              isAssignButtonEnabled
-                                  ? 'Assign Complaint' // Show default text if enabled
-                                  : 'No Cleaner Available', // Show alternative text if disabled
-                              style: const TextStyle(color: Colors.white),
-                            ),
-                    ),
-                  ),
-                ],
+                    );
+                  },
+                ),
               ),
-            );
-          },
+            ),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildDetailRow(IconData icon, String label, String value) {
+  Widget _buildMultilineDetailRow(IconData icon, String label, String value, double screenWidth) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      padding: EdgeInsets.symmetric(vertical: screenWidth * 0.02),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, color: Colors.black),
-          const SizedBox(width: 16),
-          Text(
-            '$label: $value',
-            style: const TextStyle(fontSize: 16, color: Colors.black),
+          Icon(icon, color: Colors.black, size: screenWidth * 0.05),
+          SizedBox(width: screenWidth * 0.04),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '$label:', // Bold label
+                  style: TextStyle(fontSize: screenWidth * 0.04, fontWeight: FontWeight.bold),
+                ),
+                Text(
+                  value, // Normal context
+                  style: TextStyle(fontSize: screenWidth * 0.04, color: Colors.black),
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -252,12 +298,14 @@ class AssignTaskPage extends ConsumerWidget {
     required Color primaryColor,
     required Color secondaryColor,
     required bool isAssignButtonEnabled,
+    required double screenWidth,
+    required double screenHeight,
   }) {
     final selectedNumOfCleaners = ref.watch(selectedNumOfCleanersProvider);
     final selectedCleaners = ref.watch(selectedCleanersProvider);
 
     return Container(
-      padding: const EdgeInsets.all(16.0),
+      padding: EdgeInsets.all(screenWidth * 0.04),
       decoration: BoxDecoration(
         color: Colors.grey.shade100,
         borderRadius: BorderRadius.circular(12),
@@ -272,15 +320,15 @@ class AssignTaskPage extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Number of Cleaners',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black),
+          Text(
+            'Bilangan Pembersih Diperlukan',
+            style: TextStyle(fontSize: screenWidth * 0.045, fontWeight: FontWeight.bold, color: Colors.black),
           ),
-          const SizedBox(height: 15),
+          SizedBox(height: screenHeight * 0.015),
           DropdownButton<String>(
             isExpanded: true,
             value: selectedNumOfCleaners,
-            hint: const Text('Select number'),
+            hint: Text('Pilih Bilangan', style: TextStyle(fontSize: screenWidth * 0.04)),
             onChanged: isAssignButtonEnabled
                 ? (value) {
                     ref.read(selectedNumOfCleanersProvider.notifier).state = value;
@@ -299,21 +347,24 @@ class AssignTaskPage extends ConsumerWidget {
             items: List.generate(10, (index) => (index + 1).toString())
                 .map((value) => DropdownMenuItem<String>(
                       value: value,
-                      child: Text(value),
+                      child: Text(value, style: TextStyle(fontSize: screenWidth * 0.04)),
                     ))
                 .toList(),
           ),
-          const SizedBox(height: 15),
+          SizedBox(height: screenHeight * 0.015),
           for (int i = 0; i < int.parse(selectedNumOfCleaners ?? '1'); i++)
             Padding(
-              padding: const EdgeInsets.only(bottom: 10),
+              padding: EdgeInsets.only(bottom: screenHeight * 0.01),
               child: DropdownButton<String>(
                 isExpanded: true,
-                value: selectedCleaners.length > i ? selectedCleaners[i] : null,
-                hint: const Text('Select cleaner'),
+                value: selectedCleaners.length > i && availableCleaners.any(
+                        (cleaner) => cleaner['cleaner_name'] == selectedCleaners[i])
+                    ? selectedCleaners[i]
+                    : null, // Ensure value is valid
+                hint: Text('Pilih Pembersih', style: TextStyle(fontSize: screenWidth * 0.04)),
                 onChanged: isAssignButtonEnabled
                     ? (newValue) {
-                        if (newValue != 'No cleaner available for now') {
+                        if (newValue != null) {
                           final currentSelected = List<String?>.from(selectedCleaners);
                           currentSelected[i] = newValue;
                           ref.read(selectedCleanersProvider.notifier).state = currentSelected;
@@ -323,7 +374,7 @@ class AssignTaskPage extends ConsumerWidget {
                 items: availableCleaners
                     .map((cleaner) => DropdownMenuItem<String>(
                           value: cleaner['cleaner_name'],
-                          child: Text(cleaner['cleaner_name']),
+                          child: Text(cleaner['cleaner_name'], style: TextStyle(fontSize: screenWidth * 0.04)),
                         ))
                     .toList(),
               ),
@@ -339,54 +390,53 @@ class AssignTaskPage extends ConsumerWidget {
     List<Map<String, dynamic>> availableCleaners,
   ) async {
     try {
-      // Get the list of cleaner user IDs from the selected cleaners
       final cleanerIds = ref
           .read(selectedCleanersProvider.notifier)
           .state
           .where((cleanerName) => cleanerName != null)
           .map((cleanerName) {
-              final cleaner = availableCleaners.firstWhere(
-                  (element) => element['cleaner_name'] == cleanerName,
-                  orElse: () => {},
-              );
-              return cleaner['cleaner_id']?.toString(); // Ensure cleaner_id (user_id) is used
+            final cleaner = availableCleaners.firstWhere(
+              (element) => element['cleaner_name'] == cleanerName,
+              orElse: () {
+                print('Cleaner not found for name: $cleanerName');
+                return {};
+              },
+            );
+            return cleaner['cleaner_id']?.toString();
           })
           .where((id) => id != null)
-          .cast<String>() 
+          .cast<String>()
           .toList();
 
-
-      // Retrieve the supervisor ID from SharedPreferences
       final prefs = await SharedPreferences.getInstance();
-      final supervisorIdStr = prefs.getString('supervisorId'); // Retrieve as string
-      final supervisorId = int.tryParse(supervisorIdStr ?? ''); // Convert to integer
+      final supervisorIdStr = prefs.getString('supervisorId');
+      final supervisorId = int.tryParse(supervisorIdStr ?? '');
 
-      // Ensure supervisor ID exists
       if (supervisorId == null) {
-        Logger().e('Supervisor ID is missing.');
         throw Exception('Supervisor ID is missing. Please log in again.');
       }
 
-      Logger().i('Supervisor ID: $supervisorId');
-      Logger().i('Complaint ID: $complaintId');
-      Logger().i('Cleaner User IDs: $cleanerIds');
-
-      // Prepare the request body
       final body = {
         'cleaner_ids': cleanerIds,
         'no_of_cleaners': int.parse(ref.read(selectedNumOfCleanersProvider.notifier).state ?? '1'),
-        'assigned_by': supervisorId, // Dynamically retrieved supervisor ID
+        'assigned_by': supervisorId,
       };
 
-      Logger().i('Assign Task Request Body: ${jsonEncode(body)}');
+      print('Assigning task with body: $body'); // Log the body
+      await ref.read(assignTaskProvider.notifier).assignTask(
+        complaintId: complaintId,
+        cleanerIds: cleanerIds.map(int.parse).toList(), // Ensure cleaner IDs are integers
+        noOfCleaners: int.parse(ref.read(selectedNumOfCleanersProvider)!),
+        assignedBy: supervisorId,
+      );
 
-      // Call the provider's assignTask method
-      await ref.read(assignTaskProvider.notifier).assignTask(complaintId, body, cleanerIds);
+      // Reset dropdown state after assignment
+      ref.read(selectedNumOfCleanersProvider.notifier).state = null;
+      ref.read(selectedCleanersProvider.notifier).state = [];
+
+      print('Task assignment complete'); // Confirm completion
     } catch (e) {
-      // Log the error
       Logger().e('Error in _assignTask: $e');
-
-      // Re-throw to let it propagate or handle it with a UI dialog
       rethrow;
     }
   }

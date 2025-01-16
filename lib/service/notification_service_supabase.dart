@@ -27,6 +27,7 @@ class NotificationService {
     supabase
         .from('complaint')
         .stream(primaryKey: ['id'])
+         .eq('comp_status', 'pending') 
         .listen((List<Map<String, dynamic>> event) {
       for (var complaint in event) {
         _showNotification(complaint);
@@ -46,8 +47,8 @@ class NotificationService {
 
     await _flutterLocalNotificationsPlugin.show(
       0,
-      'New Complaint',
-      'Complaint: ${complaint['comp_desc']}',
+      'Aduan Baru',
+      'Aduan: ${complaint['comp_desc']}',
       notificationDetails,
     );
   }

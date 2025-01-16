@@ -30,7 +30,7 @@ class CleanerDetailPage extends ConsumerWidget {
         elevation: 0,
         centerTitle: true,
         title: Text(
-          "Cleaner’s Details",
+          "Butiran Pembersih",
           style: textTheme.titleLarge?.copyWith(
             fontSize: screenWidth * 0.05,
             color: onPrimaryColor,
@@ -82,7 +82,7 @@ class CleanerDetailPage extends ConsumerWidget {
 
         error: (error, _) => Center(
           child: Text(
-            'Error loading cleaner details: $error',
+            'Ralat memuatkan butiran pembersih: $error',
             style: const TextStyle(color: Colors.red),
           ),
         ),
@@ -167,7 +167,7 @@ class CleanerDetailPage extends ConsumerWidget {
                               children: [
                                 _buildDetailRow(
                                   Icons.person,
-                                  "Name",
+                                  "Nama",
                                   cleanerName,
                                   onPrimaryColor,
                                   textTheme,
@@ -176,7 +176,7 @@ class CleanerDetailPage extends ConsumerWidget {
                                 const Divider(color: Colors.white54, height: 30),
                                 _buildDetailRow(
                                   Icons.phone,
-                                  "Contact",
+                                  "Nombor Telefon",
                                   cleanerPhoneNo,
                                   onPrimaryColor,
                                   textTheme,
@@ -185,7 +185,7 @@ class CleanerDetailPage extends ConsumerWidget {
                                 const Divider(color: Colors.white54, height: 30),
                                 _buildDetailRow(
                                   Icons.location_city,
-                                  "Building",
+                                  "Bangunan",
                                   building,
                                   onPrimaryColor,
                                   textTheme,
@@ -202,7 +202,7 @@ class CleanerDetailPage extends ConsumerWidget {
                               else
                                 Center(
                                   child: Text(
-                                    "No assigned complaints.",
+                                    "Tiada aduan ditugaskan.",
                                     style: textTheme.bodyMedium?.copyWith(
                                       color: Colors.white70,
                                     ),
@@ -259,27 +259,40 @@ class CleanerDetailPage extends ConsumerWidget {
 Widget _buildTaskCard(
     Map<String, dynamic> complaint, Color primaryColor, TextTheme textTheme, double screenWidth) {
   // Determine badge color based on complaint status
-  Color getStatusColor(String status) {
-    switch (status.toLowerCase()) {
-      case 'ongoing':
-        return const Color.fromARGB(255, 94, 155, 204);
-      case 'completed':
-        return Colors.green;
-      case 'pending':
-        return Colors.orange;
-      default:
-        return Colors.grey;
-    }
+  String translateComplaintStatus(String status) {
+  switch (status.toLowerCase()) {
+    case 'ongoing':
+      return 'Berjalan';
+    case 'completed':
+      return 'Selesai';
+    case 'pending':
+      return 'Tertangguh';
+    default:
+      return 'Status Tidak Diketahui';
   }
+}
 
+// Determine badge color based on complaint status
+Color getStatusColor(String status) {
+  switch (status.toLowerCase()) {
+    case 'ongoing':
+      return const Color.fromARGB(255, 94, 155, 204);
+    case 'completed':
+      return Colors.green;
+    case 'pending':
+      return Colors.orange;
+    default:
+      return Colors.grey;
+  }
+}
   // Format the date
   String formatDate(String? date) {
-    if (date == null || date.isEmpty) return "Unknown Date";
+    if (date == null || date.isEmpty) return "Tidak diketahui";
     try {
       final parsedDate = DateTime.parse(date); // Parse the date string
       return DateFormat('dd/MM/yyyy').format(parsedDate); // Format to DD/MM/YYYY
     } catch (e) {
-      return "Invalid Date";
+      return "Tarikh tidak sah";
     }
   }
 
@@ -306,7 +319,7 @@ Widget _buildTaskCard(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  "Assigned Complaint",
+                  "Aduan Ditugaskan",
                   style: textTheme.titleMedium?.copyWith(
                     fontSize: screenWidth * 0.040,
                     fontWeight: FontWeight.bold,
@@ -320,7 +333,7 @@ Widget _buildTaskCard(
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
-                    complaint['comp_status'] ?? 'Unknown',
+                    translateComplaintStatus(complaint['comp_status'] ?? 'unknown'),
                     style: textTheme.bodySmall?.copyWith(
                       color: Colors.white, // Text color for the badge
                       fontWeight: FontWeight.bold,
@@ -331,28 +344,28 @@ Widget _buildTaskCard(
             ),
             const SizedBox(height: 10),
             Text(
-              "Description: ${complaint['comp_desc']}",
+              "Penerangan: ${complaint['comp_desc']}",
               style: textTheme.bodyMedium?.copyWith(
                 color: primaryColor, // Use primary color for text
               ),
             ),
             const SizedBox(height: 8),
             Text(
-              "Location: ${complaint['comp_location']}",
+              "Lokasi: ${complaint['comp_location']}",
               style: textTheme.bodyMedium?.copyWith(
                 color: primaryColor.withOpacity(0.7), // Slightly lighter primary color
               ),
             ),
             const SizedBox(height: 8),
             Text(
-              "Assigned by: ${complaint['assigned_by'] ?? 'Unknown'}", // Display supervisor name
+              "Ditugaskan Oleh: ${complaint['assigned_by'] ?? 'Unknown'}", // Display supervisor name
               style: textTheme.bodyMedium?.copyWith(
                 color: primaryColor.withOpacity(0.7), // Slightly lighter primary color
               ),
             ),
             const SizedBox(height: 8),
             Text(
-              "Date: ${formatDate(complaint['comp_date'])}", // Format the date
+              "Tarikh: ${formatDate(complaint['comp_date'])}", // Format the date
               style: textTheme.bodyMedium?.copyWith(
                 color: primaryColor.withOpacity(0.7), // Slightly lighter primary color
               ),
@@ -365,6 +378,13 @@ Widget _buildTaskCard(
 }
 
   Widget _buildStatusBadge(String status, Color statusColor, TextTheme textTheme, double screenWidth) {
+    
+      final translatedStatus = status.toLowerCase() == 'available'
+      ? 'Sedia'
+      : status.toLowerCase() == 'unavailable'
+          ? 'Tidak Sedia'
+          : 'Status Tidak Diketahui';
+
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 12),
       decoration: BoxDecoration(
@@ -373,7 +393,7 @@ Widget _buildTaskCard(
         border: Border.all(color: statusColor, width: 1),
       ),
       child: Text(
-        status,
+        translatedStatus, // Use translated status
         style: textTheme.titleMedium?.copyWith(
           fontSize: screenWidth * 0.04,
           fontWeight: FontWeight.bold,

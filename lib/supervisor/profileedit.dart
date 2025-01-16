@@ -61,15 +61,15 @@ class _SVProfileEditScreenState extends ConsumerState<SVProfileEditScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context, 'Upload'),
-              child: const Text('Upload'),
+              child: const Text('Muat Naik'),
             ),
             TextButton(
               onPressed: () => Navigator.pop(context, 'Delete'),
-              child: const Text('Delete'),
+              child: const Text('Padam'),
             ),
             TextButton(
               onPressed: () => Navigator.pop(context, 'Cancel'),
-              child: const Text('Cancel'),
+              child: const Text('Batal'),
             ),
           ],
         );
@@ -87,13 +87,13 @@ class _SVProfileEditScreenState extends ConsumerState<SVProfileEditScreen> {
       return;
     }
 
-  if (action == 'Upload') {
+  if (action == 'Muat Naik') {
     final XFile? image = await picker.pickImage(source: ImageSource.gallery);
       if (image != null) {
         logger.i('💡 User selected image: ${image.path}');
         ref.read(profileEditProvider.notifier).updateTempProfilePicture(image.path);
       }
-    } else if (action == 'Delete') {
+    } else if (action == 'Padam') {
         final confirmDelete = await _showDeleteConfirmationDialog(context);
         if (confirmDelete == true) {
           logger.i('💡 User confirmed to delete profile picture.');
@@ -107,16 +107,16 @@ class _SVProfileEditScreenState extends ConsumerState<SVProfileEditScreen> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('Confirm Deletion'),
-          content: const Text('Are you sure you want to delete your profile picture?'),
+          title: const Text('Sahkan Pemadaman'),
+          content: const Text('Adakah anda yakin untuk padam gambar profil?'),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(false), // User cancels
-              child: const Text('Cancel'),
+              child: const Text('Batal'),
             ),
             TextButton(
               onPressed: () => Navigator.of(context).pop(true), // User confirms
-              child: const Text('Delete'),
+              child: const Text('Padam'),
             ),
           ],
         );
@@ -148,7 +148,7 @@ class _SVProfileEditScreenState extends ConsumerState<SVProfileEditScreen> {
           elevation: 0,
           backgroundColor: primaryColor,
           title: Text(
-            'Edit Profile',
+            'Edit Profil',
             style: TextStyle(
               color: Colors.white,
               fontSize: screenWidth * 0.05,
@@ -269,12 +269,12 @@ class _SVProfileEditScreenState extends ConsumerState<SVProfileEditScreen> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Cancel Edit'),
-          content: const Text('Are you sure you want to cancel editing? Unsaved changes will be lost.'),
+          title: const Text('Batal Edit'),
+          content: const Text('Batal edit? Perubahan belum disimpan akan hilang.'),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(false),
-              child: const Text('No'),
+              child: const Text('Tidak'),
             ),
             TextButton(
               onPressed: () {
@@ -282,7 +282,7 @@ class _SVProfileEditScreenState extends ConsumerState<SVProfileEditScreen> {
                 ref.read(currentIndexProvider.notifier).state = 4;
                 Navigator.of(context).pop(true);
               },
-              child: const Text('Yes'),
+              child: const Text('Ya'),
             ),
           ],
         );
@@ -381,28 +381,28 @@ class _SVProfileEditScreenState extends ConsumerState<SVProfileEditScreen> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   _buildTextField(
-                    label: 'Name',
+                    label: 'Nama',
                     controller: nameController,
                     onChanged: (value) => notifier.updateField('name', value),
                     enabled: !isLoading,
                   ),
                   SizedBox(height: screenHeight * 0.03),
                   _buildTextField(
-                    label: 'Username',
+                    label: 'Nama Pengguna',
                     controller: usernameController,
                     onChanged: (value) => notifier.updateField('username', value),
                     enabled: !isLoading,
                   ),
                   SizedBox(height: screenHeight * 0.03),
                   _buildTextField(
-                    label: 'Email',
+                    label: 'E-mel',
                     controller: emailController,
                     onChanged: (value) => notifier.updateField('email', value),
                     enabled: !isLoading,
                   ),
                   SizedBox(height: screenHeight * 0.03),
                   _buildTextField(
-                    label: 'Phone Number',
+                    label: 'Nombor Telefon',
                     controller: phoneController,
                     onChanged: (value) => notifier.updateField('phone', value),
                     enabled: !isLoading,
@@ -414,7 +414,7 @@ class _SVProfileEditScreenState extends ConsumerState<SVProfileEditScreen> {
                         : () async {
                             if (nameController.text.isEmpty || emailController.text.isEmpty) {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Name and Email are required')),
+                                const SnackBar(content: Text('Nama dan E-mel diperlukan')),
                               );
                               return;
                             }
@@ -458,7 +458,7 @@ class _SVProfileEditScreenState extends ConsumerState<SVProfileEditScreen> {
                             ),
                           )
                         : const Text(
-                            'Save',
+                            'Simpan',
                             style: TextStyle(fontSize: 16),
                           ),
                     style: ElevatedButton.styleFrom(
@@ -509,7 +509,7 @@ class _SVProfileEditScreenState extends ConsumerState<SVProfileEditScreen> {
               color: primaryColor,
               size: screenWidth * 0.06,
             ),
-            hintText: 'Enter $label',
+            hintText: 'Masukkan $label',
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(screenWidth * 0.03),
             ),
@@ -528,8 +528,8 @@ class _SVProfileEditScreenState extends ConsumerState<SVProfileEditScreen> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('Success'),
-          content: const Text('Your profile has been updated successfully!'),
+          title: const Text('Berjaya'),
+          content: const Text('Profil anda telah berjaya dikemas kini!'),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(), // Close the dialog
@@ -543,13 +543,13 @@ class _SVProfileEditScreenState extends ConsumerState<SVProfileEditScreen> {
 
   IconData _getIconForLabel(String label) {
     switch (label) {
-      case 'Name':
+      case 'Nama':
         return Icons.person;
-      case 'Username':
+      case 'Nama Pengguna':
         return Icons.account_circle;
-      case 'Email':
+      case 'E-mel':
         return Icons.email;
-      case 'Phone Number':
+      case 'Nombor Telefon':
         return Icons.phone;
       default:
         return Icons.edit;

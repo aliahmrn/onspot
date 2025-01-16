@@ -24,7 +24,7 @@ class ComplaintPage extends ConsumerWidget {
         automaticallyImplyLeading: false,
         centerTitle: true,
         title: Text(
-          'Complaints',
+          'Aduan',
           style: TextStyle(
             fontWeight: FontWeight.bold,
             fontSize: screenWidth * 0.05,
@@ -48,7 +48,7 @@ class ComplaintPage extends ConsumerWidget {
           error: (error, _) => Center(child: Text('Error: $error')),
           data: (complaints) {
             if (complaints.isEmpty) {
-              return const Center(child: Text('No complaints yet.'));
+              return const Center(child: Text('Tiada aduan lagi.'));
             }
 
             // Sort complaints by date in descending order
@@ -105,7 +105,7 @@ class ComplaintPage extends ConsumerWidget {
                                   ),
                                   SizedBox(width: screenWidth * 0.02),
                                   Text(
-                                    'Complaint',
+                                    'Aduan',
                                     style: TextStyle(
                                       fontSize: screenWidth * 0.045,
                                       fontWeight: FontWeight.bold,
@@ -156,7 +156,7 @@ class ComplaintPage extends ConsumerWidget {
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
                               Text(
-                                'Date: ${DateFormat('dd/MM/yyyy').format(DateTime.parse(complaint['comp_date']!))}',
+                                'Tarikh: ${DateFormat('dd/MM/yyyy').format(DateTime.parse(complaint['comp_date']!))}',
                                 style: TextStyle(
                                   fontSize: screenWidth * 0.035,
                                   color: onPrimaryColor.withOpacity(0.7),
@@ -195,7 +195,7 @@ class ComplaintPage extends ConsumerWidget {
                                     const Icon(Icons.assignment, size: 18),
                                     const SizedBox(width: 5),
                                     Text(
-                                      'Assign',
+                                      'Tugaskan',
                                       style: TextStyle(fontSize: screenWidth * 0.04),
                                     ),
                                   ],

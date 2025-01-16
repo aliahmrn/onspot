@@ -24,6 +24,11 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
     final secondaryColor = Theme.of(context).colorScheme.secondary;
     final onPrimaryColor = Theme.of(context).colorScheme.onPrimary;
 
+    final filters = {
+      'category': selectedCategory.isEmpty ? null : selectedCategory, // Use null if no category selected
+      'month': selectedMonth.isEmpty ? null : selectedMonth,         // Use null if no month selected
+    };
+
     return Scaffold(
       backgroundColor: primaryColor,
       appBar: AppBar(
@@ -31,7 +36,7 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
         elevation: 0,
         centerTitle: true,
         title: Text(
-          'History',
+          'Rekod',
           style: TextStyle(
             color: onPrimaryColor,
             fontSize: screenWidth * 0.05,
@@ -54,28 +59,34 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
                 ),
                 padding: EdgeInsets.symmetric(horizontal: 16.0),
                 child: DropdownButton<String>(
-                  value: selectedMonth.isEmpty ? null : selectedMonth, // Ensure value matches or is null
+                  value: selectedMonth.isNotEmpty ? selectedMonth.split('-')[1] : null, // Only use the month part (e.g., "01")
                   hint: Text(
-                    'Select Month',
+                    'Pilih Bulan',
                     style: TextStyle(color: Colors.black),
                   ),
                   items: List.generate(12, (index) {
-                    final month = DateFormat('MMMM').format(DateTime(0, index + 1));
+                    final monthValue = (index + 1).toString().padLeft(2, '0'); // Ensures "01", "02", etc.
+                    final monthName = DateFormat('MMMM').format(DateTime(0, index + 1));
                     return DropdownMenuItem(
-                      value: (index + 1).toString(), // Unique value (1-12)
+                      value: monthValue, // Set value to "01", "02", etc.
                       child: Text(
-                        month,
-                        style: TextStyle(color: Colors.black), // Ensure visibility
+                        monthName,
+                        style: TextStyle(color: Colors.black),
                       ),
                     );
                   }),
                   onChanged: (value) {
                     if (value != null) {
-                      print('Selected Month: $value'); // Debug log
+                      final currentYear = DateTime.now().year; // Dynamically fetch the year
                       setState(() {
-                        selectedMonth = value; // Update selectedMonth
-                        ref.invalidate(historyProvider('$selectedCategory&month=$selectedMonth'));
+                        selectedMonth = '$currentYear-$value'; // Store as "YYYY-MM"
                       });
+
+                      // Invalidate the provider with updated filters
+                      ref.invalidate(historyProvider({
+                        'category': selectedCategory.isEmpty ? null : selectedCategory,
+                        'month': selectedMonth,
+                      }));
                     }
                   },
                   isExpanded: true,
@@ -117,16 +128,23 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
                             height: screenHeight * 0.05, // Reduce the height of the TabBar
                             child: TabBar(
                               onTap: (index) {
-                                setState(() {
-                                  if (index == 0) {
-                                    selectedCategory = ''; // No filter
-                                  } else if (index == 1) {
-                                    selectedCategory = 'ongoing';
-                                  } else {
-                                    selectedCategory = 'completed';
-                                  }
-                                  ref.invalidate(historyProvider('$selectedCategory&month=$selectedMonth'));
-                                });
+                                String newCategory = '';
+                                if (index == 1) {
+                                  newCategory = 'ongoing';
+                                } else if (index == 2) {
+                                  newCategory = 'completed';
+                                }
+
+                                if (newCategory != selectedCategory) {
+                                  setState(() {
+                                    selectedCategory = newCategory;
+                                  });
+                                  // Invalidate the provider with updated filters
+                                  ref.invalidate(historyProvider({
+                                    'category': selectedCategory.isEmpty ? null : selectedCategory,
+                                    'month': selectedMonth.isEmpty ? null : selectedMonth,
+                                  }));
+                                }
                               },
                               tabs: [
                                 Tab(
@@ -136,7 +154,7 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
                                     size: screenWidth * 0.045, // Slightly smaller icon
                                   ),
                                   child: Text(
-                                    'All',
+                                    'Semua',
                                     style: TextStyle(
                                       color: selectedCategory == '' ? primaryColor : Colors.grey,
                                       fontSize: screenWidth * 0.039, // Smaller font size
@@ -150,7 +168,7 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
                                     size: screenWidth * 0.045, // Slightly smaller icon
                                   ),
                                   child: Text(
-                                    'Ongoing',
+                                    'Berjalan',
                                     style: TextStyle(
                                       color: selectedCategory == 'ongoing' ? primaryColor : Colors.grey,
                                       fontSize: screenWidth * 0.039, // Smaller font size
@@ -164,7 +182,7 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
                                     size: screenWidth * 0.045, // Slightly smaller icon
                                   ),
                                   child: Text(
-                                    'Completed',
+                                    'Selesai',
                                     style: TextStyle(
                                       color: selectedCategory == 'completed' ? primaryColor : Colors.grey,
                                       fontSize: screenWidth * 0.039, // Smaller font size
@@ -179,44 +197,62 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
                         const SizedBox(height: 10),
                         Expanded(
                           child: Consumer(builder: (context, ref, _) {
-                            final historyAsync = ref.watch(historyProvider('$selectedCategory&month=$selectedMonth'));
-
+                          print('Rebuilding Consumer widget...');
+                          final historyAsync = ref.watch(historyProvider(filters));
                             return RefreshIndicator(
                               onRefresh: () async {
-                                ref.invalidate(historyProvider('$selectedCategory&month=$selectedMonth'));
+                                try {
+                                  print('Refreshing history with filters: $filters');
+                                  final refreshedHistory = await ref.refresh(historyProvider(filters).future);
+                                  print('Refreshed history data: $refreshedHistory');
+                                } catch (e) {
+                                  print('Error refreshing history: $e');
+                                }
                               },
                               child: historyAsync.when(
                                 loading: () => const Center(child: CircularProgressIndicator()),
                                 error: (error, _) => Center(child: Text('Error: $error')),
                                 data: (tasks) {
+                                  print('History data in UI: $tasks'); // Debug log
                                   if (tasks.isEmpty) {
                                     return const Center(
                                       child: Text(
-                                        'No complaints history available.',
+                                        'Tiada rekod tersedia.',
                                         style: TextStyle(fontSize: 16, color: Colors.grey),
                                       ),
                                     );
                                   }
 
+                                     // Debug each task
+                                      for (var task in tasks) {
+                                        print('Rendering task: $task');
+                                      }
+
                                   return ListView.builder(
                                     itemCount: tasks.length,
                                     itemBuilder: (context, index) {
                                       final task = tasks[index];
-                                      final compDate = task['comp_date'] ?? 'No Date';
-                                      final description = task['comp_desc'] ?? 'No Description';
+                                      print('Rendering task: $task'); // Debug log
+
+                                      // Access `comp_date` and `comp_desc` directly from the JSON
+                                      final assignedDate = task['assigned_date'] ?? 'Tiada Tarikh'; // Extract comp_date
+                                      final description = task['comp_desc'] ?? 'Tiada Penerangan'; // Extract comp_desc
                                       final noOfCleaners = task['no_of_cleaners'] ?? '0';
+
 
                                       return Padding(
                                         padding: EdgeInsets.symmetric(vertical: screenHeight * 0.01),
                                         child: InkWell(
                                           borderRadius: BorderRadius.circular(screenWidth * 0.03),
                                           onTap: () {
+                                            final complaintId = task['complaint_id'];
+                                            print('Navigating with complaint ID: ${task['id']}');
                                             Navigator.push(
                                               context,
                                               PageRouteBuilder(
                                                 pageBuilder: (context, animation, secondaryAnimation) =>
                                                     TaskDetailsPage(
-                                                  complaintId: task['id'].toString(),
+                                                    complaintId: complaintId.toString(),
                                                 ),
                                                 transitionDuration: Duration.zero,
                                                 reverseTransitionDuration: Duration.zero,
@@ -253,7 +289,7 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
                                                     ),
                                                     SizedBox(width: screenWidth * 0.02),
                                                     Text(
-                                                      'Complaint assigned',
+                                                      'Aduan telah ditugaskan',
                                                       style: TextStyle(
                                                         fontSize: screenWidth * 0.045,
                                                         fontWeight: FontWeight.bold,
@@ -262,7 +298,9 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
                                                     ),
                                                     const Spacer(),
                                                     Text(
-                                                      DateFormat('dd/MM/yyyy').format(DateTime.parse(compDate)),
+                                                      assignedDate != 'Tiada Tarikh' 
+                                                          ? DateFormat('dd/MM/yyyy').format(DateTime.parse(assignedDate))
+                                                          : 'Tiada tarikh', // Default text if date is invalid or missing
                                                       style: TextStyle(
                                                         fontSize: screenWidth * 0.035,
                                                         color: onPrimaryColor.withOpacity(0.6),
@@ -291,7 +329,7 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
                                                     ),
                                                     SizedBox(width: screenWidth * 0.02),
                                                     Text(
-                                                      '$noOfCleaners Cleaners Assigned',
+                                                      '$noOfCleaners pembersih ditugaskan',
                                                       style: TextStyle(
                                                         fontSize: screenWidth * 0.035,
                                                         color: onPrimaryColor.withOpacity(0.7),

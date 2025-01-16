@@ -38,7 +38,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
         elevation: 0,
         centerTitle: true,
         title: Text(
-          'Search Cleaner',
+          'Carian Pembersih',
           style: TextStyle(
             color: onPrimaryColor,
             fontWeight: FontWeight.bold,
@@ -91,7 +91,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
                                       );
                                     },
                                     decoration: const InputDecoration(
-                                      hintText: 'Search cleaner',
+                                      hintText: 'Cari pembersih',
                                       border: InputBorder.none,
                                     ),
                                   ),
@@ -111,7 +111,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
                             value: selectedStatus,
                             icon: const Icon(Icons.arrow_drop_down),
                             underline: const SizedBox(),
-                            items: <String>['all', 'available', 'unavailable']
+                            items: <String>['all', 'sedia', 'tidak sedia']
                                 .map<DropdownMenuItem<String>>((String value) {
                               return DropdownMenuItem<String>(
                                 value: value,
@@ -168,7 +168,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
                       : cleanersState.cleaners.isEmpty
                           ? const Center(
                               child: Text(
-                                'No cleaners found.',
+                                'Tiada pembersih ditemui.',
                                 style: TextStyle(color: Colors.grey),
                               ),
                             )
@@ -198,6 +198,13 @@ class CleanerCard extends StatelessWidget {
     final primaryColor = Theme.of(context).primaryColor;
     final secondaryColor = Theme.of(context).colorScheme.secondary;
 
+     // Determine the status display text
+    final statusText = cleaner['status'] == 'available'
+        ? 'Sedia'
+        : cleaner['status'] == 'unavailable'
+            ? 'Tidak Sedia'
+            : 'Status Tidak Diketahui'; // Fallback for unexpected values
+
     return GestureDetector(
       onTap: () {
         final cleanerId = cleaner['id']; // Extract cleanerId
@@ -216,7 +223,7 @@ class CleanerCard extends StatelessWidget {
         } else {
           // Handle case where cleanerId is missing
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("Cleaner ID is missing.")),
+            const SnackBar(content: Text("ID pembersih hilang.")),
           );
         }
       },
@@ -241,14 +248,14 @@ class CleanerCard extends StatelessWidget {
                   ),
           ),
           title: Text(
-            cleaner['name'] ?? 'Unknown',
+            cleaner['name'] ?? 'Tidak diketahui',
             style: const TextStyle(
               color: Colors.white,
               fontWeight: FontWeight.bold,
             ),
           ),
           subtitle: Text(
-            cleaner['status'] ?? 'Unavailable',
+            statusText, // Display translated status
             style: const TextStyle(
               color: Colors.white70,
             ),

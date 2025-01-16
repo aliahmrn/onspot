@@ -47,8 +47,8 @@ class LoginNotifier extends StateNotifier<LoginState> {
     required String password,
   }) async {
     if (input.isEmpty || password.isEmpty) {
-      state = state.copyWith(errorMessage: 'Please enter both username/email and password');
-      logger.e('Login failed: Missing username/email or password.');
+      state = state.copyWith(errorMessage: 'Sila masukkan nama pengguna/e-mel dan kata laluan');
+      logger.e('Log masuk gagal: Nama pengguna/emel atau kata laluan tiada.');
       return false;
     }
 
@@ -60,7 +60,7 @@ class LoginNotifier extends StateNotifier<LoginState> {
       logger.i('Login successful!');
       return true;
     } catch (e) {
-      state = state.copyWith(errorMessage: 'Invalid username/email or password');
+      state = state.copyWith(errorMessage: 'Nama pengguna/emel atau kata laluan tidak sah.');
       logger.e('Login failed: Invalid credentials');
       return false;
     } finally {
@@ -145,9 +145,9 @@ Widget build(BuildContext context) {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: <Widget>[
-                      _buildInputField('Username or Email', _inputController, isEnabled: !loginState.isLoading),
+                      _buildInputField('Nama Pengguna atau E-mel', _inputController, isEnabled: !loginState.isLoading),
                       const SizedBox(height: 20),
-                      _buildInputField('Password', _passwordController, obscureText: true, isEnabled: !loginState.isLoading),
+                      _buildInputField('Kata Laluan', _passwordController, obscureText: true, isEnabled: !loginState.isLoading),
                       const SizedBox(height: 20),
                       ElevatedButton(
                         onPressed: loginState.isLoading
@@ -185,7 +185,7 @@ Widget build(BuildContext context) {
                                 children: [
                                   const Icon(Icons.login, color: Colors.white), // Add your desired icon
                                   const SizedBox(width: 8), // Add spacing between icon and text
-                                  const Text('Sign In', style: TextStyle(color: Colors.white)),
+                                  const Text('Log Masuk', style: TextStyle(color: Colors.white)),
                                 ],
                               ),
                       ),
@@ -212,7 +212,7 @@ Widget build(BuildContext context) {
                         },
                         child: RichText(
                           text: TextSpan(
-                            text: 'Forgot Password?',
+                            text: 'Lupa Kata Laluan?',
                             style: GoogleFonts.poppins(
                               fontSize: 12,
                               fontWeight: FontWeight.w500,
@@ -238,7 +238,7 @@ Widget build(BuildContext context) {
                         },
                         child: RichText(
                           text: TextSpan(
-                            text: "Don't have an account? Register",
+                            text: "Tiada akaun? Daftar",
                             style: GoogleFonts.poppins(
                               fontSize: 12,
                               fontWeight: FontWeight.w500,
@@ -275,9 +275,9 @@ Widget _buildInputField(
     {bool obscureText = false, required bool isEnabled}) {
   IconData? getIcon(String label) {
     switch (label) {
-      case 'Username or Email':
+      case 'Nama Pengguna atau E-mel':
         return Icons.person; // Icon for username or email
-      case 'Password':
+      case 'Kata Laluan':
         return Icons.lock; // Icon for password
       default:
         return null;
@@ -314,7 +314,7 @@ Widget _buildInputField(
             ),
             filled: true, // Enables the background color
             fillColor: Colors.white, // Sets the background color to white
-            hintText: 'Enter $label',
+            hintText: 'Masukkan $label',
             hintStyle: const TextStyle(color: Colors.grey), // Soft grey for hint text
           ),
         ),

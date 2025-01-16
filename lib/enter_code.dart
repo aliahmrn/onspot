@@ -35,7 +35,7 @@ class EnterCodeNotifier extends StateNotifier<EnterCodeState> {
 
   Future<void> verifyCode(String code) async {
     if (code.isEmpty) {
-      state = state.copyWith(message: 'Please enter the reset code.');
+      state = state.copyWith(message: 'Sila masukkan Kod.');
       return;
     }
 
@@ -53,7 +53,7 @@ class EnterCodeNotifier extends StateNotifier<EnterCodeState> {
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
-        message: 'Error: Unable to verify the code.',
+        message: 'Ralat: Tidak dapat mengesahkan kod',
       );
     }
   }
@@ -110,7 +110,7 @@ class EnterCodeScreen extends ConsumerWidget {
               children: <Widget>[
                 const SizedBox(height: 60),
                 Text(
-                  'Enter Code',
+                  'Masukkan Kod',
                   style: GoogleFonts.poppins(
                     fontSize: 22,
                     fontWeight: FontWeight.w600,
@@ -127,7 +127,7 @@ class EnterCodeScreen extends ConsumerWidget {
                     padding: const EdgeInsets.all(20.0),
                     child: Column(
                       children: <Widget>[
-                        _buildInputField('Reset Code', codeController),
+                        _buildInputField('Kod Tetapan Semula', codeController),
                         const SizedBox(height: 20),
                         ElevatedButton(
                           onPressed: enterCodeState.isLoading
@@ -145,7 +145,7 @@ class EnterCodeScreen extends ConsumerWidget {
                           ),
                           child: enterCodeState.isLoading
                               ? const CircularProgressIndicator(color: Colors.white)
-                              : const Text('Verify Code', style: TextStyle(color: Colors.white)),
+                              : const Text('Sahkan Kod', style: TextStyle(color: Colors.white)),
                         ),
                         const SizedBox(height: 10),
                         if (enterCodeState.message.isNotEmpty)
@@ -184,7 +184,7 @@ class EnterCodeScreen extends ConsumerWidget {
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(30),
               ),
-              hintText: 'Enter the reset code',
+              hintText: 'Masukkan kod',
               filled: true,
               fillColor: Colors.white,
             ),

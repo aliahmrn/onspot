@@ -7,7 +7,7 @@ import 'package:firebase_messaging/firebase_messaging.dart'; // Firebase Messagi
 import '../utils/device_utils.dart'; // Correctly imported device utility
 
 class AuthService {
-  final String baseUrl = 'http:// 192.168.1.105:8000/api'; // Your API base URL
+  final String baseUrl = 'http://192.168.179.145:8000/api'; // Your API base URL
   final Logger _logger = Logger(); // Initialize Logger
 
   // Login function for supervisors
@@ -54,10 +54,10 @@ class AuthService {
           _logger.i("Saved Name: ${prefs.getString('name')}");
           _logger.i("Saved Phone Number: ${prefs.getString('phoneNo')}");
         } else {
-          throw Exception('Access denied: User is not a supervisor');
+          throw Exception('Akses ditolak: Pengguna bukan penyelia.');
         }
       } else if (response.statusCode == 401) {
-        throw Exception('Invalid login credentials.');
+        throw Exception('Maklumat log masuk tidak sah');
       }
     } catch (e) {
       throw Exception('Error during login: ${e.toString()}');

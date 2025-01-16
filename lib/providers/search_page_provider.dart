@@ -37,7 +37,7 @@ class CleanersNotifier extends StateNotifier<CleanersState> {
   Future<void> fetchCleaners({String? status = 'all'}) async {
     state = CleanersState(isLoading: true); // Set loading state
 
-    const url = 'http://192.168.1.105:8000/api/supervisor/cleaners';
+    const url = 'http://192.168.179.145:8000/api/supervisor/cleaners';
 
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -103,7 +103,7 @@ class CleanersNotifier extends StateNotifier<CleanersState> {
 
 final cleanerDetailProvider =
     FutureProvider.family<Map<String, dynamic>, String>((ref, cleanerId) async {
-  final url = 'http://192.168.1.105:8000/api/supervisor/cleaner/$cleanerId';
+  final url = 'http://192.168.179.145:8000/api/supervisor/cleaner/$cleanerId';
 
   try {
     final prefs = await SharedPreferences.getInstance();

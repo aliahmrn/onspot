@@ -25,7 +25,7 @@ class SVProfileScreen extends ConsumerWidget {
         elevation: 0,
         centerTitle: true,
         title: Text(
-          'Profile',
+          'Profil',
           style: TextStyle(
             color: onPrimaryColor,
             fontSize: screenWidth * 0.05,
@@ -143,7 +143,7 @@ Container(
                     )
                   else
                     Text(
-                      'Building not assigned',
+                      'Bangunan Tidak Tersedia',
                       style: const TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
@@ -154,7 +154,7 @@ Container(
 
                   // Name
                   Text(
-                    data['name'] ?? 'Name not available',
+                    data['name'] ?? 'Nama Tidak Tersedia',
                     style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -163,7 +163,7 @@ Container(
                   ),
                   // Username
                   Text(
-                    data['username'] ?? 'Username not available',
+                    data['username'] ?? 'Nama Pengguna Tida Tersedia',
                     style: const TextStyle(
                       fontSize: 14,
                       color: Colors.white70,
@@ -207,11 +207,11 @@ Container(
                     final profile = ref.watch(profileProvider);
                     return profile.when(
                       loading: () =>
-                          _buildTextField(context, 'Email', 'Loading...', Icons.email),
+                          _buildTextField(context, 'E-mel', 'Loading...', Icons.email),
                       error: (_, __) =>
-                          _buildTextField(context, 'Email', 'Error loading', Icons.email),
+                          _buildTextField(context, 'E-mel', 'Error loading', Icons.email),
                       data: (data) =>
-                          _buildTextField(context, 'Email', data['email'] ?? '', Icons.email),
+                          _buildTextField(context, 'E-mel', data['email'] ?? '', Icons.email),
                     );
                   }),
                   const SizedBox(height: 20),
@@ -220,11 +220,11 @@ Container(
                     final profile = ref.watch(profileProvider);
                     return profile.when(
                       loading: () => _buildTextField(
-                          context, 'Phone Number', 'Loading...', Icons.phone),
+                          context, 'Nombor Telefon', 'Loading...', Icons.phone),
                       error: (_, __) => _buildTextField(
-                          context, 'Phone Number', 'Error loading', Icons.phone),
+                          context, 'Nombor Telefon', 'Error loading', Icons.phone),
                       data: (data) => _buildTextField(
-                          context, 'Phone Number', data['phone_no'] ?? '', Icons.phone),
+                          context, 'Nombor Telefon', data['phone_no'] ?? '', Icons.phone),
                     );
                   }),
                   const SizedBox(height: 30),
@@ -318,7 +318,7 @@ Container(
             },
             icon: const Icon(Icons.edit, size: 18),
             label: const Text(
-              'Edit Information',
+              'Edit Profil',
               style: TextStyle(fontSize: 16),
             ),
             style: ElevatedButton.styleFrom(
@@ -339,7 +339,7 @@ Container(
             },
             icon: const Icon(Icons.logout, size: 18),
             label: const Text(
-              'Logout',
+              'Log Keluar',
               style: TextStyle(fontSize: 16),
             ),
             style: ElevatedButton.styleFrom(
@@ -360,18 +360,18 @@ Container(
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('Logout'),
-          content: const Text('Are you sure you want to log out?'),
+          title: const Text('Log Keluar'),
+          content: const Text('Adakah anda yakin untuk log keluar?'),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel'),
+              child: const Text('Batal'),
             ),
             TextButton(
               onPressed: () {
                 _logout(context, ref);
               },
-              child: const Text('Logout'),
+              child: const Text('Log Keluar'),
             ),
           ],
         );

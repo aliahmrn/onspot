@@ -65,7 +65,7 @@ class SupervisorBottomNavBar extends ConsumerWidget {
                       currentIndex == 0,
                       'assets/images/home.png',
                     ),
-                    label: 'Home',
+                    label: 'Utama',
                   ),
                   BottomNavigationBarItem(
                     icon: _buildIcon(
@@ -74,7 +74,7 @@ class SupervisorBottomNavBar extends ConsumerWidget {
                       'assets/images/search.svg',
                       isSvg: true,
                     ),
-                    label: 'Search',
+                    label: 'Carian',
                   ),
                   BottomNavigationBarItem(
                     icon: _buildIcon(
@@ -83,7 +83,7 @@ class SupervisorBottomNavBar extends ConsumerWidget {
                       'assets/images/plus.svg',
                       isSvg: true,
                     ),
-                    label: 'Complaints',
+                    label: 'Aduan',
                   ),
                   BottomNavigationBarItem(
                     icon: _buildIcon(
@@ -92,7 +92,7 @@ class SupervisorBottomNavBar extends ConsumerWidget {
                       'assets/images/history.svg',
                       isSvg: true,
                     ),
-                    label: 'History',
+                    label: 'Rekod',
                   ),
                   BottomNavigationBarItem(
                     icon: _buildIcon(
@@ -101,7 +101,7 @@ class SupervisorBottomNavBar extends ConsumerWidget {
                       'assets/images/user.svg',
                       isSvg: true,
                     ),
-                    label: 'Profile',
+                    label: 'Profil',
                   ),
                 ],
               ),

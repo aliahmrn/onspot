@@ -36,7 +36,7 @@ class ForgotPasswordNotifier extends StateNotifier<ForgotPasswordState> {
 
   Future<void> sendResetCode(String email) async {
     if (email.isEmpty || !RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(email)) {
-      state = state.copyWith(message: 'Please enter a valid email address.');
+      state = state.copyWith(message: 'Sila masukkan alamat e-mel yang sah.');
       return;
     }
 
@@ -46,13 +46,13 @@ class ForgotPasswordNotifier extends StateNotifier<ForgotPasswordState> {
       await _authService.sendResetCode(email);
       state = state.copyWith(
         isLoading: false,
-        message: 'A reset code has been sent to your email.',
+        message: 'Kod tetapan semula telah dihantar ke e-mel anda.',
         navigateToEnterCode: true, // Trigger navigation
       );
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
-        message: 'Error: ${e.toString()}',
+        message: 'Ralat: ${e.toString()}',
       );
     }
   }
@@ -104,7 +104,7 @@ class ForgotPasswordScreen extends ConsumerWidget {
               children: <Widget>[
                 const SizedBox(height: 60),
                 Text(
-                  'Forgot Password',
+                  'Lupa Kata Laluan',
                   style: GoogleFonts.poppins(
                     fontSize: 22,
                     fontWeight: FontWeight.w600,
@@ -121,7 +121,7 @@ class ForgotPasswordScreen extends ConsumerWidget {
                     padding: const EdgeInsets.all(24.0),
                     child: Column(
                       children: <Widget>[
-                        _buildInputField('Email', emailController),
+                        _buildInputField('E-mel', emailController),
                         if (forgotPasswordState.message.contains('valid email'))
                           Padding(
                             padding: const EdgeInsets.only(top: 8.0),
@@ -140,14 +140,14 @@ class ForgotPasswordScreen extends ConsumerWidget {
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.black,
                             padding: const EdgeInsets.symmetric(vertical: 15),
-                            minimumSize: const Size(150, 30), // Reduced width
+                            minimumSize: const Size(200, 30), // Reduced width
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(30),
                             ),
                           ),
                           child: forgotPasswordState.isLoading
                               ? const CircularProgressIndicator(color: Colors.white)
-                              : const Text('Send Reset Code', style: TextStyle(color: Colors.white)),
+                              : const Text('Hantar Kod Tetapan Semula', style: TextStyle(color: Colors.white)),
                         ),
                         const SizedBox(height: 8),
                         if (forgotPasswordState.message.isNotEmpty &&
@@ -176,7 +176,7 @@ class ForgotPasswordScreen extends ConsumerWidget {
                   },
                   icon: const Icon(Icons.arrow_back, color: Colors.white),
                   label: Text(
-                    'Back to Login',
+                    'Kembali ke Log masuk',
                     style: TextStyle(
                       color: theme.colorScheme.secondary,
                       decoration: TextDecoration.underline,
@@ -194,7 +194,7 @@ class ForgotPasswordScreen extends ConsumerWidget {
   Widget _buildInputField(String label, TextEditingController controller) {
     IconData? getIcon(String label) {
       switch (label) {
-        case 'Email':
+        case 'E-mel':
           return Icons.email;
         default:
           return null;
@@ -218,7 +218,7 @@ class ForgotPasswordScreen extends ConsumerWidget {
                 getIcon(label),
                 color: Colors.grey, // Grey icon color for subtle design
               ),
-              hintText: 'Enter your email',
+              hintText: 'Masukkan E-mel',
               hintStyle: const TextStyle(color: Colors.grey), // Soft grey for hint text
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(30),
