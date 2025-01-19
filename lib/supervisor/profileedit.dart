@@ -57,7 +57,7 @@ class _SVProfileEditScreenState extends ConsumerState<SVProfileEditScreen> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Choose an action'),
+          title: const Text('Pilih tindakan'),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context, 'Upload'),
@@ -178,7 +178,7 @@ class _SVProfileEditScreenState extends ConsumerState<SVProfileEditScreen> {
               loading: () => _buildLoadingIndicator(screenHeight),
               error: (error, stackTrace) => Center(
                 child: Text(
-                  'Error: $error',
+                  'Ralat: $error',
                   style: const TextStyle(color: Colors.red),
                 ),
               ),
