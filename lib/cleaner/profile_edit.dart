@@ -56,19 +56,19 @@ class _CleanerProfileEditScreenState extends ConsumerState<CleanerProfileEditScr
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Choose an action'),
+          title: const Text('Pilih tindakan'),
           actions: [
             TextButton(
-              onPressed: () => Navigator.pop(context, 'Upload'),
-              child: const Text('Upload'),
+              onPressed: () => Navigator.pop(context, 'Muat naik'),
+              child: const Text('Muat naik'),
             ),
             TextButton(
-              onPressed: () => Navigator.pop(context, 'Delete'),
-              child: const Text('Delete'),
+              onPressed: () => Navigator.pop(context, 'Padam'),
+              child: const Text('Padam'),
             ),
             TextButton(
-              onPressed: () => Navigator.pop(context, 'Cancel'),
-              child: const Text('Cancel'),
+              onPressed: () => Navigator.pop(context, 'Batal'),
+              child: const Text('Batal'),
             ),
           ],
         );
@@ -177,7 +177,7 @@ class _CleanerProfileEditScreenState extends ConsumerState<CleanerProfileEditScr
               loading: () => _buildLoadingIndicator(screenHeight),
               error: (error, stackTrace) => Center(
                 child: Text(
-                  'Error: $error',
+                  'Ralat: $error',
                   style: const TextStyle(color: Colors.red),
                 ),
               ),
@@ -268,19 +268,19 @@ class _CleanerProfileEditScreenState extends ConsumerState<CleanerProfileEditScr
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Cancel Edit'),
-          content: const Text('Are you sure you want to cancel editing? Unsaved changes will be lost.'),
+          title: const Text('Batal Edit'),
+          content: const Text('Batal edit? Perubahan belum disimpan akan hilang.'),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(false),
-              child: const Text('No'),
+              child: const Text('Tidak'),
             ),
             TextButton(
               onPressed: () {
                 ref.read(profileEditProvider.notifier).cancelChanges();
                 Navigator.of(context).pop(true);
               },
-              child: const Text('Yes'),
+              child: const Text('Ya'),
             ),
           ],
         );
@@ -379,28 +379,28 @@ class _CleanerProfileEditScreenState extends ConsumerState<CleanerProfileEditScr
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   _buildTextField(
-                    label: 'Name',
+                    label: 'Nama',
                     controller: nameController,
                     onChanged: (value) => notifier.updateField('name', value),
                     enabled: !isLoading,
                   ),
                   SizedBox(height: screenHeight * 0.03),
                   _buildTextField(
-                    label: 'Username',
+                    label: 'Nama Pengguna',
                     controller: usernameController,
                     onChanged: (value) => notifier.updateField('username', value),
                     enabled: !isLoading,
                   ),
                   SizedBox(height: screenHeight * 0.03),
                   _buildTextField(
-                    label: 'Email',
+                    label: 'E-mel',
                     controller: emailController,
                     onChanged: (value) => notifier.updateField('email', value),
                     enabled: !isLoading,
                   ),
                   SizedBox(height: screenHeight * 0.03),
                   _buildTextField(
-                    label: 'Phone Number',
+                    label: 'Nombor Telefon',
                     controller: phoneController,
                     onChanged: (value) => notifier.updateField('phone', value),
                     enabled: !isLoading,
@@ -412,7 +412,7 @@ class _CleanerProfileEditScreenState extends ConsumerState<CleanerProfileEditScr
                         : () async {
                             if (nameController.text.isEmpty || emailController.text.isEmpty) {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Name and Email are required')),
+                                const SnackBar(content: Text('Nama dan E-mel diperlukan')),
                               );
                               return;
                             }
@@ -456,7 +456,7 @@ class _CleanerProfileEditScreenState extends ConsumerState<CleanerProfileEditScr
                             ),
                           )
                         : const Text(
-                            'Save',
+                            'Simpan',
                             style: TextStyle(fontSize: 16),
                           ),
                     style: ElevatedButton.styleFrom(
@@ -507,7 +507,7 @@ class _CleanerProfileEditScreenState extends ConsumerState<CleanerProfileEditScr
               color: primaryColor,
               size: screenWidth * 0.06,
             ),
-            hintText: 'Enter $label',
+            hintText: 'Masukkan $label',
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(screenWidth * 0.03),
             ),
@@ -526,8 +526,8 @@ class _CleanerProfileEditScreenState extends ConsumerState<CleanerProfileEditScr
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('Success'),
-          content: const Text('Your profile has been updated successfully!'),
+          title: const Text('Berjaya'),
+          content: const Text('Profil anda telah berjaya dikemas kini!'),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(), // Close the dialog
@@ -541,13 +541,13 @@ class _CleanerProfileEditScreenState extends ConsumerState<CleanerProfileEditScr
 
   IconData _getIconForLabel(String label) {
     switch (label) {
-      case 'Name':
+      case 'Nama':
         return Icons.person;
-      case 'Username':
+      case 'Nama Pengguna':
         return Icons.account_circle;
       case 'Email':
         return Icons.email;
-      case 'Phone Number':
+      case 'Nombor Telefon':
         return Icons.phone;
       default:
         return Icons.edit;

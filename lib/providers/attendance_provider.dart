@@ -94,7 +94,7 @@ final attendanceServiceProvider = Provider<AttendanceService?>((ref) {
 
   if (token.isNotEmpty) {
     logger.i('Creating AttendanceService with token: $token');
-    return AttendanceService('http://192.168.1.105:8000/api', token);
+    return AttendanceService('http://192.168.124.145:8000/api', token);
   } else {
     logger.i('Token is empty. AttendanceService not created.');
     return null;

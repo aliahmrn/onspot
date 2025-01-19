@@ -66,7 +66,7 @@ class CleanerBottomNavBar extends ConsumerWidget {
                       currentIndex == 0,
                       'assets/images/home.png',
                     ),
-                    label: 'Home',
+                    label: 'Utama',
                   ),
                   BottomNavigationBarItem(
                     icon: _buildIcon(
@@ -75,7 +75,7 @@ class CleanerBottomNavBar extends ConsumerWidget {
                       'assets/images/calendar.svg',
                       isSvg: true,
                     ),
-                    label: 'Tasks',
+                    label: 'Tugasan',
                   ),
                   BottomNavigationBarItem(
                     icon: _buildIcon(
@@ -84,7 +84,7 @@ class CleanerBottomNavBar extends ConsumerWidget {
                       'assets/images/bell.svg',
                       isSvg: true,
                     ),
-                    label: 'Notifications',
+                    label: 'Notifikasi',
                   ),
                   BottomNavigationBarItem(
                     icon: _buildIcon(
@@ -93,7 +93,7 @@ class CleanerBottomNavBar extends ConsumerWidget {
                       'assets/images/user.svg',
                       isSvg: true,
                     ),
-                    label: 'Profile',
+                    label: 'Profil',
                   ),
                 ],
               ),

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../cleaner/main_navigator.dart'; // For currentIndexProvider
-import '../widget/bell.dart';
 import '../service/task_service.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -39,12 +38,12 @@ class CleanerHomeScreenState extends ConsumerState<CleanerHomeScreen> {
       final prefs = await SharedPreferences.getInstance();
       if (!mounted) return; // Guard against using BuildContext when unmounted
       setState(() {
-        cleanerName = prefs.getString('name') ?? 'Cleaner'; // Default fallback
+        cleanerName = prefs.getString('name') ?? 'Pembersih'; // Default fallback
       });
     } catch (e) {
       if (!mounted) return;
       setState(() {
-        cleanerName = 'Cleaner'; // Fallback in case of error
+        cleanerName = 'Pembersih'; // Fallback in case of error
       });
     }
   }
@@ -64,39 +63,23 @@ Future<void> _fetchLatestTask() async {
       return;
     }
 
-    // Fetch all tasks assigned to the cleaner
-    final tasks = await taskService.getCleanerTasks(int.parse(cleanerId));
-    _logger.i('Fetched tasks: $tasks');
+    // Fetch the latest task assigned to the cleaner
+    final task = await taskService.getLatestTask(int.parse(cleanerId));
+    _logger.i('Fetched latest task: $task');
 
-    if (tasks != null && tasks.isNotEmpty) {
-      // Sort tasks by `comp_date` in descending order
-      tasks.sort((a, b) {
-        final dateA = DateTime.parse(a['comp_date']);
-        final dateB = DateTime.parse(b['comp_date']);
-        return dateB.compareTo(dateA); // Most recent first
-      });
-
-      setState(() {
-        latestTask = tasks.first; // Take the most recent task
-        isLoading = false;
-      });
-
-      _logger.i('Latest task (sorted by date): $latestTask');
-    } else {
-      setState(() {
-        latestTask = null; // No tasks available
-        isLoading = false;
-      });
-      _logger.i('No tasks found.');
-    }
-  } catch (e) {
     setState(() {
-      error = 'Failed to load latest task: $e';
+      latestTask = task; // Assign the latest task
       isLoading = false;
     });
-    _logger.e('Error fetching tasks: $e');
+  } catch (e) {
+    setState(() {
+      error = 'Failed to load the latest task: $e';
+      isLoading = false;
+    });
+    _logger.e('Error fetching the latest task: $e');
   }
 }
+
 
 Future<void> _checkAttendanceState() async {
   if (isChecked) return; // Avoid multiple calls
@@ -109,11 +92,6 @@ Future<void> _checkAttendanceState() async {
     isChecked = true;
   });
 }
-
-  // Update index to Notifications (2)
-  void _handleBellTap(WidgetRef ref) {
-    ref.read(currentIndexProvider.notifier).state = 2;
-  }
 
   // Update index to Profile (3)
   void _handleProfileTap(WidgetRef ref) {
@@ -152,7 +130,7 @@ Future<void> _checkAttendanceState() async {
             elevation: 0,
             automaticallyImplyLeading: false,
             title: Text(
-              'Home',
+              'Laman Utama',
               style: TextStyle(
                 color: onPrimaryColor,
                 fontSize: screenWidth * 0.05,
@@ -187,7 +165,7 @@ Future<void> _checkAttendanceState() async {
                         children: [
                           RichText(
                             text: TextSpan(
-                              text: 'Welcome, ',
+                              text: 'Selamat Datang, ',
                               style: TextStyle(
                                 fontSize: screenWidth * 0.05,
                                 fontWeight: FontWeight.normal, // Normal font weight for "Welcome, "
@@ -205,9 +183,6 @@ Future<void> _checkAttendanceState() async {
                           ),
                           Row(
                             children: [
-                              BellProfileWidget(
-                                onBellTap: () => _handleBellTap(ref),
-                              ),
                               SizedBox(width: screenWidth * 0.025),
                               GestureDetector(
                                 onTap: () => _handleProfileTap(ref),
@@ -287,6 +262,7 @@ Future<void> _checkAttendanceState() async {
                           onPrimaryColor,
                           secondaryColor,
                           ref,
+                          status
                         ),
 
                       SizedBox(height: screenHeight * 0.02),
@@ -296,7 +272,7 @@ Future<void> _checkAttendanceState() async {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            'Task',
+                            'Tugasan',
                             style: TextStyle(
                               fontSize: screenWidth * 0.05,
                               fontWeight: FontWeight.bold,
@@ -319,7 +295,7 @@ Future<void> _checkAttendanceState() async {
                               child: Row(
                                 children: [
                                   Text(
-                                    'See All',
+                                    'Lihat Semua',
                                     style: TextStyle(
                                       fontSize: screenWidth * 0.035,
                                       fontWeight: FontWeight.w500,
@@ -345,7 +321,7 @@ Future<void> _checkAttendanceState() async {
                                   ref,
                                   latestTask?['comp_desc'], // Nullable description
                                   latestTask?['comp_location'], // Nullable location
-                                  latestTask?['comp_date'], // Nullable date
+                                  latestTask?['assigned_date'], // Nullable date
                                 )
                     ],
                   ),
@@ -382,106 +358,120 @@ Future<void> _checkAttendanceState() async {
     );
   }
 
-  Widget _buildStatusBadge(String status, Color statusColor, TextTheme textTheme, double screenWidth) {
-    return Container(  
-      padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 12),
-      decoration: BoxDecoration(
-        color: statusColor.withOpacity(0.2),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: statusColor, width: 1),
+ Widget _buildStatusBadge(String status, Color statusColor, TextTheme textTheme, double screenWidth) {
+  return Container(  
+    padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 12),
+    decoration: BoxDecoration(
+      color: statusColor.withOpacity(0.2),
+      borderRadius: BorderRadius.circular(20),
+      border: Border.all(color: statusColor, width: 1),
+    ),
+    child: Text(
+      status == 'available' ? 'Sedia' : 'Tidak Sedia', // Translate status to Malay
+      style: textTheme.titleMedium?.copyWith(
+        fontSize: screenWidth * 0.04,
+        fontWeight: FontWeight.bold,
+        color: statusColor,
       ),
-      child: Text(
-        status,
-        style: textTheme.titleMedium?.copyWith(
-          fontSize: screenWidth * 0.04,
+    ),
+  );
+}
+
+Widget _buildAttendanceCard(
+  double screenWidth,
+  double screenHeight,
+  Color primaryColor,
+  Color onPrimaryColor,
+  Color secondaryColor,
+  WidgetRef ref,
+  String status
+) {
+  // Get the current date in DD/MM format
+  final String currentDate = DateFormat('dd/MM').format(DateTime.now());
+
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      // Combine "Attendance" and the date
+      Text(
+        'Kehadiran ($currentDate)', // Combine Attendance and date
+        style: TextStyle(
+          fontSize: screenWidth * 0.05,
           fontWeight: FontWeight.bold,
-          color: statusColor,
+          color: Colors.black, // Text color for contrast
         ),
       ),
-    );
-  }
-
-  Widget _buildAttendanceCard(
-    double screenWidth,
-    double screenHeight,
-    Color primaryColor,
-    Color onPrimaryColor,
-    Color secondaryColor,
-    WidgetRef ref,
-  ) {
-    // Get the current date in DD/MM format
-    final String currentDate = DateFormat('dd/MM').format(DateTime.now());
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Combine "Attendance" and the date
-        Text(
-          'Attendance ($currentDate)', // Combine Attendance and date
-          style: TextStyle(
-            fontSize: screenWidth * 0.05,
-            fontWeight: FontWeight.bold,
-            color: Colors.black, // Text color for contrast
-          ),
+      SizedBox(height: screenHeight * 0.01),
+      Container(
+        padding: EdgeInsets.all(screenWidth * 0.04),
+        decoration: BoxDecoration(
+          color: primaryColor,
+          borderRadius: BorderRadius.circular(screenWidth * 0.03),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.5),
+              blurRadius: 5,
+              offset: const Offset(0, 2),
+            ),
+          ],
         ),
-        SizedBox(height: screenHeight * 0.01),
-        Container(
-          padding: EdgeInsets.all(screenWidth * 0.04),
-          decoration: BoxDecoration(
-            color: primaryColor,
-            borderRadius: BorderRadius.circular(screenWidth * 0.03),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.grey.withOpacity(0.5),
-                blurRadius: 5,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                cleanerName ?? "Cleaner",
-                style: TextStyle(
-                  fontSize: screenWidth * 0.045,
-                  fontWeight: FontWeight.bold,
-                  color: onPrimaryColor,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  cleanerName ?? "Pembersih",
+                  style: TextStyle(
+                    fontSize: screenWidth * 0.045,
+                    fontWeight: FontWeight.bold,
+                    color: onPrimaryColor,
+                  ),
                 ),
-              ),
-              Row(
-                children: [
-                  GestureDetector(
-                    onTap: () async {
-                      await _submitAttendanceWithPopup(
-                        context,
-                        ref,
-                        'present',
-                        'Your attendance has been marked as Present.',
-                      );
-                    },
-                    child: _buildAttendanceIcon(Icons.check, Colors.green, secondaryColor, screenWidth),
+                Text(
+                  status == 'available' ? 'Sedia' : 'Tidak Sedia', // Translated status
+                  style: TextStyle(
+                    fontSize: screenWidth * 0.04,
+                    fontWeight: FontWeight.normal,
+                    color: onPrimaryColor,
                   ),
-                  SizedBox(width: screenWidth * 0.02),
-                  GestureDetector(
-                    onTap: () async {
-                      await _submitAttendanceWithPopup(
-                        context,
-                        ref,
-                        'absent',
-                        'Your attendance has been marked as Absent.',
-                      );
-                    },
-                    child: _buildAttendanceIcon(Icons.close, Colors.red, secondaryColor, screenWidth),
-                  ),
-                ],
-              ),
-            ],
-          ),
+                ),
+              ],
+            ),
+            Row(
+              children: [
+                GestureDetector(
+                  onTap: () async {
+                    await _submitAttendanceWithPopup(
+                      context,
+                      ref,
+                      'present',
+                      'Kehadiran anda telah direkodkan sebagai Hadir..',
+                    );
+                  },
+                  child: _buildAttendanceIcon(Icons.check, Colors.green, secondaryColor, screenWidth),
+                ),
+                SizedBox(width: screenWidth * 0.02),
+                GestureDetector(
+                  onTap: () async {
+                    await _submitAttendanceWithPopup(
+                      context,
+                      ref,
+                      'absent',
+                      'Kehadiran anda telah direkodkan sebagai Tidak Hadir.',
+                    );
+                  },
+                  child: _buildAttendanceIcon(Icons.close, Colors.red, secondaryColor, screenWidth),
+                ),
+              ],
+            ),
+          ],
         ),
-      ],
-    );
-  }
+      ),
+    ],
+  );
+}
 
 
 Future<void> _submitAttendanceWithPopup(
@@ -500,7 +490,7 @@ Future<void> _submitAttendanceWithPopup(
           context: context,
           builder: (BuildContext dialogContext) {
             return AlertDialog(
-              title: const Text('Attendance Submitted'),
+              title: const Text('Kehadiran Berjaya Direkodkan.'),
               content: Text(message),
               actions: [
                 TextButton(
@@ -521,7 +511,7 @@ Future<void> _submitAttendanceWithPopup(
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to submit attendance: $e'),
+            content: Text('Gagal Rekod Kehadiran: $e'),
           ),
         );
       }
@@ -546,7 +536,7 @@ Widget _buildTaskCard(
   WidgetRef ref,
   String? title,
   String? subtitle,
-  String? date, // Allow date to be nullable
+  String? date, 
 ) {
   final primaryColor = Theme.of(context).colorScheme.primary;
   final onPrimaryColor = Theme.of(context).colorScheme.onPrimary;
@@ -639,7 +629,7 @@ Widget _buildTaskCard(
       final parsedDate = DateTime.parse(rawDate); // Parse raw date string
       return DateFormat('dd/MM/yyyy').format(parsedDate); // Format to DD/MM/YYYY
     } catch (e) {
-      return 'Invalid Date'; // Fallback in case of error
+      return 'Tarikh Tidak Betul'; // Fallback in case of error
     }
   }
 

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'notifications.dart';
+import 'history.dart';
 import 'profile.dart';
 import 'package:onspot_cleaner/widget/cleanericons.dart';
 
@@ -10,7 +10,7 @@ class DesignPage extends StatelessWidget {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => CleanerNotificationsScreen(),
+        builder: (context) => CleanerHistoryScreen(),
       ),
     );
   }

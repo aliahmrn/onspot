@@ -6,6 +6,7 @@ import '../providers/task_provider.dart';
 import 'task_details.dart';
 import '../widget/cleanericons.dart';
 import 'package:logger/logger.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class CleanerTasksScreen extends ConsumerStatefulWidget {
   final Logger logger = Logger();
@@ -16,26 +17,24 @@ class CleanerTasksScreen extends ConsumerStatefulWidget {
   _CleanerTasksScreenState createState() => _CleanerTasksScreenState();
 }
 
-class _CleanerTasksScreenState extends ConsumerState<CleanerTasksScreen> with SingleTickerProviderStateMixin {
-  late TabController _tabController;
+class _CleanerTasksScreenState extends ConsumerState<CleanerTasksScreen> {
+@override
+void initState() {
+  super.initState();
 
-  @override
-  void initState() {
-    super.initState();
-    // Initialize TabController
-    _tabController = TabController(length: 2, vsync: this);
+  // Fetch tasks when the widget is built
+  WidgetsBinding.instance.addPostFrameCallback((_) async {
+    final prefs = await SharedPreferences.getInstance();
+    final cleanerId = prefs.getString('cleanerId'); // Retrieve the cleanerId from SharedPreferences
 
-    // Fetch tasks when the widget is built
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(taskProvider.notifier).fetchTasks();
-    });
-  }
-
-  @override
-  void dispose() {
-    _tabController.dispose();
-    super.dispose();
-  }
+    if (cleanerId != null) {
+      ref.read(taskProvider.notifier).fetchTasks(int.parse(cleanerId));
+    } else {
+      // Log or handle missing cleanerId
+      debugPrint('Cleaner ID not found.');
+    }
+  });
+}
 
   @override
   Widget build(BuildContext context) {
@@ -56,7 +55,7 @@ class _CleanerTasksScreenState extends ConsumerState<CleanerTasksScreen> with Si
         elevation: 0,
         automaticallyImplyLeading: false,
         title: Text(
-          'Tasks',
+          'Tugasan',
           style: TextStyle(
             color: onPrimaryColor,
             fontSize: screenWidth * 0.05,
@@ -83,84 +82,23 @@ class _CleanerTasksScreenState extends ConsumerState<CleanerTasksScreen> with Si
                   topRight: Radius.circular(screenWidth * 0.06),
                 ),
               ),
-              child: Column(
-                children: [
-                  // TabBar
-                  Container(
-                    decoration: BoxDecoration(
-                      color: secondaryColor,
-                      borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(screenWidth * 0.06),
-                        topRight: Radius.circular(screenWidth * 0.06),
-                      ),
-                    ),
-                    child: TabBar(
-                      controller: _tabController,
-                      indicatorColor: primaryColor,
-                      labelColor: primaryColor,
-                      unselectedLabelColor: Colors.black45,
-                      tabs: [
-                        Tab(
-                          icon: Stack(
-                            alignment: Alignment.center,
-                            children: [
-                              Icon(Icons.circle, size: 24, color: Colors.grey), // Background circle for "Not Notified"
-                              Icon(Icons.notifications_off, size: 18, color: Colors.white), // "Not Notified" icon
-                            ],
-                          ),
-                          text: 'Not Notified',
-                        ),
-                        Tab(
-                          icon: Stack(
-                            alignment: Alignment.center,
-                            children: [
-                              Icon(Icons.circle, size: 24, color: primaryColor), // Background circle for "Notified"
-                              Icon(Icons.notifications_active, size: 18, color: Colors.white), // "Notified" icon
-                            ],
-                          ),
-                          text: 'Notified',
-                        ),
-                      ],
-                    ),
+              child: Padding(
+                padding: EdgeInsets.all(screenWidth * 0.04),
+                child: tasksAsyncValue.when(
+                  data: (tasks) {
+                    widget.logger.i('Tasks received by _buildTaskList: $tasks');
+                    return _buildTaskList(
+                      context,
+                      ref,
+                      tasks,
+                      flutterTts,
+                    );
+                  },
+                  loading: () => const Center(child: CircularProgressIndicator()),
+                  error: (error, stackTrace) => const Center(
+                    child: Text('Gagal memuatkan tugasan.'),
                   ),
-                  // Content for tabs
-                  Expanded(
-                    child: Padding(
-                      padding: EdgeInsets.all(screenWidth * 0.04),
-                      child: tasksAsyncValue.when(
-                        data: (tasks) {
-                          final notNotifiedTasks = tasks['notNotified'] ?? [];
-                          final notifiedTasks = tasks['notified'] ?? [];
-
-                          return TabBarView(
-                            controller: _tabController,
-                            children: [
-                              _buildTaskList(
-                                context,
-                                ref,
-                                notNotifiedTasks,
-                                flutterTts,
-                                showThumbsUp: true,
-                              ),
-                              _buildTaskList(
-                                context,
-                                ref,
-                                notifiedTasks,
-                                flutterTts,
-                                showThumbsUp: false,
-                                showCompStatus: true,
-                              ),
-                            ],
-                          );
-                        },
-                        loading: () => const Center(child: CircularProgressIndicator()),
-                        error: (error, stackTrace) => const Center(
-                          child: Text('Failed to load tasks.'),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
+                ),
               ),
             ),
           ),
@@ -169,74 +107,124 @@ class _CleanerTasksScreenState extends ConsumerState<CleanerTasksScreen> with Si
     );
   }
 
-  Widget _buildTaskList(
-    BuildContext context,
-    WidgetRef ref,
-    List<Map<String, dynamic>> tasks,
-    FlutterTts flutterTts, {
-    required bool showThumbsUp,
-    bool showCompStatus = false, // New parameter to control comp_status display
-  }) {
-    if (tasks.isEmpty) {
-      return const Center(child: Text('No tasks available.'));
-    }
+Widget _buildTaskList(
+  BuildContext context,
+  WidgetRef ref,
+  List<Map<String, dynamic>> tasks,
+  FlutterTts flutterTts,
+) {
+   widget.logger.i('Number of tasks in _buildTaskList: ${tasks.length}'); // Add this log
+   widget.logger.i('Tasks in _buildTaskList: $tasks'); // Add this log
 
-    return RefreshIndicator(
-      onRefresh: () async {
-        await ref.read(taskProvider.notifier).refreshTasks();
-      },
-      child: ListView.builder(
-        itemCount: tasks.length,
-        itemBuilder: (context, index) {
-          final task = tasks[index];
-
-          return Padding(
-            padding: const EdgeInsets.only(bottom: 32.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    GestureDetector(
-                      onTap: () {
-                        _speakTaskDetails(
-                          flutterTts,
-                          task['comp_desc'] ?? 'No Description',
-                          task['comp_location'] ?? 'No Location',
-                          task['comp_date'] ?? 'No Date',
-                        );
-                      },
-                      child: CleanerIcons.earIcon(context),
-                    ),
-                    const SizedBox(width: 8),
-                    if (showThumbsUp)
-                      GestureDetector(
-                        onTap: () {
-                          ref.read(taskProvider.notifier).toggleTaskNotification(task['complaint_id']);
-                        },
-                        child: CleanerIcons.thumbsUpIcon(context),
-                      ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                _buildTaskCard(
-                  context,
-                  ref,
-                  task['comp_desc'] ?? 'No Description',
-                  task['comp_location'] ?? 'No Location',
-                  task['comp_date'] ?? 'No Date',
-                  task['comp_image'],
-                  task['complaint_id'],
-                  task['comp_status'] ?? 'Unknown',
-                  compStatus: showCompStatus ? task['comp_status'] : null, // Pass comp_status for notified tab
-                ),
-              ],
-            ),
-          );
-        },
-      ),
-    );
+  if (tasks.isEmpty) {
+    return const Center(child: Text('Tiada tugasan tersedia.'));
   }
+
+  return RefreshIndicator(
+    onRefresh: () async {
+      final prefs = await SharedPreferences.getInstance();
+      final cleanerId = prefs.getString('cleanerId');
+
+      if (cleanerId != null) {
+        await ref.read(taskProvider.notifier).refreshTasks(int.parse(cleanerId));
+      } else {
+        debugPrint('Cleaner ID not found.');
+      }
+    },
+    child: ListView.builder(
+      itemCount: tasks.length,
+      itemBuilder: (context, index) {
+        final task = tasks[index];
+        widget.logger.i('Building card for task: $task');
+
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 32.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  // Ear Icon (Speak Task Details)
+                  GestureDetector(
+                    onTap: () {
+                      _speakTaskDetails(
+                        flutterTts,
+                        task['comp_desc'] ?? 'Tiada Penerangan',
+                        task['comp_location'] ?? 'Tiada Lokasi',
+                        task['assigned_date'] ?? 'Tiada Tarikh',
+                      );
+                    },
+                    child: CleanerIcons.earIcon(context),
+                  ),
+                  const SizedBox(width: 16), // Add spacing between icons
+
+                  // Thumbs Up Icon
+                  GestureDetector(
+                    onTap: () {
+                      // Handle the thumbs up action
+                      _handleThumbsUp(task['complaint_id']);
+                    },
+                    child: CleanerIcons.thumbsUpIcon(context),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              _buildTaskCard(
+                context,
+                ref,
+                task['comp_desc'] ?? 'Tiada Penerangan',
+                task['comp_location'] ?? 'Tiada Lokasi',
+                task['assigned_date'] ?? 'Tiada Tarikh',
+                task['comp_image'],
+                task['complaint_id'],
+              ),
+            ],
+          ),
+        );
+      },
+    ),
+  );
+}
+
+void _handleThumbsUp(int complaintId) async {
+  final prefs = await SharedPreferences.getInstance();
+  final cleanerId = prefs.getString('cleanerId');
+
+  if (cleanerId == null) {
+    widget.logger.w('Cleaner ID not found.');
+    return;
+  }
+
+  try {
+    // Use the public getter `taskService` to access the TaskService instance
+    await ref.read(taskProvider.notifier).taskService.notifiedTasks(
+          complaintId,
+          int.parse(cleanerId),
+        );
+
+    // Refresh tasks after marking the task as completed
+    await ref.read(taskProvider.notifier).refreshTasks(int.parse(cleanerId));
+
+    // Display "Tugasan disahkan" instead of using SnackBar
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Makluman'),
+          content: const Text('Tugasan disahkan.'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
+  } catch (e) {
+    widget.logger.e('Error completing task: $e');
+  }
+}
 
   Future<void> _speakTaskDetails(
     FlutterTts flutterTts,
@@ -244,7 +232,7 @@ class _CleanerTasksScreenState extends ConsumerState<CleanerTasksScreen> with Si
     String location,
     String date,
   ) async {
-    final String textToSpeak = "Tugas: $description. Lokasi: $location. Tarikh: $date.";
+    final String textToSpeak = "Tugas: $description. Lokasi: $location. Tarikh Ditugaskan: $date.";
     try {
       await flutterTts.setLanguage("ms-MY");
       await flutterTts.setSpeechRate(0.3); // Adjust speech rate
@@ -263,23 +251,10 @@ class _CleanerTasksScreenState extends ConsumerState<CleanerTasksScreen> with Si
     String date,
     String? imageUrl,
     int complaintId,
-    String status,
-    {String? compStatus} 
   ) {
+    widget.logger.i('Rendering task card with title: $title, subtitle: $subtitle, date: $date'); 
     final primaryColor = Theme.of(context).colorScheme.primary;
     final onPrimaryColor = Theme.of(context).colorScheme.onPrimary;
-
-    // Function to determine the color of the badge
-    Color getStatusColor(String status) {
-      switch (status.toLowerCase()) {
-        case 'ongoing':
-          return Colors.blue; // Blue for ongoing
-        case 'completed':
-          return Colors.green; // Green for completed
-        default:
-          return Colors.grey; // Default color for unknown statuses
-      }
-    }
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -304,24 +279,6 @@ class _CleanerTasksScreenState extends ConsumerState<CleanerTasksScreen> with Si
                   ),
                 ),
               ),
-              // Display comp_status as a badge if provided
-              if (compStatus != null)
-                Container(
-                  padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 12),
-                  decoration: BoxDecoration(
-                    color: getStatusColor(compStatus).withOpacity(0.2), // Light background
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: getStatusColor(compStatus)),
-                  ),
-                  child: Text(
-                    compStatus,
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      color: getStatusColor(compStatus),
-                    ),
-                  ),
-                ),
             ],
           ),
           const SizedBox(height: 8),
@@ -330,7 +287,7 @@ class _CleanerTasksScreenState extends ConsumerState<CleanerTasksScreen> with Si
           Divider(color: onPrimaryColor.withOpacity(0.5), thickness: 1),
           const SizedBox(height: 8),
 
-          // Location and Date
+          // Location and Assigned Date
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -356,8 +313,8 @@ class _CleanerTasksScreenState extends ConsumerState<CleanerTasksScreen> with Si
                         imageUrl: imageUrl,
                         description: title,
                       ),
-                      transitionDuration: Duration.zero, // Disable transition duration
-                      reverseTransitionDuration: Duration.zero, // Disable reverse transition
+                      transitionDuration: Duration.zero,
+                      reverseTransitionDuration: Duration.zero,
                     ),
                   );
                 },
@@ -374,13 +331,12 @@ class _CleanerTasksScreenState extends ConsumerState<CleanerTasksScreen> with Si
     );
   }
 
-
   String _formatDate(String? rawDate) {
     try {
       final parsedDate = DateTime.parse(rawDate ?? '');
       return DateFormat('dd/MM/yyyy').format(parsedDate);
     } catch (e) {
-      return 'Invalid Date';
+      return 'Tarikh tidak betul.';
     }
   }
 }

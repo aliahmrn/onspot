@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'homescreen.dart';
 import 'task.dart';
-import 'notifications.dart';
+import 'history.dart';
 import 'profile.dart';
 import 'navbar.dart';
 
@@ -20,7 +20,7 @@ class MainNavigator extends ConsumerWidget {
     final List<Widget> pages = [
       const CleanerHomeScreen(),
             CleanerTasksScreen(),
-      const CleanerNotificationsScreen(),
+            CleanerHistoryScreen(),
       const CleanerProfileScreen(),
     ];
 

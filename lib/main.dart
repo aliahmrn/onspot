@@ -8,10 +8,17 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'service/attendance_service.dart'; // Import your attendance service
 import 'utils/shared_preferences_manager.dart'; // Import SharedPreferencesManager
 import 'package:logger/logger.dart';
+import 'service/notification_service_supabase.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
 
 /// Define the AttendanceService provider
 final attendanceServiceProvider = FutureProvider<AttendanceService?>((ref) async {
-  final baseUrl = 'http://192.168.1.105:8000/api';
+  final baseUrl = 'http://192.168.124.145:8000/api';
   final authToken = ref.watch(authTokenProvider); // Access the token directly
   final logger = Logger();
 
@@ -30,21 +37,78 @@ final authTokenProvider = StateProvider<String>((ref) {
 });
 
 
-
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Request permission for notifications
+  if (await Permission.notification.isDenied) {
+    await Permission.notification.request();
+  }
+
+  // Initialization for Android
+  const AndroidInitializationSettings initializationSettingsAndroid =
+      AndroidInitializationSettings('@mipmap/ic_launcher');
+
+  // Initialization settings for both platforms
+  final InitializationSettings initializationSettings = InitializationSettings(
+    android: initializationSettingsAndroid,
+  );
+
+   await flutterLocalNotificationsPlugin.initialize(
+    initializationSettings,
+    onDidReceiveNotificationResponse: (NotificationResponse response) {
+      debugPrint('Notification clicked with payload: ${response.payload}');
+    },
+  );
 
   // Initialize Firebase
   await Firebase.initializeApp();
 
-  // Initialize SharedPreferences
-  await SharedPreferencesManager.init();
+  // Initialize Supabase
+  await Supabase.initialize(
+    url: 'https://ghfcpddpywmathkhmkff.supabase.co',
+    anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdoZmNwZGRweXdtYXRoa2hta2ZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQzMTk5NTcsImV4cCI6MjA0OTg5NTk1N30.pD09VuhLHIjww0hIbCbltJL9IvFyxZZp0ipfcswUIy0',
+  );
 
-  // Clear the previous token
-  SharedPreferencesManager.prefs.remove('token');
+  // Initialize the Notification Service (for push notifications)
+  await NotificationService().initialize(); // Initialize Notification Service
 
   // Subscribe to cleaner notifications topic
   FirebaseMessaging.instance.subscribeToTopic('cleaners');
+
+  // Initialize SharedPreferences
+  await SharedPreferencesManager.init();
+
+    // Firebase Messaging Setup
+  FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
+    final prefs = await SharedPreferences.getInstance();
+    final loggedInCleanerId = prefs.getString('cleanerId');
+    final payloadCleanerId = message.data['cleaner_id'];
+
+    if (payloadCleanerId == loggedInCleanerId) {
+      // Show notification if it matches the current cleaner
+      final notification = message.notification;
+      if (notification != null) {
+        flutterLocalNotificationsPlugin.show(
+          notification.hashCode,
+          notification.title,
+          notification.body,
+          const NotificationDetails(
+            android: AndroidNotificationDetails(
+              'task_channel',
+              'Cleaner Tasks',
+              channelDescription: 'Notifications for tasks assigned to cleaners',
+              importance: Importance.max,
+              priority: Priority.high,
+            ),
+          ),
+        );
+      }
+    }
+  });
+
+  // Clear the previous token
+  SharedPreferencesManager.prefs.remove('token');
 
   // Wrap the app with ProviderScope and run it
   runApp(

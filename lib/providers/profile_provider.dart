@@ -12,8 +12,10 @@ final profileProvider = FutureProvider<Map<String, dynamic>>((ref) async {
     // Get token from SharedPreferences
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('token') ?? '';
+    Logger().i('Retrieved token: $token');
 
     if (token.isEmpty) {
+      logger.e('No token found in SharedPreferences.');
       throw Exception('No token found. Please log in again.');
     }
 

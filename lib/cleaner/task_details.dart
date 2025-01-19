@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:onspot_cleaner/widget/cleanicons.dart'; // Import custom icons
 import 'package:intl/intl.dart';
 
 class TaskDetailsPage extends StatefulWidget {
@@ -43,7 +42,6 @@ class TaskDetailsPageState extends State<TaskDetailsPage> {
     final primaryColor = Theme.of(context).colorScheme.primary;
     final onPrimaryColor = Theme.of(context).colorScheme.onPrimary;
     final secondaryColor = Theme.of(context).colorScheme.secondary;
-    final onSecondaryColor = Theme.of(context).colorScheme.onSecondary;
 
     return Scaffold(
       backgroundColor: primaryColor,
@@ -53,9 +51,9 @@ class TaskDetailsPageState extends State<TaskDetailsPage> {
         automaticallyImplyLeading: false,
         centerTitle: true,
         title: Text(
-          'Task Details',
+          'Butiran Tugasan',
           style: TextStyle(
-            color: onPrimaryColor,  // Changed to onSecondaryColor
+            color: onPrimaryColor,
             fontSize: screenWidth * 0.05,
             fontWeight: FontWeight.bold,
           ),
@@ -69,12 +67,9 @@ class TaskDetailsPageState extends State<TaskDetailsPage> {
       ),
       body: Stack(
         children: [
-          // Primary background layer
-          Container(color: primaryColor),
-
-          // Secondary layer for rounded content area
+          // Rounded white background
           Positioned(
-            top: 0,
+            top: screenHeight * 0.02,
             left: 0,
             right: 0,
             bottom: 0,
@@ -86,283 +81,173 @@ class TaskDetailsPageState extends State<TaskDetailsPage> {
                   topRight: Radius.circular(screenWidth * 0.08),
                 ),
               ),
-              child: isLoading
-                  ? const Center(child: CircularProgressIndicator())
-                  : Stack(
-                      children: [
-                        Positioned(
-                          top: screenHeight * 0.03,
-                          left: screenWidth * 0.05,
-                          right: screenWidth * 0.05,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              SizedBox(height: screenHeight * 0.02),
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Icon(
-                                        Icons.location_on,
-                                        color: onSecondaryColor,
-                                        size: screenWidth * 0.05,
-                                      ),
-                                      SizedBox(width: screenWidth * 0.025),
-                                      Expanded(
-                                        child: RichText(
-                                          text: TextSpan(
-                                            children: [
-                                              TextSpan(
-                                                text: 'Location: ',
-                                                style: TextStyle(
-                                                  fontSize: screenWidth * 0.04,
-                                                  fontWeight: FontWeight.bold, // Bold for "Location:"
-                                                  color: onSecondaryColor,
-                                                ),
-                                              ),
-                                              TextSpan(
-                                                text: widget.location,
-                                                style: TextStyle(
-                                                  fontSize: screenWidth * 0.04,
-                                                  fontWeight: FontWeight.normal, // Regular for location value
-                                                  color: onSecondaryColor,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  SizedBox(height: screenHeight * 0.015), // Spacing between location and date
-                                  Row(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Icon(
-                                        Icons.calendar_today,
-                                        color: onSecondaryColor,
-                                        size: screenWidth * 0.05,
-                                      ),
-                                      SizedBox(width: screenWidth * 0.025),
-                                      Expanded(
-                                        child: RichText(
-                                          text: TextSpan(
-                                            children: [
-                                              TextSpan(
-                                                text: 'Date: ',
-                                                style: TextStyle(
-                                                  fontSize: screenWidth * 0.04,
-                                                  fontWeight: FontWeight.bold, // Bold for "Date:"
-                                                  color: onSecondaryColor,
-                                                ),
-                                              ),
-                                              TextSpan(
-                                                text: _formatDate(widget.date),
-                                                style: TextStyle(
-                                                  fontSize: screenWidth * 0.04,
-                                                  fontWeight: FontWeight.normal, // Regular for date value
-                                                  color: onSecondaryColor,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                              SizedBox(height: screenHeight * 0.02),
-                            ],
-                          ),
-                        ),
-                        Positioned(
-                          top: screenHeight * 0.28,
-                          left: screenWidth * 0.075,
-                          right: screenWidth * 0.075,
-                          child: Container(
-                            width: screenWidth * 0.85,
-                            height: screenHeight * 0.6,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(screenWidth * 0.04),
-                              gradient: LinearGradient(
-                                begin: Alignment.topCenter,
-                                end: Alignment.bottomCenter,
-                                colors: [
-                                  primaryColor,
-                                  secondaryColor,
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                        Positioned(
-                          top: screenHeight * 0.15,
-                          left: screenWidth * 0.075,
-                          right: screenWidth * 0.075,
-                          child: Container(
-                            width: screenWidth * 0.9,
-                            height: screenHeight * 0.3,
-                            decoration: BoxDecoration(
-                              color: Colors.grey[300],
-                              borderRadius: BorderRadius.circular(screenWidth * 0.08),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withOpacity(0.1),
-                                  blurRadius: screenWidth * 0.02,
-                                  offset: Offset(0, screenHeight * 0.005),
-                                ),
-                              ],
-                            ),
-                            child: widget.imageUrl != null
-                                ? ClipRRect(
-                                    borderRadius: BorderRadius.circular(screenWidth * 0.08),
-                                    child: Image.network(
-                                      widget.imageUrl!,
-                                      width: double.infinity,
-                                      height: double.infinity,
-                                      fit: BoxFit.cover,
-                                      errorBuilder: (context, error, stackTrace) {
-                                        return Center(
-                                          child: Text(
-                                            'Image failed to load',
-                                            style: TextStyle(color: onSecondaryColor),
-                                          ),
-                                        );
-                                      },
-                                    ),
-                                  )
-                                : Center(
-                                    child: Text(
-                                      'No image available',
-                                      style: TextStyle(color: onSecondaryColor),
-                                    ),
-                                  ),
-                          ),
-                        ),
-                        Positioned(
-                          top: screenHeight * 0.48, // Adjusted to be closer to the image container
-                          left: screenWidth * 0.075,
-                          right: screenWidth * 0.075,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              // Add "Description" heading
-                              Text(
-                                '  Description',
-                                style: TextStyle(
-                                  fontSize: screenWidth * 0.045, // Slightly larger font for the heading
-                                  fontWeight: FontWeight.bold,
-                                  color: onSecondaryColor, // Matches the secondary text color
-                                ),
-                              ),
-                              SizedBox(height: screenHeight * 0.01), // Spacing between heading and box
-
-                              Center(
-                                child: Container(
-                                  width: screenWidth * 0.8,
-                                  padding: EdgeInsets.all(screenWidth * 0.04),
-                                  decoration: BoxDecoration(
-                                    color: secondaryColor,
-                                    borderRadius: BorderRadius.circular(screenWidth * 0.02),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.black.withOpacity(0.1),
-                                        blurRadius: screenWidth * 0.02,
-                                        offset: Offset(0, screenHeight * 0.005),
-                                      ),
-                                    ],
-                                  ),
-                                  child: Text(
-                                    widget.description,
-                                    style: TextStyle(
-                                      fontSize: screenWidth * 0.04,
-                                      color: onSecondaryColor,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              SizedBox(height: screenHeight * 0.02), // Adjusted for closer spacing
-
-                              // Task included section remains as it is
-                              Text(
-                                '  Task included',
-                                style: TextStyle(
-                                  fontSize: screenWidth * 0.045,
-                                  fontWeight: FontWeight.bold,
-                                  color: onSecondaryColor,
-                                ),
-                              ),
-                              SizedBox(height: screenHeight * 0.015),
-                              Center(
-                                child: Container(
-                                  width: screenWidth * 0.8,
-                                  padding: EdgeInsets.symmetric(
-                                    vertical: screenHeight * 0.015,
-                                    horizontal: screenWidth * 0.04,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: secondaryColor,
-                                    borderRadius: BorderRadius.circular(screenWidth * 0.02),
-                                  ),
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                                    children: [
-                                      Column(
-                                        children: [
-                                          MopIcon(size: screenWidth * 0.08), // Custom mop icon
-                                          SizedBox(height: screenHeight * 0.01),
-                                          Text(
-                                            'Mopping',
-                                            style: TextStyle(fontSize: screenWidth * 0.04),
-                                          ),
-                                        ],
-                                      ),
-                                      Column(
-                                        children: [
-                                          VacuumingIcon(size: screenWidth * 0.08), // Custom vacuuming icon
-                                          SizedBox(height: screenHeight * 0.01),
-                                          Text(
-                                            'Vacuuming',
-                                            style: TextStyle(fontSize: screenWidth * 0.04),
-                                          ),
-                                        ],
-                                      ),
-                                      Column(
-                                        children: [
-                                          WipeIcon(size: screenWidth * 0.08), // Custom wiping icon
-                                          SizedBox(height: screenHeight * 0.01),
-                                          Text(
-                                            'Wiping',
-                                            style: TextStyle(fontSize: screenWidth * 0.04),
-                                          ),
-                                        ],
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
             ),
           ),
+
+          // Main Content
+          isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : SingleChildScrollView(
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: screenWidth * 0.05,
+                      vertical: screenHeight * 0.07, // Adjust for rounded background
+                    ),
+                    child: Card(
+                      color: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(screenWidth * 0.05),
+                      ),
+                      elevation: 8, // Increase elevation for a more prominent shadow
+                      shadowColor: Colors.black.withOpacity(0.8), 
+                      child: Padding(
+                        padding: EdgeInsets.all(screenWidth * 0.05),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Image Section
+                            Container(
+                              width: double.infinity,
+                              height: screenHeight * 0.3,
+                              decoration: BoxDecoration(
+                                color: Colors.grey[300],
+                                borderRadius: BorderRadius.circular(screenWidth * 0.04),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.1),
+                                    blurRadius: screenWidth * 0.02,
+                                    offset: Offset(0, screenHeight * 0.003),
+                                  ),
+                                ],
+                              ),
+                              child: widget.imageUrl != null
+                                  ? ClipRRect(
+                                      borderRadius:
+                                          BorderRadius.circular(screenWidth * 0.04),
+                                      child: Image.network(
+                                        widget.imageUrl!,
+                                        width: double.infinity,
+                                        height: double.infinity,
+                                        fit: BoxFit.cover,
+                                        errorBuilder: (context, error, stackTrace) {
+                                          return Center(
+                                            child: Text(
+                                              'Gagal memuatkan gambar',
+                                              style: TextStyle(color: onPrimaryColor),
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                    )
+                                  : Center(
+                                      child: Text(
+                                        'Tiada gambar tersedia',
+                                        style: TextStyle(color: Colors.black),
+                                      ),
+                                    ),
+                            ),
+                            SizedBox(height: screenHeight * 0.03),
+
+                            // Lokasi Section
+                            Text(
+                              'Lokasi',
+                              style: TextStyle(
+                                fontSize: screenWidth * 0.04,
+                                fontWeight: FontWeight.bold,
+                                color: primaryColor,
+                              ),
+                            ),
+                            SizedBox(height: screenHeight * 0.01),
+                            Container(
+                              width: double.infinity,
+                              padding: EdgeInsets.all(screenWidth * 0.04),
+                              decoration: BoxDecoration(
+                                color: Colors.grey[100],
+                                border: Border.all(color: Colors.grey),
+                                borderRadius: BorderRadius.circular(screenWidth * 0.03),
+                              ),
+                              child: Text(
+                                widget.location,
+                                style: TextStyle(
+                                  fontSize: screenWidth * 0.04,
+                                  color: Colors.black87,
+                                ),
+                              ),
+                            ),
+                            SizedBox(height: screenHeight * 0.03),
+
+                            // Tarikh Section
+                            Text(
+                              'Tarikh',
+                              style: TextStyle(
+                                fontSize: screenWidth * 0.04,
+                                fontWeight: FontWeight.bold,
+                                color: primaryColor,
+                              ),
+                            ),
+                            SizedBox(height: screenHeight * 0.01),
+                            Container(
+                              width: double.infinity,
+                              padding: EdgeInsets.all(screenWidth * 0.04),
+                              decoration: BoxDecoration(
+                                color: Colors.grey[100],
+                                border: Border.all(color: Colors.grey),
+                                borderRadius: BorderRadius.circular(screenWidth * 0.03),
+                              ),
+                              child: Text(
+                                _formatDate(widget.date),
+                                style: TextStyle(
+                                  fontSize: screenWidth * 0.04,
+                                  color: Colors.black87,
+                                ),
+                              ),
+                            ),
+                            SizedBox(height: screenHeight * 0.03),
+
+                            // Penerangan Section
+                            Text(
+                              'Penerangan',
+                              style: TextStyle(
+                                fontSize: screenWidth * 0.04,
+                                fontWeight: FontWeight.bold,
+                                color: primaryColor,
+                              ),
+                            ),
+                            SizedBox(height: screenHeight * 0.01),
+                            Container(
+                              width: double.infinity,
+                              padding: EdgeInsets.all(screenWidth * 0.04),
+                              decoration: BoxDecoration(
+                                color: Colors.grey[100],
+                                border: Border.all(color: Colors.grey),
+                                borderRadius: BorderRadius.circular(screenWidth * 0.03),
+                              ),
+                              child: Text(
+                                widget.description,
+                                style: TextStyle(
+                                  fontSize: screenWidth * 0.04,
+                                  color: Colors.black87,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
         ],
       ),
     );
   }
 
-    String _formatDate(String? rawDate) {
+  String _formatDate(String? rawDate) {
     if (rawDate == null) return 'N/A';
     try {
-      final parsedDate = DateTime.parse(rawDate); // Parse raw date string
-      return DateFormat('dd/MM/yyyy').format(parsedDate); // Format to DD/MM/YYYY
+      final parsedDate = DateTime.parse(rawDate);
+      return DateFormat('dd/MM/yyyy').format(parsedDate);
     } catch (e) {
-      return 'Invalid Date'; // Fallback in case of error
+      return 'Tarikh tidak betul.';
     }
   }
 }

@@ -8,10 +8,11 @@ import '../utils/device_utils.dart';
 import '../utils/shared_preferences_manager.dart';
 import '../providers/attendance_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../providers/profile_provider.dart';
 
 
 class AuthService {
-  final String baseUrl = 'http://192.168.1.105:8000/api'; // Your API base URL
+  final String baseUrl = 'http://192.168.124.145:8000/api'; // Your API base URL
   final Logger logger = Logger(); // Initialize Logger
 
   // Login function for cleaners
@@ -38,6 +39,12 @@ class AuthService {
 
         // Update authTokenProvider
         ref.read(authTokenProvider.notifier).state = token;
+
+              // Log the saved token
+      Logger().i('Token saved during login: $token');
+
+      // Invalidate profileProvider to force a reload
+      ref.invalidate(profileProvider);
 
         if (role == 'cleaner') {
           await saveUserDetails(
