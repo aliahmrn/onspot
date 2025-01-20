@@ -86,13 +86,13 @@ class _CleanerProfileEditScreenState extends ConsumerState<CleanerProfileEditScr
       return;
     }
 
-  if (action == 'Upload') {
+  if (action == 'Muat naik') {
     final XFile? image = await picker.pickImage(source: ImageSource.gallery);
       if (image != null) {
         logger.i('💡 User selected image: ${image.path}');
         ref.read(profileEditProvider.notifier).updateTempProfilePicture(image.path);
       }
-    } else if (action == 'Delete') {
+    } else if (action == 'Padam') {
         final confirmDelete = await _showDeleteConfirmationDialog(context);
         if (confirmDelete == true) {
           logger.i('💡 User confirmed to delete profile picture.');
@@ -106,16 +106,16 @@ class _CleanerProfileEditScreenState extends ConsumerState<CleanerProfileEditScr
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('Confirm Deletion'),
-          content: const Text('Are you sure you want to delete your profile picture?'),
+          title: const Text('Sahkan Pemadaman'),
+          content: const Text('Adakah anda yakin untuk padam gambar profil?'),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(false), // User cancels
-              child: const Text('Cancel'),
+              child: const Text('Batal'),
             ),
             TextButton(
               onPressed: () => Navigator.of(context).pop(true), // User confirms
-              child: const Text('Delete'),
+              child: const Text('Padam'),
             ),
           ],
         );
@@ -147,7 +147,7 @@ class _CleanerProfileEditScreenState extends ConsumerState<CleanerProfileEditScr
           elevation: 0,
           backgroundColor: primaryColor,
           title: Text(
-            'Edit Profile',
+            'Edit Profil',
             style: TextStyle(
               color: Colors.white,
               fontSize: screenWidth * 0.05,

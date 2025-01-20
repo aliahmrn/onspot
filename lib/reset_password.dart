@@ -40,7 +40,7 @@ class ResetPasswordNotifier extends StateNotifier<ResetPasswordState> {
     required BuildContext context,
   }) async {
     if (password != confirmPassword) {
-      state = state.copyWith(message: 'Passwords do not match.');
+      state = state.copyWith(message: 'Kata Laluan tidak sepadan.');
       return;
     }
 
@@ -49,7 +49,7 @@ class ResetPasswordNotifier extends StateNotifier<ResetPasswordState> {
     try {
       await _authService.resetPassword(email, code, password, confirmPassword);
 
-      state = state.copyWith(message: 'Your password has been reset successfully.');
+      state = state.copyWith(message: 'Kata laluan anda telah berjaya ditetapkan semula.');
 
       // Navigate to Login Screen after 3 seconds
       await Future.delayed(const Duration(seconds: 3));
@@ -64,7 +64,7 @@ class ResetPasswordNotifier extends StateNotifier<ResetPasswordState> {
         );
       }
     } catch (e) {
-      state = state.copyWith(message: 'Error: ${e.toString()}');
+      state = state.copyWith(message: 'Ralat: ${e.toString()}');
     } finally {
       state = state.copyWith(isLoading: false);
     }
@@ -102,7 +102,7 @@ class ResetPasswordScreen extends ConsumerWidget {
               children: <Widget>[
                 const SizedBox(height: 60),
                 Text(
-                  'Reset Password',
+                  'Tetapkan Semula Kata Laluan',
                   style: GoogleFonts.poppins(
                     fontSize: 22,
                     fontWeight: FontWeight.w600,
@@ -111,15 +111,16 @@ class ResetPasswordScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: 20),
                 Card(
+                  color: Colors.white,
                   elevation: 5,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
                   child: Padding(
                     padding: const EdgeInsets.all(20.0),
                     child: Column(
                       children: <Widget>[
-                        _buildInputField('New Password', passwordController, isPassword: true),
+                        _buildInputField('Kata Laluan Baru', passwordController, isPassword: true),
                         const SizedBox(height: 20),
-                        _buildInputField('Confirm New Password', confirmPasswordController, isPassword: true),
+                        _buildInputField('Sahkan Kata Laluan Baru', confirmPasswordController, isPassword: true),
                         const SizedBox(height: 20),
                         ElevatedButton(
                           onPressed: resetPasswordState.isLoading
@@ -143,7 +144,7 @@ class ResetPasswordScreen extends ConsumerWidget {
                           ),
                           child: resetPasswordState.isLoading
                               ? const CircularProgressIndicator(color: Colors.white)
-                              : const Text('Reset Password', style: TextStyle(color: Colors.white)),
+                              : const Text('Tetapkan Semula Kata Laluan', style: TextStyle(color: Colors.white)),
                         ),
                         const SizedBox(height: 10),
                         if (resetPasswordState.message.isNotEmpty)
@@ -180,7 +181,7 @@ class ResetPasswordScreen extends ConsumerWidget {
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(30),
               ),
-              hintText: isPassword ? 'Enter your password' : 'Enter your $label',
+              hintText: isPassword ? 'Masukkan kata laluan' : 'Masukkan $label',
               filled: true,
               fillColor: Colors.white,
             ),

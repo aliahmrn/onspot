@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import '../service/complaintdetails_service.dart';
 
 class TaskDetailsPage extends StatefulWidget {
   final int complaintId;
@@ -23,6 +24,7 @@ class TaskDetailsPage extends StatefulWidget {
 
 class TaskDetailsPageState extends State<TaskDetailsPage> {
   bool isLoading = true;
+  Map<String, dynamic>? complaintDetails;
 
   @override
   void initState() {
@@ -33,7 +35,24 @@ class TaskDetailsPageState extends State<TaskDetailsPage> {
         isLoading = false;
       });
     });
+    _fetchComplaintDetails();
   }
+
+  Future<void> _fetchComplaintDetails() async {
+    try {
+      final details = await fetchComplaintDetails(widget.complaintId);
+      setState(() {
+        complaintDetails = details;
+        isLoading = false;
+      });
+    } catch (e) {
+      print('Error fetching complaint details: $e');
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -120,23 +139,47 @@ class TaskDetailsPageState extends State<TaskDetailsPage> {
                                   ),
                                 ],
                               ),
-                              child: widget.imageUrl != null
+                              child: complaintDetails?['comp_image'] != null
                                   ? ClipRRect(
-                                      borderRadius:
-                                          BorderRadius.circular(screenWidth * 0.04),
-                                      child: Image.network(
-                                        widget.imageUrl!,
-                                        width: double.infinity,
-                                        height: double.infinity,
-                                        fit: BoxFit.cover,
-                                        errorBuilder: (context, error, stackTrace) {
-                                          return Center(
-                                            child: Text(
-                                              'Gagal memuatkan gambar',
-                                              style: TextStyle(color: onPrimaryColor),
-                                            ),
-                                          );
-                                        },
+                                      borderRadius: BorderRadius.circular(screenWidth * 0.04),
+                                      child: Stack(
+                                        children: [
+                                          Image.network(
+                                            complaintDetails!['comp_image'],
+                                            width: double.infinity,
+                                            height: double.infinity,
+                                            fit: BoxFit.cover,
+                                            loadingBuilder: (context, child, loadingProgress) {
+                                              if (loadingProgress == null) {
+                                                return child; // Image is fully loaded
+                                              }
+                                              return Center(
+                                                child: Column(
+                                                  mainAxisAlignment: MainAxisAlignment.center,
+                                                  children: [
+                                                    const CircularProgressIndicator(),
+                                                    SizedBox(height: screenHeight * 0.02),
+                                                    Text(
+                                                      'Memuatkan Gambar...',
+                                                      style: TextStyle(
+                                                        color: Colors.grey[600],
+                                                        fontSize: screenWidth * 0.04,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              );
+                                            },
+                                            errorBuilder: (context, error, stackTrace) {
+                                              return Center(
+                                                child: Text(
+                                                  'Gagal memuatkan gambar',
+                                                  style: TextStyle(color: Colors.red, fontSize: screenWidth * 0.04),
+                                                ),
+                                              );
+                                            },
+                                          ),
+                                        ],
                                       ),
                                     )
                                   : Center(
@@ -224,6 +267,62 @@ class TaskDetailsPageState extends State<TaskDetailsPage> {
                               ),
                               child: Text(
                                 widget.description,
+                                style: TextStyle(
+                                  fontSize: screenWidth * 0.04,
+                                  color: Colors.black87,
+                                ),
+                              ),
+                            ),
+            
+                            // Officer Section
+                            SizedBox(height: screenHeight * 0.03),
+                            Text(
+                              'Aduan Oleh',
+                              style: TextStyle(
+                                fontSize: screenWidth * 0.04,
+                                fontWeight: FontWeight.bold,
+                                color: primaryColor,
+                              ),
+                            ),
+                            SizedBox(height: screenHeight * 0.01),
+                            Container(
+                              width: double.infinity,
+                              padding: EdgeInsets.all(screenWidth * 0.04),
+                              decoration: BoxDecoration(
+                                color: Colors.grey[100],
+                                border: Border.all(color: Colors.grey),
+                                borderRadius: BorderRadius.circular(screenWidth * 0.03),
+                              ),
+                              child: Text(
+                                complaintDetails?['officer']?['name'] ?? '',
+                                style: TextStyle(
+                                  fontSize: screenWidth * 0.04,
+                                  color: Colors.black87,
+                                ),
+                              ),
+                            ),
+
+                            // Supervisor Section
+                            SizedBox(height: screenHeight * 0.03),
+                            Text(
+                              'Ditugaskan Oleh',
+                              style: TextStyle(
+                                fontSize: screenWidth * 0.04,
+                                fontWeight: FontWeight.bold,
+                                color: primaryColor,
+                              ),
+                            ),
+                            SizedBox(height: screenHeight * 0.01),
+                            Container(
+                              width: double.infinity,
+                              padding: EdgeInsets.all(screenWidth * 0.04),
+                              decoration: BoxDecoration(
+                                color: Colors.grey[100],
+                                border: Border.all(color: Colors.grey),
+                                borderRadius: BorderRadius.circular(screenWidth * 0.03),
+                              ),
+                              child: Text(
+                                complaintDetails?['supervisor']?['name'] ?? '',
                                 style: TextStyle(
                                   fontSize: screenWidth * 0.04,
                                   color: Colors.black87,

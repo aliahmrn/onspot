@@ -14,7 +14,6 @@ class ProfileService {
         url,
         headers: {'Authorization': 'Bearer $token'},
       ).timeout(const Duration(seconds: 15));
-      Logger().i('Fetching profile with token: $token');
 
       if (response.statusCode == 200) {
         final profileData = jsonDecode(response.body);

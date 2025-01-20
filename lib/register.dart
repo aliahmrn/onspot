@@ -9,24 +9,20 @@ import 'package:logger/logger.dart';
 class RegistrationState {
   final bool isLoading; // Loading state
   final String errorMessage; // Error message
-  final Map<String, String> userInput; // User input data
 
   RegistrationState({
     this.isLoading = false,
     this.errorMessage = '',
-    Map<String, String>? userInput,
-  }) : userInput = userInput ?? const {};
+  });
 
   // Create a copy with optional modifications
   RegistrationState copyWith({
     bool? isLoading,
     String? errorMessage,
-    Map<String, String>? userInput,
   }) {
     return RegistrationState(
       isLoading: isLoading ?? this.isLoading,
       errorMessage: errorMessage ?? this.errorMessage,
-      userInput: userInput ?? this.userInput,
     );
   }
 }
@@ -52,41 +48,23 @@ class RegistrationNotifier extends StateNotifier<RegistrationState> {
         password.isEmpty ||
         confirmPassword.isEmpty ||
         phoneNumber.isEmpty) {
-      state = state.copyWith(errorMessage: 'Please fill out all the fields');
+      state = state.copyWith(errorMessage: 'Sila isi semua ruangan.');
       return false;
     }
 
     if (password != confirmPassword) {
-      state = state.copyWith(errorMessage: 'Passwords do not match');
+      state = state.copyWith(errorMessage: 'Kata laluan tidak sepadan.');
       return false;
     }
 
-    // Store user input, including passwords, in the state
-    state = state.copyWith(
-      isLoading: true,
-      errorMessage: '',
-      userInput: {
-        'Full Name': fullName,
-        'Email': email,
-        'Username': username,
-        'Password': password,
-        'Confirm Password': confirmPassword,
-        'Phone Number': phoneNumber,
-      },
-    );
+    state = state.copyWith(isLoading: true, errorMessage: '');
 
     try {
       await _authService.register(fullName, username, email, password, phoneNumber);
-      _logger.i('Registration successful');
-
-      // Reset user input after successful registration
-      state = state.copyWith(
-        userInput: {}, // Clear the input fields
-      );
-
+      _logger.i('Pendaftaran berjaya');
       return true;
     } catch (e) {
-      final error = 'Failed to register: ${e.toString()}';
+      final error = 'Pendaftaran gagal: ${e.toString()}';
       _logger.e(error);
       state = state.copyWith(errorMessage: error);
       return false;
@@ -116,14 +94,6 @@ class RegistrationScreen extends ConsumerWidget {
     final TextEditingController confirmPasswordController = TextEditingController();
     final TextEditingController phoneNumberController = TextEditingController();
 
-    // Pre-fill controllers with state data, including passwords
-    fullNameController.text = registrationState.userInput['Full Name'] ?? '';
-    emailController.text = registrationState.userInput['Email'] ?? '';
-    usernameController.text = registrationState.userInput['Username'] ?? '';
-    passwordController.text = registrationState.userInput['Password'] ?? '';
-    confirmPasswordController.text = registrationState.userInput['Confirm Password'] ?? '';
-    phoneNumberController.text = registrationState.userInput['Phone Number'] ?? '';
-
     final theme = Theme.of(context);
 
     return Scaffold(
@@ -137,7 +107,7 @@ class RegistrationScreen extends ConsumerWidget {
               children: <Widget>[
                 const SizedBox(height: 20),
                 Text(
-                  'Register',
+                  'Daftar Akaun',
                   style: GoogleFonts.poppins(
                     fontSize: 28,
                     fontWeight: FontWeight.w600,
@@ -146,6 +116,7 @@ class RegistrationScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: 20),
                 Card(
+                  color: Colors.white,
                   elevation: 5,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(15),
@@ -154,44 +125,18 @@ class RegistrationScreen extends ConsumerWidget {
                     padding: const EdgeInsets.all(20.0),
                     child: Column(
                       children: <Widget>[
-                        _buildInputField(
-                          'Full Name',
-                          fullNameController,
-                          isEnabled: !registrationState.isLoading,
-                        ),
-                        const SizedBox(height: 8),
-                        _buildInputField(
-                          'Email',
-                          emailController,
-                          isEnabled: !registrationState.isLoading,
-                        ),
-                        const SizedBox(height: 10),
-                        _buildInputField(
-                          'Username',
-                          usernameController,
-                          isEnabled: !registrationState.isLoading,
-                        ),
-                        const SizedBox(height: 8),
-                        _buildInputField(
-                          'Password',
-                          passwordController,
-                          isEnabled: !registrationState.isLoading,
-                          obscureText: true,
-                        ),
-                        const SizedBox(height: 8),
-                        _buildInputField(
-                          'Confirm Password',
-                          confirmPasswordController,
-                          isEnabled: !registrationState.isLoading,
-                          obscureText: true,
-                        ),
-                        const SizedBox(height: 8),
-                        _buildInputField(
-                          'Phone Number',
-                          phoneNumberController,
-                          isEnabled: !registrationState.isLoading,
-                        ),
-                        const SizedBox(height: 8),
+                        _buildInputField('Nama', fullNameController),
+                        const SizedBox(height: 8), 
+                        _buildInputField('E-mel', emailController),
+                        const SizedBox(height: 10), 
+                        _buildInputField('Nama Pengguna', usernameController),
+                        const SizedBox(height: 8), 
+                        _buildInputField('Kata Laluan', passwordController, obscureText: true),
+                        const SizedBox(height: 8), 
+                        _buildInputField('Sahkan Kata Laluan', confirmPasswordController, obscureText: true),
+                        const SizedBox(height: 8), 
+                        _buildInputField('Nombor Telefon', phoneNumberController),
+                        const SizedBox(height: 8), 
                         ElevatedButton(
                           onPressed: registrationState.isLoading
                               ? null
@@ -212,16 +157,14 @@ class RegistrationScreen extends ConsumerWidget {
                                       barrierDismissible: false,
                                       builder: (BuildContext context) {
                                         return AlertDialog(
-                                          title: const Text('Registration Successful'),
-                                          content: const Text(
-                                              'Your account has been created. Please log in to continue.'),
+                                          title: const Text('Pendaftaran Berjaya'),
+                                          content: const Text('Akaun anda telah berjaya dicipta. Sila log masuk untuk meneruskan.'),
                                           actions: [
                                             TextButton(
                                               onPressed: () {
                                                 Navigator.pop(context); // Close the dialog
                                                 Navigator.of(context).pushReplacement(
-                                                  MaterialPageRoute(
-                                                      builder: (context) => const LoginScreen()),
+                                                  MaterialPageRoute(builder: (context) => const LoginScreen()),
                                                 );
                                               },
                                               child: const Text('OK'),
@@ -243,9 +186,9 @@ class RegistrationScreen extends ConsumerWidget {
                           ),
                           child: registrationState.isLoading
                               ? const CircularProgressIndicator(color: Colors.white)
-                              : const Text('Register', style: TextStyle(color: Colors.white)),
+                              : const Text('Daftar Akaun', style: TextStyle(color: Colors.white)),
                         ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 8), // Reduced from 10 to 8
                         TextButton(
                           onPressed: () {
                             Navigator.of(context).pushReplacement(
@@ -258,7 +201,7 @@ class RegistrationScreen extends ConsumerWidget {
                             );
                           },
                           child: const Text(
-                            'Already have an account? Sign In',
+                            'Sudah mempunyai akaun? Log Masuk',
                             style: TextStyle(
                               color: Colors.black,
                               fontSize: 16,
@@ -271,7 +214,7 @@ class RegistrationScreen extends ConsumerWidget {
                             registrationState.errorMessage,
                             style: const TextStyle(color: Colors.red),
                           ),
-                          const SizedBox(height: 8),
+                          const SizedBox(height: 8), // Reduced from 10 to 8
                         ],
                       ],
                     ),
@@ -285,61 +228,59 @@ class RegistrationScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildInputField(String label, TextEditingController controller,
-      {bool obscureText = false, bool isEnabled = true}) {
-    IconData? getIcon(String label) {
-      switch (label) {
-        case 'Full Name':
-          return Icons.person;
-        case 'Email':
-          return Icons.email;
-        case 'Username':
-          return Icons.account_circle;
-        case 'Password':
-        case 'Confirm Password':
-          return Icons.lock;
-        case 'Phone Number':
-          return Icons.phone;
-        default:
-          return null;
-      }
+Widget _buildInputField(String label, TextEditingController controller, {bool obscureText = false}) {
+  IconData? getIcon(String label) {
+    switch (label) {
+      case 'Nama':
+        return Icons.person;
+      case 'E-mel':
+        return Icons.email;
+      case 'Nama Pengguna':
+        return Icons.account_circle;
+      case 'Kata Laluan':
+      case 'Sahkan Kata Laluan':
+        return Icons.lock;
+      case 'Nombor Telefon':
+        return Icons.phone;
+      default:
+        return null;
     }
+  }
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-        ),
-        const SizedBox(height: 4),
-        SizedBox(
-          width: 350,
-          child: TextField(
-            controller: controller,
-            obscureText: obscureText,
-            enabled: isEnabled,
-            decoration: InputDecoration(
-              prefixIcon: getIcon(label) != null ? Icon(getIcon(label), color: Colors.grey) : null,
-              hintText: 'Enter $label',
-              hintStyle: const TextStyle(color: Colors.grey),
-              filled: true,
-              fillColor: Colors.white,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(30),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(30),
-                borderSide: const BorderSide(color: Colors.grey),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(30),
-                borderSide: const BorderSide(color: Colors.black),
-              ),
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Text(
+        label,
+        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+      ),
+      const SizedBox(height: 4),
+      SizedBox(
+        width: 350,
+        child: TextField(
+          controller: controller,
+          obscureText: obscureText,
+          decoration: InputDecoration(
+            prefixIcon: getIcon(label) != null ? Icon(getIcon(label), color: Colors.grey) : null,
+            hintText: 'Masukkan $label',
+            hintStyle: const TextStyle(color: Colors.grey), // Soft grey hint text
+            filled: true, // Enable background color
+            fillColor: Colors.white, // Set background color to white
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(30),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(30),
+              borderSide: const BorderSide(color: Colors.grey),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(30),
+              borderSide: const BorderSide(color: Colors.black),
             ),
           ),
         ),
-      ],
-    );
-  }
+      ),
+    ],
+  );
+}
 }

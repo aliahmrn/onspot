@@ -81,10 +81,10 @@ class CleanerBottomNavBar extends ConsumerWidget {
                     icon: _buildIcon(
                       context,
                       currentIndex == 2,
-                      'assets/images/bell.svg',
+                      'assets/images/calendar.svg',
                       isSvg: true,
                     ),
-                    label: 'Notifikasi',
+                    label: 'Rekod',
                   ),
                   BottomNavigationBarItem(
                     icon: _buildIcon(

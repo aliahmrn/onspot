@@ -141,7 +141,7 @@ Widget _buildProfileContent(
                                       radius: screenWidth * 0.12, // Responsive size
                                       backgroundColor: Colors.transparent, // No white background
                                       backgroundImage: cleanerInfo['profile_pic'] != null
-                                          ? NetworkImage(cleanerInfo['profile_pic'])
+                                          ? NetworkImage("${cleanerInfo['profile_pic']}?timestamp=${DateTime.now().millisecondsSinceEpoch}")
                                           : null,
                                       child: cleanerInfo['profile_pic'] == null
                                           ? Icon(Icons.person, size: screenWidth * 0.12, color: Colors.grey[600])
@@ -375,7 +375,7 @@ Widget _buildProfileContent(
                   transitionDuration: Duration.zero,
                   reverseTransitionDuration: Duration.zero,
                 ),
-              );
+              ).then((_) => ref.invalidate(profileProvider));
             },
             icon: Icon(Icons.edit, size: screenWidth * 0.045), // Responsive icon
             label: Text(

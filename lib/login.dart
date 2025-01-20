@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../service/auth_service.dart';
+import '../cleaner/main_navigator.dart';
 import 'register.dart';
 import 'forgot_password.dart';
 import 'package:logger/logger.dart';
-import 'cleaner/main_navigator.dart';
 
 final logger = Logger();
 
@@ -45,11 +45,12 @@ class LoginNotifier extends StateNotifier<LoginState> {
   Future<bool> login({
     required String input,
     required String password,
-    required WidgetRef ref
+    required WidgetRef ref,
+
   }) async {
     if (input.isEmpty || password.isEmpty) {
-      state = state.copyWith(errorMessage: 'Please enter both username/email and password');
-      logger.e('Login failed: Missing username/email or password.');
+      state = state.copyWith(errorMessage: 'Sila masukkan nama pengguna/e-mel dan kata laluan');
+      logger.e('Log masuk gagal: Nama pengguna/emel atau kata laluan tiada.');
       return false;
     }
 
@@ -57,11 +58,11 @@ class LoginNotifier extends StateNotifier<LoginState> {
     logger.i('Attempting login with username/email: $input');
 
     try {
-      await _authService.login(input, password,ref );
+      await _authService.login(input, password, ref);
       logger.i('Login successful!');
       return true;
     } catch (e) {
-      state = state.copyWith(errorMessage: 'Invalid username/email or password');
+      state = state.copyWith(errorMessage: 'Nama pengguna/emel atau kata laluan tidak sah.');
       logger.e('Login failed: Invalid credentials');
       return false;
     } finally {
@@ -94,232 +95,234 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     super.dispose();
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final loginState = ref.watch(loginProvider);
-    final loginNotifier = ref.read(loginProvider.notifier);
 
-    return Scaffold(
-      backgroundColor: const Color(0xFF2E5675),
-      body: Center(
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(20.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: <Widget>[
-                const SizedBox(height: 60),
-                Column(
-                  children: [
-                    Text(
-                      'OnSpot',
-                      style: GoogleFonts.poppins(
-                        fontSize: 32,
-                        fontWeight: FontWeight.w800,
-                        color: Colors.white,
-                      ),
+@override
+Widget build(BuildContext context) {
+  final loginState = ref.watch(loginProvider);
+  final loginNotifier = ref.read(loginProvider.notifier);
+
+  return Scaffold(
+    backgroundColor: const Color(0xFF2E5675),
+    body: Center(
+      child: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: <Widget>[
+              const SizedBox(height: 60),
+              Column(
+                children: [
+                  Text(
+                    'OnSpot',
+                    style: GoogleFonts.poppins(
+                      fontSize: 32,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.white,
                     ),
-                    Text(
-                      'Facility',
-                      style: GoogleFonts.poppins(
-                        fontSize: 32,
-                        fontWeight: FontWeight.w800,
-                        color: Colors.white,
-                      ),
+                  ),
+                  Text(
+                    'Facility',
+                    style: GoogleFonts.poppins(
+                      fontSize: 32,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.white,
                     ),
-                  ],
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              Card(
+                elevation: 5,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(15),
                 ),
-                const SizedBox(height: 20),
-                Card(
-                  elevation: 5,
-                  shape: RoundedRectangleBorder(
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.secondary, // Use secondary color
                     borderRadius: BorderRadius.circular(15),
                   ),
-                  child: Container(
-                     decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.secondary, // Use secondary color
-                      borderRadius: BorderRadius.circular(15), 
-                     ),
-                    padding: const EdgeInsets.all(20.0),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: <Widget>[
-                       _buildInputField('Username or Email', _inputController, isEnabled: !loginState.isLoading),
-                        const SizedBox(height: 20),
-                       _buildInputField('Password', _passwordController, obscureText: true, isEnabled: !loginState.isLoading),
-                        const SizedBox(height: 20),
-                          ElevatedButton(
-                          onPressed: loginState.isLoading
-                              ? null
-                              : () async {
-                                  final input = _inputController.text;
-                                  final password = _passwordController.text;
+                  padding: const EdgeInsets.all(20.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      _buildInputField('Nama Pengguna atau E-mel', _inputController, isEnabled: !loginState.isLoading),
+                      const SizedBox(height: 20),
+                      _buildInputField('Kata Laluan', _passwordController, obscureText: true, isEnabled: !loginState.isLoading),
+                      const SizedBox(height: 20),
+                      ElevatedButton(
+                        onPressed: loginState.isLoading
+                            ? null
+                            : () async {
+                                final input = _inputController.text;
+                                final password = _passwordController.text;
 
-                                  final success = await loginNotifier.login(
-                                    input: input,
-                                    password: password,
-                                    ref: ref, // Pass ref to the login function
+                                final success = await loginNotifier.login(
+                                  input: input,
+                                  password: password,
+                                  ref:ref,
+                                );
+
+                                if (success && context.mounted) {
+                                  // Navigate to MainNavigator
+                                  Navigator.of(context).pushAndRemoveUntil(
+                                    MaterialPageRoute(builder: (context) => const MainNavigator()),
+                                    (route) => false,
                                   );
-
-                                  if (success && context.mounted) {
-                                    // Reset currentIndexProvider to 0 (Home Page)
-                                    ref.read(currentIndexProvider.notifier).state = 0;
-
-                                    Navigator.of(context).pushAndRemoveUntil(
-                                      MaterialPageRoute(builder: (context) => const MainNavigator()),
-                                      (route) => false,
-                                    );
-                                  }
-                                },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.black,
-                              padding: const EdgeInsets.symmetric(vertical: 15),
-                              minimumSize: const Size(150, 40),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(30),
-                              ),
-                              textStyle: const TextStyle(fontSize: 16),
-                            ),
-                            child: loginState.isLoading
-                                ? const CircularProgressIndicator(color: Colors.white)
-                                : Row(
-                                    mainAxisSize: MainAxisSize.min, // Centers content inside the button
-                                    children: [
-                                      const Icon(Icons.login, color: Colors.white), // Add your desired icon
-                                      const SizedBox(width: 8), // Add spacing between icon and text
-                                      const Text('Sign In', style: TextStyle(color: Colors.white)),
-                                    ],
-                                  ),
+                                }
+                              },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.black,
+                          padding: const EdgeInsets.symmetric(vertical: 15),
+                          minimumSize: const Size(150, 40),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(30),
                           ),
+                          textStyle: const TextStyle(fontSize: 16),
+                        ),
+                        child: loginState.isLoading
+                            ? const CircularProgressIndicator(color: Colors.white)
+                            : Row(
+                                mainAxisSize: MainAxisSize.min, // Centers content inside the button
+                                children: [
+                                  const Icon(Icons.login, color: Colors.white), // Add your desired icon
+                                  const SizedBox(width: 8), // Add spacing between icon and text
+                                  const Text('Log Masuk', style: TextStyle(color: Colors.white)),
+                                ],
+                              ),
+                      ),
+                      const SizedBox(height: 10),
+                      if (loginState.errorMessage.isNotEmpty) ...[
+                        Text(
+                          loginState.errorMessage,
+                          style: const TextStyle(color: Colors.red),
+                          textAlign: TextAlign.center, // Aligns text horizontally within its bounds
+                        ),
                         const SizedBox(height: 10),
-                        if (loginState.errorMessage.isNotEmpty) ...[
-                          Text(
-                            loginState.errorMessage,
-                            style: const TextStyle(color: Colors.red),
-                            textAlign: TextAlign.center, // Aligns text horizontally within its bounds
-                          ),
-                          const SizedBox(height: 10),
-                        ],
-                        TextButton(
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              PageRouteBuilder(
-                                pageBuilder: (context, animation, secondaryAnimation) =>
-                                    const ForgotPasswordScreen(),
-                                transitionDuration: Duration.zero,
-                                reverseTransitionDuration: Duration.zero,
-                              ),
-                            );
-                          },
-                          child: RichText(
-                            text: TextSpan(
-                              text: 'Forgot Password?',
-                              style: GoogleFonts.poppins(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w500,
-                                color: Colors.black,
-                                decoration: TextDecoration.underline, // Adds the underline
-                                decorationColor: Colors.grey, // Makes the underline grey
-                                decorationThickness: 1.5, // Adjusts thickness
-                              ),
-                            ),
-                          ),
-                        ),
-                        TextButton(
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              PageRouteBuilder(
-                                pageBuilder: (context, animation, secondaryAnimation) =>
-                                    const RegistrationScreen(),
-                                transitionDuration: Duration.zero,
-                                reverseTransitionDuration: Duration.zero,
-                              ),
-                            );
-                          },
-                          child: RichText(
-                            text: TextSpan(
-                              text: "Don't have an account? Register",
-                              style: GoogleFonts.poppins(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w500,
-                                color: Colors.black,
-                                decoration: TextDecoration.underline, // Adds the underline
-                                decorationColor: Colors.grey, // Makes the underline grey
-                                decorationThickness: 1.5, // Adjusts thickness
-                              ),
-                            ),
-                          ),
-                        ),
                       ],
-                    ),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            PageRouteBuilder(
+                              pageBuilder: (context, animation, secondaryAnimation) =>
+                                  const ForgotPasswordScreen(),
+                              transitionDuration: Duration.zero,
+                              reverseTransitionDuration: Duration.zero,
+                            ),
+                          );
+                        },
+                        child: RichText(
+                          text: TextSpan(
+                            text: 'Lupa Kata Laluan?',
+                            style: GoogleFonts.poppins(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.black,
+                              decoration: TextDecoration.underline, // Adds the underline
+                              decorationColor: Colors.grey, // Makes the underline grey
+                              decorationThickness: 1.5, // Adjusts thickness
+                            ),
+                          ),
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            PageRouteBuilder(
+                              pageBuilder: (context, animation, secondaryAnimation) =>
+                                  const RegistrationScreen(),
+                              transitionDuration: Duration.zero,
+                              reverseTransitionDuration: Duration.zero,
+                            ),
+                          );
+                        },
+                        child: RichText(
+                          text: TextSpan(
+                            text: "Tiada akaun? Daftar",
+                            style: GoogleFonts.poppins(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.black,
+                              decoration: TextDecoration.underline, // Adds the underline
+                              decorationColor: Colors.grey, // Makes the underline grey
+                              decorationThickness: 1.5, // Adjusts thickness
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                const SizedBox(height: 60),
-                Transform.rotate(
-                  angle: -90 * 3.1415926535 / 180,
-                  child: Image.asset(
-                    'assets/images/vacuum.png',
-                    height: 200,
-                  ),
+              ),
+              const SizedBox(height: 60),
+              Transform.rotate(
+                angle: -90 * 3.1415926535 / 180,
+                child: Image.asset(
+                  'assets/images/vacuum.png',
+                  height: 200,
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
-    );
+    )
+  );
+}
+
+Widget _buildInputField(
+    String label, TextEditingController controller,
+    {bool obscureText = false, required bool isEnabled}) {
+  IconData? getIcon(String label) {
+    switch (label) {
+      case 'Nama Pengguna atau E-mel':
+        return Icons.person; // Icon for username or email
+      case 'Kata Laluan':
+        return Icons.lock; // Icon for password
+      default:
+        return null;
+    }
   }
 
-  Widget _buildInputField(String label, TextEditingController controller, {bool obscureText = false, required bool isEnabled}) {
-    IconData? getIcon(String label) {
-      switch (label) {
-        case 'Username or Email':
-          return Icons.person; // Icon for username or email
-        case 'Password':
-          return Icons.lock; // Icon for password
-        default:
-          return null;
-      }
-    }
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-        ),
-        const SizedBox(height: 6),
-        SizedBox(
-          width: 350,
-          child: TextField(
-            controller: controller,
-            obscureText: obscureText,
-            enabled: isEnabled, // Toggle enabled state
-            decoration: InputDecoration(
-              prefixIcon: getIcon(label) != null ? Icon(getIcon(label), color: Colors.grey) : null,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(30),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(30),
-                borderSide: const BorderSide(color: Colors.grey),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(30),
-                borderSide: const BorderSide(color: Colors.black),
-              ),
-              filled: true, // Enables the background color
-              fillColor: Colors.white, // Sets the background color to white
-              hintText: 'Enter $label',
-              hintStyle: const TextStyle(color: Colors.grey), // Soft grey for hint text
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Text(
+        label,
+        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+      ),
+      const SizedBox(height: 6),
+      SizedBox(
+        width: 350,
+        child: TextField(
+          controller: controller,
+          obscureText: obscureText,
+          enabled: isEnabled, // Dynamically control enabled state
+          decoration: InputDecoration(
+            prefixIcon:
+                getIcon(label) != null ? Icon(getIcon(label), color: Colors.grey) : null,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(30),
             ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(30),
+              borderSide: const BorderSide(color: Colors.grey),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(30),
+              borderSide: const BorderSide(color: Colors.black),
+            ),
+            filled: true, // Enables the background color
+            fillColor: Colors.white, // Sets the background color to white
+            hintText: 'Masukkan $label',
+            hintStyle: const TextStyle(color: Colors.grey), // Soft grey for hint text
           ),
         ),
-      ],
-    );
-  }
+      ),
+    ],
+  );
+}
 }
