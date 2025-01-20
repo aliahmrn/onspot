@@ -119,6 +119,7 @@ class EnterCodeScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: 20),
                 Card(
+                  color: Colors.white,
                   elevation: 5,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(15),

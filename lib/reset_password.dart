@@ -111,6 +111,7 @@ class ResetPasswordScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: 20),
                 Card(
+                  color: Colors.white,
                   elevation: 5,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
                   child: Padding(

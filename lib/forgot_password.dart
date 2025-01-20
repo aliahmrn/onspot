@@ -113,6 +113,7 @@ class ForgotPasswordScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: 20),
                 Card(
+                  color: Colors.white,
                   elevation: 8,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(20),
