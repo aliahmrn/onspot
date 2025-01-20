@@ -74,7 +74,7 @@ class ProfileEditNotifier extends StateNotifier<ProfileEditState> {
   final Ref ref;
   final Logger _logger = Logger(); // Logger instance for logging.
   final String defaultProfilePictureUrl =
-      'http://192.168.179.145:8000/storage/profile_pic/default.webp';
+      'http://192.168.124.145:8000/storage/profile_pic/default.webp';
 
   ProfileEditNotifier(this._profileService, this.ref)
       : super(ProfileEditState(

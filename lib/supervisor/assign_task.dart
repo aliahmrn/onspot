@@ -153,7 +153,7 @@ ref.listen<AsyncValue<Map<String, dynamic>>>(assignTaskProvider, (previous, next
                           // Image Section
                           Container(
                             width: double.infinity,
-                            height: screenHeight * 0.25,
+                            height: screenHeight * 0.3,
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(12),
                               border: Border.all(color: Colors.grey.shade300),
@@ -165,7 +165,10 @@ ref.listen<AsyncValue<Map<String, dynamic>>>(assignTaskProvider, (previous, next
                                 ),
                               ],
                               image: imageUrl != null
-                                  ? DecorationImage(image: NetworkImage(imageUrl), fit: BoxFit.cover)
+                                  ? DecorationImage(
+                                      image: NetworkImage(imageUrl),
+                                      fit: BoxFit.cover, // Ensures the image covers the entire container
+                                    )
                                   : null,
                             ),
                             child: imageUrl == null
@@ -178,7 +181,8 @@ ref.listen<AsyncValue<Map<String, dynamic>>>(assignTaskProvider, (previous, next
                                         const SizedBox(height: 10),
                                         Text(
                                           'Gambar Tidak Tersedia',
-                                          style: TextStyle(color: Colors.grey[600], fontSize: screenWidth * 0.04),
+                                          style: TextStyle(
+                                              color: Colors.grey[600], fontSize: screenWidth * 0.04),
                                         ),
                                       ],
                                     ),

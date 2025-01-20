@@ -5,7 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class ComplaintsService {
   final SupabaseClient _client = Supabase.instance.client;
-  final String baseUrl = 'http://192.168.179.145:8000/api';
+  final String baseUrl = 'http://192.168.124.145:8000/api';
 
 
 
@@ -19,45 +19,35 @@ Future<List<Map<String, dynamic>>> fetchComplaints() async {
 }
 
 
-Future<Map<String, dynamic>> fetchComplaintDetails(String complaintId) async {
-  try {
-    final url = Uri.parse('$baseUrl/supervisor/assign-task/$complaintId');
+  Future<Map<String, dynamic>> fetchComplaintDetails(String complaintId) async {
+    try {
+      final url = Uri.parse('$baseUrl/supervisor/assign-task/$complaintId');
 
-    // Retrieve the bearer token from SharedPreferences
-    final prefs = await SharedPreferences.getInstance();
-    final bearerToken = prefs.getString('token'); // Replace with your token key
+      final prefs = await SharedPreferences.getInstance();
+      final bearerToken = prefs.getString('token');
 
-    if (bearerToken == null) {
-      throw Exception('Bearer token is missing. Please log in again.');
-    }
+      if (bearerToken == null) {
+        throw Exception('Bearer token is missing. Please log in again.');
+      }
 
-    final response = await http.get(
-      url,
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $bearerToken', // Include the token in the header
-      },
-    );
-    
-
-    // Debug log the response body for further inspection
-    print('Response body: ${response.body}');
-
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
-      return data;
-    } else if (response.statusCode == 401) {
-      throw Exception('Unauthorized: Invalid bearer token.');
-    } else {
-      throw Exception(
-        'Failed to fetch complaint details. Status code: ${response.statusCode}',
+      final response = await http.get(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $bearerToken',
+        },
       );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        return data;
+      } else {
+        throw Exception('Failed to fetch complaint details: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error fetching complaint details: $e');
     }
-  } catch (e) {
-    print('Error fetching complaint details: $e');
-    throw Exception('Error fetching complaint details: $e');
   }
-}
 
 Future<List<Map<String, dynamic>>> fetchAssignedTasksHistory({
   required int supervisorId,
