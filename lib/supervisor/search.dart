@@ -20,6 +20,11 @@ class _SearchPageState extends ConsumerState<SearchPage> {
         ref.read(cleanersProvider.notifier).fetchCleaners());
   }
 
+  Future<void> _refreshCleaners() async {
+  await ref.read(cleanersProvider.notifier).fetchCleaners();
+}
+
+
   @override
   Widget build(BuildContext context) {
     final primaryColor = Theme.of(context).primaryColor;
@@ -118,7 +123,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
                                 child: Padding(
                                   padding: const EdgeInsets.symmetric(horizontal: 10.0),
                                   child: Text(
-                                    value == 'all' ? 'Status' : value.capitalizeFirst(),
+                                    value == 'all' ? 'Semua Status' : value.capitalizeFirst(),
                                     style: const TextStyle(color: Colors.black),
                                   ),
                                 ),
@@ -162,23 +167,31 @@ class _SearchPageState extends ConsumerState<SearchPage> {
                       ? Center(
                           child: Text(
                             cleanersState.errorMessage!,
-                            style: TextStyle(color: Colors.red),
+                            style: const TextStyle(color: Colors.red),
                           ),
                         )
-                      : cleanersState.cleaners.isEmpty
-                          ? const Center(
-                              child: Text(
-                                'Tiada pembersih ditemui.',
-                                style: TextStyle(color: Colors.grey),
-                              ),
-                            )
-                          : ListView.builder(
-                              itemCount: cleanersState.cleaners.length,
-                              itemBuilder: (context, index) {
-                                final cleaner = cleanersState.cleaners[index];
-                                return CleanerCard(cleaner: cleaner);
-                              },
-                            ),
+                      : RefreshIndicator( // Wrap this around the cleaner list
+                          onRefresh: _refreshCleaners, // Pull-to-refresh functionality
+                          child: cleanersState.cleaners.isEmpty
+                              ? ListView(
+                                  physics: const AlwaysScrollableScrollPhysics(), // Allows pull-to-refresh even if empty
+                                  children: const [
+                                    Center(
+                                      child: Text(
+                                        'Tiada pembersih ditemui.',
+                                        style: TextStyle(color: Colors.grey),
+                                      ),
+                                    ),
+                                  ],
+                                )
+                              : ListView.builder(
+                                  itemCount: cleanersState.cleaners.length,
+                                  itemBuilder: (context, index) {
+                                    final cleaner = cleanersState.cleaners[index];
+                                    return CleanerCard(cleaner: cleaner);
+                                  },
+                                ),
+                        ),
             ),
           ),
         ],

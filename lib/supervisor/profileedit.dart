@@ -60,15 +60,15 @@ class _SVProfileEditScreenState extends ConsumerState<SVProfileEditScreen> {
           title: const Text('Pilih tindakan'),
           actions: [
             TextButton(
-              onPressed: () => Navigator.pop(context, 'Upload'),
-              child: const Text('Muat Naik'),
+              onPressed: () => Navigator.pop(context, 'Muat naik'),
+              child: const Text('Muat naik'),
             ),
             TextButton(
-              onPressed: () => Navigator.pop(context, 'Delete'),
+              onPressed: () => Navigator.pop(context, 'Padam'),
               child: const Text('Padam'),
             ),
             TextButton(
-              onPressed: () => Navigator.pop(context, 'Cancel'),
+              onPressed: () => Navigator.pop(context, 'Batal'),
               child: const Text('Batal'),
             ),
           ],
@@ -87,7 +87,7 @@ class _SVProfileEditScreenState extends ConsumerState<SVProfileEditScreen> {
       return;
     }
 
-  if (action == 'Muat Naik') {
+  if (action == 'Muat naik') {
     final XFile? image = await picker.pickImage(source: ImageSource.gallery);
       if (image != null) {
         logger.i('💡 User selected image: ${image.path}');

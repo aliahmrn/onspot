@@ -195,7 +195,7 @@ class CleanerDetailPage extends ConsumerWidget {
                               if (latestComplaints.isNotEmpty)
                                 _buildTaskCard(
                                   latestComplaints[0],
-                                  primaryColor, // Use the same color as the cleaner details card
+                                  primaryColor,
                                   textTheme,
                                   screenWidth,
                                 )

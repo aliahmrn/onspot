@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:logger/logger.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class CleanersState {
   final bool isLoading;
@@ -102,77 +103,114 @@ class CleanersNotifier extends StateNotifier<CleanersState> {
 }
 
 final cleanerDetailProvider =
-    FutureProvider.family<Map<String, dynamic>, String>((ref, cleanerId) async {
-  final url = 'http://192.168.124.145:8000/api/supervisor/cleaner/$cleanerId';
+    FutureProvider.family<Map<String, dynamic>, String>((ref, String cleanerId) async {
+  const supabaseUrl = 'https://ghfcpddpywmathkhmkff.supabase.co';
+  const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdoZmNwZGRweXdtYXRoa2hta2ZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQzMTk5NTcsImV4cCI6MjA0OTg5NTk1N30.pD09VuhLHIjww0hIbCbltJL9IvFyxZZp0ipfcswUIy0';
+  final supabaseClient = SupabaseClient(supabaseUrl, supabaseKey);
+
+  final mysqlUserNamesUrl = 'http://192.168.124.145:8000/api/user-names';
+  final mysqlCleanerDetailsUrl = 'http://192.168.124.145:8000/api/supervisor/cleaner/$cleanerId';
 
   try {
+    // Step 1: Fetch cleaner details from MySQL
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('token');
-    logger.i('Token: $token');
-
-    if (token == null) {
-      throw Exception('Token is null. Please log in again.');
-    }
+    if (token == null) throw Exception('Token is null. Please log in again.');
 
     final headers = {
       'Authorization': 'Bearer $token',
       'Content-Type': 'application/json',
     };
 
-    logger.i('Fetching cleaner details for ID: $cleanerId');
-    final response = await http.get(Uri.parse(url), headers: headers);
+    final mysqlResponse = await http.get(Uri.parse(mysqlCleanerDetailsUrl), headers: headers);
 
-    logger.i('Response status: ${response.statusCode}');
-    logger.i('Response body: ${response.body}');
+    if (mysqlResponse.statusCode != 200) {
+      throw Exception('Failed to load cleaner details: ${mysqlResponse.body}');
+    }
 
-    if (response.statusCode == 200) {
-      final Map<String, dynamic> data = jsonDecode(response.body);
+    final Map<String, dynamic> cleanerDetails =
+        jsonDecode(mysqlResponse.body)['data'] as Map<String, dynamic>;
 
-      // Ensure 'data' key exists
-      if (data['data'] == null) {
-        throw Exception('Data not found in API response.');
+    if (cleanerDetails.isEmpty || !cleanerDetails.containsKey('user_id')) {
+      throw Exception('Cleaner details are invalid or incomplete.');
+    }
+
+    // Step 2: Fetch complaints from Supabase
+    final supabaseResponse = await supabaseClient
+        .from('complaint_cleaner')
+        .select('''
+          complaint_id,
+          assigned_date,
+          assigned_by,
+          cleaner_id,
+          complaint (
+            id,
+            comp_date,
+            comp_time,
+            comp_desc,
+            comp_location,
+            comp_image,
+            comp_status
+          )
+        ''')
+        .eq('cleaner_id', cleanerId) // Filter by cleaner ID
+        .order('assigned_date', ascending: false) // Sort by assigned_date
+        .limit(1) // Retrieve the latest complaint
+        .maybeSingle(); // Fetch a single result or null
+
+    // Handle case where no complaints exist
+    if (supabaseResponse == null) {
+      return {
+        ...cleanerDetails,
+        'latest_complaints': [], // Empty list for complaints
+      };
+    }
+
+    // Extract `assigned_by` IDs
+    final assignedById = supabaseResponse['assigned_by'] as int?;
+
+    // Step 3: Fetch supervisor name(s) from MySQL
+    String? supervisorName;
+    if (assignedById != null) {
+      final mysqlUserResponse = await http.post(
+        Uri.parse(mysqlUserNamesUrl),
+        headers: headers,
+        body: jsonEncode({'user_ids': [assignedById]}), // Send `assigned_by` IDs
+      );
+
+      if (mysqlUserResponse.statusCode != 200) {
+        throw Exception('Failed to fetch supervisor names: ${mysqlUserResponse.body}');
       }
 
-      final cleanerDetails = data['data'];
-
-      // Parse latest_complaints and include assigned_by (supervisor name)
-      final List<dynamic> latestComplaints =
-          cleanerDetails['latest_complaints'] ?? [];
-
-      // Map the complaints to include supervisor details
-      final complaintsWithSupervisor = latestComplaints.map((complaint) {
-        return {
-          'complaint_id': complaint['complaint_id']?.toString(),
-          'comp_date': complaint['comp_date'],
-          'comp_time': complaint['comp_time'],
-          'comp_desc': complaint['comp_desc'],
-          'comp_location': complaint['comp_location'],
-          'comp_image': complaint['comp_image'],
-          'comp_status': complaint['comp_status'],
-          'assigned_date': complaint['assigned_date'],
-          'assigned_by': complaint['assigned_by'] ?? 'Unknown', // Supervisor name
-        };
-      }).toList();
-
-      // Format data for UI
-      return {
-        'user_id': cleanerDetails['user_id'],
-        'cleaner_name': cleanerDetails['cleaner_name'],
-        'cleaner_phoneNo': cleanerDetails['cleaner_phoneNo'],
-        'profile_pic': cleanerDetails['profile_pic'],
-        'cleaner_username': cleanerDetails['cleaner_username'],
-        'status': cleanerDetails['status'],
-        'created_at': cleanerDetails['created_at'],
-        'updated_at': cleanerDetails['updated_at'],
-        'building': cleanerDetails['building'],
-        'latest_complaints': complaintsWithSupervisor,
-      };
-    } else {
-      throw Exception('Failed to load cleaner details: ${response.body}');
+      final List<dynamic> userNames = jsonDecode(mysqlUserResponse.body);
+      if (userNames.isNotEmpty) {
+        supervisorName = userNames.firstWhere(
+          (user) => user['id'] == assignedById,
+          orElse: () => {'name': 'Unknown'},
+        )['name'] as String?;
+      }
     }
+
+    // Combine data into a single response
+    return {
+      ...cleanerDetails,
+      'latest_complaints': [
+        {
+          'complaint_id': supabaseResponse['complaint']['id'],
+          'comp_date': supabaseResponse['complaint']['comp_date'],
+          'comp_time': supabaseResponse['complaint']['comp_time'],
+          'comp_desc': supabaseResponse['complaint']['comp_desc'],
+          'comp_location': supabaseResponse['complaint']['comp_location'],
+          'comp_image': supabaseResponse['complaint']['comp_image'],
+          'comp_status': supabaseResponse['complaint']['comp_status'],
+          'assigned_date': supabaseResponse['assigned_date'],
+          'assigned_by': supervisorName ?? 'Unknown', // Add supervisor name
+        }
+      ],
+    };
   } catch (e) {
-    logger.e('Error fetching cleaner details: $e');
-    throw Exception('Error fetching cleaner details: $e');
+    logger.e('Error fetching combined cleaner details: $e');
+    throw Exception('Error fetching combined cleaner details: $e');
   }
 });
 

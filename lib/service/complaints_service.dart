@@ -123,54 +123,46 @@ Future<List<Map<String, dynamic>>> fetchAssignedTasksHistory({
     try {
       print('Fetching complaint details for complaintId: $complaintId');
 
-      // Step 1: Fetch complaint and complaint_cleaner details from Supabase
+      // Step 1: Fetch complaint and complaint_cleaner details
       final response = await _client
           .from('complaint')
           .select('*, complaint_cleaner(cleaner_id, assigned_date)')
           .eq('id', complaintId)
-          .maybeSingle(); // Fetch single row or null if not found
+          .maybeSingle();
 
       print('Complaint response from Supabase: $response');
 
       if (response == null) {
-        print('No complaint found for ID: $complaintId');
         throw Exception('Complaint not found');
       }
 
-      // Step 2: Parse complaint data
       final complaint = Map<String, dynamic>.from(response);
 
       // Extract cleaner IDs and officer ID
-      final cleanerIds = (complaint['complaint_cleaner'] as List<dynamic>? ?? [])
-          .map((e) => e['cleaner_id'] as int)
-          .toList();
+      final cleanerDetails = complaint['complaint_cleaner'] as List<dynamic>? ?? [];
+      final cleanerIds = cleanerDetails.map((e) => e['cleaner_id'] as int).toList();
       final officerId = complaint['officer_id'] as int?;
-
-      print('Cleaner IDs: $cleanerIds');
-      print('Officer ID: $officerId');
 
       if (officerId == null || cleanerIds.isEmpty) {
         throw Exception('Invalid officer or cleaner IDs');
       }
 
-      // Step 3: Fetch officer and cleaner names from Laravel using user_mapping table
+      // Fetch user names
       final userIds = <int>[officerId, ...cleanerIds];
-      print('Fetching user names for userIds: $userIds');
       final userNames = await _fetchUserNames(userIds);
 
-      print('User names fetched: $userNames');
-
-      // Step 4: Add names and related details to complaint object
+      // Add names and details to the complaint object
       complaint['officer_name'] = userNames[officerId] ?? 'Unknown Officer';
-      complaint['assigned_cleaners'] = cleanerIds
-          .map((id) => {
-                'cleaner_id': id,
-                'cleaner_name': userNames[id] ?? 'Unknown Cleaner',
-              })
-          .toList();
+      complaint['assigned_cleaners'] = cleanerDetails.map((cleaner) {
+        final cleanerId = cleaner['cleaner_id'];
+        return {
+          'cleaner_id': cleanerId,
+          'cleaner_name': userNames[cleanerId] ?? 'Unknown Cleaner',
+          'assigned_date': cleaner['assigned_date'], // Include assigned_date
+        };
+      }).toList();
 
       print('Final complaint object: $complaint');
-
       return complaint;
     } catch (e) {
       print('Error fetching history details: $e');
