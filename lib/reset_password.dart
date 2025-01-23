@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../service/auth_service.dart';
+import 'enter_code.dart';
 import 'login.dart';
 
 // State class for Reset Password
@@ -34,7 +35,6 @@ class ResetPasswordNotifier extends StateNotifier<ResetPasswordState> {
 
   Future<void> resetPassword({
     required String email,
-    required String code,
     required String password,
     required String confirmPassword,
     required BuildContext context,
@@ -47,13 +47,21 @@ class ResetPasswordNotifier extends StateNotifier<ResetPasswordState> {
     state = state.copyWith(isLoading: true, message: '');
 
     try {
-      await _authService.resetPassword(email, code, password, confirmPassword);
+      // Call the API to reset the password
+      await _authService.resetPassword(
+        email: email,
+        password: password,
+        confirmPassword: confirmPassword,
+      );
 
       state = state.copyWith(message: 'Kata laluan anda telah berjaya ditetapkan semula.');
 
-      // Navigate to Login Screen after 3 seconds
+      // Delay before navigation
       await Future.delayed(const Duration(seconds: 3));
       if (context.mounted) {
+        // Reset the state before navigating to the login screen
+        resetState();
+
         Navigator.of(context).pushAndRemoveUntil(
           PageRouteBuilder(
             pageBuilder: (context, animation, secondaryAnimation) => const LoginScreen(),
@@ -69,6 +77,11 @@ class ResetPasswordNotifier extends StateNotifier<ResetPasswordState> {
       state = state.copyWith(isLoading: false);
     }
   }
+
+  // Reset the state to its initial values
+  void resetState() {
+    state = ResetPasswordState();
+  }
 }
 
 // Riverpod Provider for ResetPasswordNotifier
@@ -76,24 +89,52 @@ final resetPasswordProvider = StateNotifierProvider<ResetPasswordNotifier, Reset
   (ref) => ResetPasswordNotifier(AuthService()),
 );
 
-class ResetPasswordScreen extends ConsumerWidget {
+class ResetPasswordScreen extends ConsumerStatefulWidget {
   final String email;
-  final String code;
 
-  const ResetPasswordScreen({required this.email, required this.code, super.key});
+  const ResetPasswordScreen({required this.email, super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ResetPasswordScreen> createState() => _ResetPasswordScreenState();
+}
+
+class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
+  late TextEditingController passwordController;
+  late TextEditingController confirmPasswordController;
+
+  @override
+  void initState() {
+    super.initState();
+    passwordController = TextEditingController();
+    confirmPasswordController = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    passwordController.dispose();
+    confirmPasswordController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final resetPasswordState = ref.watch(resetPasswordProvider);
     final resetPasswordNotifier = ref.read(resetPasswordProvider.notifier);
 
-    final TextEditingController passwordController = TextEditingController();
-    final TextEditingController confirmPasswordController = TextEditingController();
+    final theme = Theme.of(context);
 
-    final theme = Theme.of(context); // Access theme colors
+    // If loading, update the input fields to show placeholders
+    if (resetPasswordState.isLoading) {
+      passwordController.text = passwordController.text.isEmpty
+          ? ''
+          : passwordController.text.replaceAll(RegExp(r'.'), '*'); // Display placeholder as '*****'
+      confirmPasswordController.text = confirmPasswordController.text.isEmpty
+          ? ''
+          : confirmPasswordController.text.replaceAll(RegExp(r'.'), '*');
+    }
 
     return Scaffold(
-      backgroundColor: theme.primaryColor, // Set background color to primary color
+      backgroundColor: theme.primaryColor,
       body: Center(
         child: SingleChildScrollView(
           child: Padding(
@@ -106,7 +147,7 @@ class ResetPasswordScreen extends ConsumerWidget {
                   style: GoogleFonts.poppins(
                     fontSize: 22,
                     fontWeight: FontWeight.w600,
-                    color: theme.colorScheme.secondary, // Use secondary color
+                    color: theme.colorScheme.secondary,
                   ),
                 ),
                 const SizedBox(height: 20),
@@ -118,17 +159,26 @@ class ResetPasswordScreen extends ConsumerWidget {
                     padding: const EdgeInsets.all(20.0),
                     child: Column(
                       children: <Widget>[
-                        _buildInputField('Kata Laluan Baru', passwordController, isPassword: true),
+                        _buildInputField(
+                          'Kata Laluan Baru',
+                          passwordController,
+                          isPassword: true,
+                          isReadOnly: resetPasswordState.isLoading,
+                        ),
                         const SizedBox(height: 20),
-                        _buildInputField('Sahkan Kata Laluan Baru', confirmPasswordController, isPassword: true),
+                        _buildInputField(
+                          'Sahkan Kata Laluan Baru',
+                          confirmPasswordController,
+                          isPassword: true,
+                          isReadOnly: resetPasswordState.isLoading,
+                        ),
                         const SizedBox(height: 20),
                         ElevatedButton(
                           onPressed: resetPasswordState.isLoading
                               ? null
                               : () {
                                   resetPasswordNotifier.resetPassword(
-                                    email: email,
-                                    code: code,
+                                    email: widget.email,
                                     password: passwordController.text,
                                     confirmPassword: confirmPasswordController.text,
                                     context: context,
@@ -158,6 +208,27 @@ class ResetPasswordScreen extends ConsumerWidget {
                     ),
                   ),
                 ),
+                const SizedBox(height: 20),
+                // Back Button
+                TextButton.icon(
+                  onPressed: () {
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => EnterCodeScreen(email: widget.email),
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.arrow_back, color: Colors.white),
+                  label: Text(
+                    'Kembali',
+                    style: GoogleFonts.poppins(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
@@ -166,7 +237,12 @@ class ResetPasswordScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildInputField(String label, TextEditingController controller, {bool isPassword = false}) {
+  Widget _buildInputField(
+    String label,
+    TextEditingController controller, {
+    bool isPassword = false,
+    bool isReadOnly = false,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -176,7 +252,8 @@ class ResetPasswordScreen extends ConsumerWidget {
           width: 350,
           child: TextField(
             controller: controller,
-            obscureText: isPassword,
+            readOnly: isReadOnly,
+            obscureText: isPassword && !isReadOnly, // Show actual password only if not loading
             decoration: InputDecoration(
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(30),
@@ -191,3 +268,4 @@ class ResetPasswordScreen extends ConsumerWidget {
     );
   }
 }
+

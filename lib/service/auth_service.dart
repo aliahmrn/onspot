@@ -172,43 +172,57 @@ class AuthService {
     }
   }
 
-  Future<void> register(String name, String username, String email, String password, String phoneNo) async {
-    try {
-      final response = await http.post(
-        Uri.parse('$baseUrl/flutterregister'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        body: jsonEncode({
-          'username': username,
-          'name': name,
-          'email': email,
-          'password': password,
-          'password_confirmation': password,
-          'phone_no': phoneNo,
-          'role': 'cleaner',
-        }),
-      );
+Future<void> register(String name, String username, String email, String password, String phoneNo) async {
+  try {
+    logger.i('Starting registration process...');
 
-      if (response.statusCode == 201) {
-        logger.i('Registration successful.');
+    // Make the HTTP POST request
+    final response = await http.post(
+      Uri.parse('$baseUrl/flutterregister'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      body: jsonEncode({
+        'username': username,
+        'name': name,
+        'email': email,
+        'password': password,
+        'password_confirmation': password,
+        'phone_no': phoneNo,
+        'role': 'cleaner',
+      }),
+    );
 
-        final data = jsonDecode(response.body);
-        final String token = data['token'];
+    // Log the response for debugging
+    logger.i('Response status: ${response.statusCode}');
+    logger.i('Response body: ${response.body}');
 
-        logger.i('Registration complete. Fetching and saving FCM token...');
-        await saveFcmTokenIfNeeded(token);
-      } else {
-        logger.w('Registration failed: ${response.statusCode} - ${response.body}');
-        throw Exception('Failed to register user: ${response.body}');
-      }
-    } catch (e) {
-      logger.e('Error during registration: $e');
-      throw Exception('Error during registration: $e');
+    if (response.statusCode == 201) {
+      logger.i('Registration successful.');
+
+      final data = jsonDecode(response.body);
+      final String token = data['token'];
+
+      logger.i('Registration complete. Fetching and saving FCM token...');
+      await saveFcmTokenIfNeeded(token);
+    } else if (response.statusCode == 400 || response.statusCode == 422) {
+      // Handle validation errors or bad requests
+      final errorData = jsonDecode(response.body);
+      final errorMessage = errorData['message'] ?? 'Validation failed';
+      throw Exception(errorMessage);
+    } else {
+      // Log unexpected errors
+      logger.w('Unexpected error: ${response.body}');
+      throw Exception('Unexpected error occurred: ${response.body}');
     }
+  } catch (e) {
+    logger.e('Error during registration: $e');
+    throw Exception('Error during registration: $e');
   }
+}
 
+  // Send Reset Code
   Future<void> sendResetCode(String email) async {
     try {
       final response = await http.post(
@@ -221,21 +235,44 @@ class AuthService {
         logger.i('Reset code sent successfully.');
       } else {
         final data = jsonDecode(response.body);
+        logger.e('Error response: ${response.body}');
         throw Exception(data['message'] ?? 'Failed to send reset code.');
       }
     } catch (e) {
+      logger.e('Error during forgot password request: ${e.toString()}');
       throw Exception('Error during forgot password request: ${e.toString()}');
     }
   }
 
-  Future<void> resetPassword(String email, String code, String password, String confirmPassword) async {
+    // Verify Reset Code
+    Future<void> verifyResetCode({required String email, required String code}) async {
+        final response = await http.post(
+          Uri.parse('$baseUrl/verify-reset-code'),
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode({'email': email, 'code': code}),
+        );
+
+        if (response.statusCode == 200) {
+          logger.i('Reset code verified successfully.');
+        } else {
+          final data = jsonDecode(response.body);
+          throw Exception(data['message'] ?? 'Failed to verify reset code.');
+        }
+      
+    }
+
+  // Reset Password
+  Future<void> resetPassword({
+    required String email,
+    required String password,
+    required String confirmPassword,
+  }) async {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/reset-password'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'email': email,
-          'code': code,
           'password': password,
           'password_confirmation': confirmPassword,
         }),
@@ -251,7 +288,6 @@ class AuthService {
       throw Exception('Error during password reset: ${e.toString()}');
     }
   }
-
 
    Future<void> storeNotificationToken(String deviceToken, String deviceId, String deviceType) async {
     final prefs = await SharedPreferences.getInstance();

@@ -543,7 +543,7 @@ Widget _buildTaskCard(
   final screenWidth = MediaQuery.of(context).size.width;
 
   // Default values if no task details are provided
-  final displayTitle = title?.isNotEmpty == true ? title! : 'No assigned tasks yet.';
+  final displayTitle = title?.isNotEmpty == true ? title! : 'Tiada tugasan tersedia.';
   final displaySubtitle = subtitle?.isNotEmpty == true ? subtitle! : '';
   final displayDate = date?.isNotEmpty == true ? _formatDate(date!) : '';
 
