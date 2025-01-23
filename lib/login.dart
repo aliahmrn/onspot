@@ -204,7 +204,7 @@ Widget build(BuildContext context) {
                             context,
                             PageRouteBuilder(
                               pageBuilder: (context, animation, secondaryAnimation) =>
-                                  const ForgotPasswordScreen(),
+                                  ForgotPasswordScreen(),
                               transitionDuration: Duration.zero,
                               reverseTransitionDuration: Duration.zero,
                             ),

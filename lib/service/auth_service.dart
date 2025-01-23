@@ -203,6 +203,7 @@ Future<void> saveFcmToken(String authToken, String fcmToken) async {
     }
   }
 
+  // Send Reset Code
   Future<void> sendResetCode(String email) async {
     try {
       final response = await http.post(
@@ -215,21 +216,44 @@ Future<void> saveFcmToken(String authToken, String fcmToken) async {
         _logger.i('Reset code sent successfully.');
       } else {
         final data = jsonDecode(response.body);
+        _logger.e('Error response: ${response.body}');
         throw Exception(data['message'] ?? 'Failed to send reset code.');
       }
     } catch (e) {
+      _logger.e('Error during forgot password request: ${e.toString()}');
       throw Exception('Error during forgot password request: ${e.toString()}');
     }
   }
 
-  Future<void> resetPassword(String email, String code, String password, String confirmPassword) async {
+    // Verify Reset Code
+    Future<void> verifyResetCode({required String email, required String code}) async {
+        final response = await http.post(
+          Uri.parse('$baseUrl/verify-reset-code'),
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode({'email': email, 'code': code}),
+        );
+
+        if (response.statusCode == 200) {
+          _logger.i('Reset code verified successfully.');
+        } else {
+          final data = jsonDecode(response.body);
+          throw Exception(data['message'] ?? 'Failed to verify reset code.');
+        }
+      
+    }
+
+  // Reset Password
+  Future<void> resetPassword({
+    required String email,
+    required String password,
+    required String confirmPassword,
+  }) async {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/reset-password'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'email': email,
-          'code': code,
           'password': password,
           'password_confirmation': confirmPassword,
         }),
