@@ -18,12 +18,14 @@ class NotificationService {
   final FlutterLocalNotificationsPlugin _flutterLocalNotificationsPlugin =
       FlutterLocalNotificationsPlugin();
 
-  final String apiBaseUrl = "http://192.168.124.145:8000/api"; // Replace with your backend URL
+  final String apiBaseUrl =
+      "http://10.0.2.2:8000/api"; // Replace with your backend URL
   final Logger _logger = Logger(); // Initialize a logger instance
 
   Future<void> initialize() async {
     // Request permission for notifications
-    NotificationSettings settings = await _firebaseMessaging.requestPermission();
+    NotificationSettings settings =
+        await _firebaseMessaging.requestPermission();
     if (settings.authorizationStatus == AuthorizationStatus.authorized) {
       // Retrieve FCM token and store it
       await _retrieveAndStoreToken();
@@ -47,10 +49,12 @@ class NotificationService {
       String? deviceToken = await _firebaseMessaging.getToken();
       if (deviceToken != null) {
         String deviceType = 'android'; // or 'ios' depending on the platform
-        String deviceId = 'your_unique_device_id'; // Replace with an actual unique ID
+        String deviceId =
+            'your_unique_device_id'; // Replace with an actual unique ID
 
         // Store the token using AuthService
-        await AuthService().storeNotificationToken(deviceToken, deviceId, deviceType);
+        await AuthService()
+            .storeNotificationToken(deviceToken, deviceId, deviceType);
         _logger.i('FCM token stored successfully: $deviceToken');
       }
     } catch (e, stackTrace) {
@@ -59,8 +63,10 @@ class NotificationService {
   }
 
   // Fetch notifications from the backend
-  Future<List<Map<String, dynamic>>> fetchNotifications(String authToken) async {
-    _logger.d("Fetching notifications with auth token: $authToken"); // Debug log
+  Future<List<Map<String, dynamic>>> fetchNotifications(
+      String authToken) async {
+    _logger
+        .d("Fetching notifications with auth token: $authToken"); // Debug log
     final url = Uri.parse("$apiBaseUrl/notifications");
 
     try {
@@ -86,7 +92,8 @@ class NotificationService {
           throw Exception("Unexpected response format: ${response.body}");
         }
       } else {
-        throw Exception("HTTP Request failed with status ${response.statusCode}: ${response.body}");
+        throw Exception(
+            "HTTP Request failed with status ${response.statusCode}: ${response.body}");
       }
     } catch (e, stackTrace) {
       _logger.e('Error fetching notifications', e, stackTrace);
@@ -113,7 +120,8 @@ class NotificationService {
     AndroidNotification? android = message.notification?.android;
 
     if (notification != null && android != null) {
-      const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
+      const AndroidNotificationDetails androidDetails =
+          AndroidNotificationDetails(
         'your_channel_id',
         'your_channel_name',
         channelDescription: 'your_channel_description',

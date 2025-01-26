@@ -4,7 +4,7 @@
     "type": "PACKAGED_MANIFESTS",
     "kind": "Directory"
   },
-  "applicationId": "com.example.onspot_supervisor",
+  "applicationId": "com.example.onspot_officer",
   "variantName": "debug",
   "elements": [
     {

@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.onspot_supervisor"
+    namespace = "com.example.onspot_officer"
     compileSdk = flutter.compileSdkVersion
     ndkVersion "25.1.8937393"
 
@@ -21,7 +21,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.example.onspot_supervisor"
+        applicationId = "com.example.onspot_officer"
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode

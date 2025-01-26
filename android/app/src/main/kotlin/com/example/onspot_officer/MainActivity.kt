@@ -1,4 +1,4 @@
-package com.example.onspot_supervisor
+package com.example.onspot_officer
 
 import io.flutter.embedding.android.FlutterActivity
 

@@ -1,7 +1,7 @@
 -- Merging decision tree log ---
 application
-INJECTED from C:\Users\fakhr\onspot\onspot\onspot_supervisor\android\app\src\main\AndroidManifest.xml:2:5-33:19
-INJECTED from C:\Users\fakhr\onspot\onspot\onspot_supervisor\android\app\src\debug\AndroidManifest.xml
+INJECTED from C:\Users\fakhr\onspot\onspot\onspot_officer\android\app\src\main\AndroidManifest.xml:2:5-33:19
+INJECTED from C:\Users\fakhr\onspot\onspot\onspot_officer\android\app\src\debug\AndroidManifest.xml
 MERGED from [:firebase_messaging] C:\Users\fakhr\AppData\Local\Pub\Cache\hosted\pub.dev\firebase_messaging-15.1.4\android\build\intermediates\merged_manifest\debug\AndroidManifest.xml:13:5-46:19
 MERGED from [:firebase_messaging] C:\Users\fakhr\AppData\Local\Pub\Cache\hosted\pub.dev\firebase_messaging-15.1.4\android\build\intermediates\merged_manifest\debug\AndroidManifest.xml:13:5-46:19
 MERGED from [:firebase_core] C:\Users\fakhr\AppData\Local\Pub\Cache\hosted\pub.dev\firebase_core-3.7.0\android\build\intermediates\merged_manifest\debug\AndroidManifest.xml:7:5-13:19
@@ -65,17 +65,17 @@ MERGED from [androidx.startup:startup-runtime:1.1.1] C:\Users\fakhr\.gradle\cach
 MERGED from [androidx.versionedparcelable:versionedparcelable:1.1.1] C:\Users\fakhr\.gradle\caches\8.9\transforms\ed7e6c49deae7b19fd8e3465a2656e21\transformed\versionedparcelable-1.1.1\AndroidManifest.xml:24:5-25:19
 MERGED from [androidx.versionedparcelable:versionedparcelable:1.1.1] C:\Users\fakhr\.gradle\caches\8.9\transforms\ed7e6c49deae7b19fd8e3465a2656e21\transformed\versionedparcelable-1.1.1\AndroidManifest.xml:24:5-25:19
 	android:extractNativeLibs
-		INJECTED from C:\Users\fakhr\onspot\onspot\onspot_supervisor\android\app\src\debug\AndroidManifest.xml
+		INJECTED from C:\Users\fakhr\onspot\onspot\onspot_officer\android\app\src\debug\AndroidManifest.xml
 	android:appComponentFactory
 		ADDED from [androidx.core:core:1.13.1] C:\Users\fakhr\.gradle\caches\8.9\transforms\f94475d0ee9d4fd73fbdbfc57d660a71\transformed\core-1.13.1\AndroidManifest.xml:28:18-86
 	android:name
-		INJECTED from C:\Users\fakhr\onspot\onspot\onspot_supervisor\android\app\src\main\AndroidManifest.xml
+		INJECTED from C:\Users\fakhr\onspot\onspot\onspot_officer\android\app\src\main\AndroidManifest.xml
 manifest
-ADDED from C:\Users\fakhr\onspot\onspot\onspot_supervisor\android\app\src\main\AndroidManifest.xml:1:1-45:12
-MERGED from C:\Users\fakhr\onspot\onspot\onspot_supervisor\android\app\src\main\AndroidManifest.xml:1:1-45:12
-INJECTED from C:\Users\fakhr\onspot\onspot\onspot_supervisor\android\app\src\debug\AndroidManifest.xml:1:1-7:12
-INJECTED from C:\Users\fakhr\onspot\onspot\onspot_supervisor\android\app\src\debug\AndroidManifest.xml:1:1-7:12
-INJECTED from C:\Users\fakhr\onspot\onspot\onspot_supervisor\android\app\src\debug\AndroidManifest.xml:1:1-7:12
+ADDED from C:\Users\fakhr\onspot\onspot\onspot_officer\android\app\src\main\AndroidManifest.xml:1:1-45:12
+MERGED from C:\Users\fakhr\onspot\onspot\onspot_officer\android\app\src\main\AndroidManifest.xml:1:1-45:12
+INJECTED from C:\Users\fakhr\onspot\onspot\onspot_officer\android\app\src\debug\AndroidManifest.xml:1:1-7:12
+INJECTED from C:\Users\fakhr\onspot\onspot\onspot_officer\android\app\src\debug\AndroidManifest.xml:1:1-7:12
+INJECTED from C:\Users\fakhr\onspot\onspot\onspot_officer\android\app\src\debug\AndroidManifest.xml:1:1-7:12
 MERGED from [:firebase_messaging] C:\Users\fakhr\AppData\Local\Pub\Cache\hosted\pub.dev\firebase_messaging-15.1.4\android\build\intermediates\merged_manifest\debug\AndroidManifest.xml:2:1-48:12
 MERGED from [:firebase_core] C:\Users\fakhr\AppData\Local\Pub\Cache\hosted\pub.dev\firebase_core-3.7.0\android\build\intermediates\merged_manifest\debug\AndroidManifest.xml:2:1-15:12
 MERGED from [:flutter_local_notifications] C:\Users\fakhr\AppData\Local\Pub\Cache\hosted\pub.dev\flutter_local_notifications-18.0.0\android\build\intermediates\merged_manifest\debug\AndroidManifest.xml:2:1-10:12
@@ -157,27 +157,27 @@ MERGED from [androidx.print:print:1.0.0] C:\Users\fakhr\.gradle\caches\8.9\trans
 MERGED from [androidx.window.extensions.core:core:1.0.0] C:\Users\fakhr\.gradle\caches\8.9\transforms\f1c5e152eb5311187d29732726d7a153\transformed\jetified-core-1.0.0\AndroidManifest.xml:2:1-7:12
 MERGED from [androidx.annotation:annotation-experimental:1.4.0] C:\Users\fakhr\.gradle\caches\8.9\transforms\1f496d2d99c7e1c5afce3a1d82f61743\transformed\jetified-annotation-experimental-1.4.0\AndroidManifest.xml:2:1-7:12
 	package
-		INJECTED from C:\Users\fakhr\onspot\onspot\onspot_supervisor\android\app\src\debug\AndroidManifest.xml
+		INJECTED from C:\Users\fakhr\onspot\onspot\onspot_officer\android\app\src\debug\AndroidManifest.xml
 	android:versionName
-		INJECTED from C:\Users\fakhr\onspot\onspot\onspot_supervisor\android\app\src\debug\AndroidManifest.xml
+		INJECTED from C:\Users\fakhr\onspot\onspot\onspot_officer\android\app\src\debug\AndroidManifest.xml
 	android:versionCode
-		INJECTED from C:\Users\fakhr\onspot\onspot\onspot_supervisor\android\app\src\debug\AndroidManifest.xml
+		INJECTED from C:\Users\fakhr\onspot\onspot\onspot_officer\android\app\src\debug\AndroidManifest.xml
 	xmlns:android
-		ADDED from C:\Users\fakhr\onspot\onspot\onspot_supervisor\android\app\src\main\AndroidManifest.xml:1:11-69
+		ADDED from C:\Users\fakhr\onspot\onspot\onspot_officer\android\app\src\main\AndroidManifest.xml:1:11-69
 queries
-ADDED from C:\Users\fakhr\onspot\onspot\onspot_supervisor\android\app\src\main\AndroidManifest.xml:39:5-44:15
+ADDED from C:\Users\fakhr\onspot\onspot\onspot_officer\android\app\src\main\AndroidManifest.xml:39:5-44:15
 intent#action:name:android.intent.action.PROCESS_TEXT+data:mimeType:text/plain
-ADDED from C:\Users\fakhr\onspot\onspot\onspot_supervisor\android\app\src\main\AndroidManifest.xml:40:9-43:18
+ADDED from C:\Users\fakhr\onspot\onspot\onspot_officer\android\app\src\main\AndroidManifest.xml:40:9-43:18
 action#android.intent.action.PROCESS_TEXT
-ADDED from C:\Users\fakhr\onspot\onspot\onspot_supervisor\android\app\src\main\AndroidManifest.xml:41:13-72
+ADDED from C:\Users\fakhr\onspot\onspot\onspot_officer\android\app\src\main\AndroidManifest.xml:41:13-72
 	android:name
-		ADDED from C:\Users\fakhr\onspot\onspot\onspot_supervisor\android\app\src\main\AndroidManifest.xml:41:21-70
+		ADDED from C:\Users\fakhr\onspot\onspot\onspot_officer\android\app\src\main\AndroidManifest.xml:41:21-70
 data
-ADDED from C:\Users\fakhr\onspot\onspot\onspot_supervisor\android\app\src\main\AndroidManifest.xml:42:13-50
+ADDED from C:\Users\fakhr\onspot\onspot\onspot_officer\android\app\src\main\AndroidManifest.xml:42:13-50
 	android:mimeType
-		ADDED from C:\Users\fakhr\onspot\onspot\onspot_supervisor\android\app\src\main\AndroidManifest.xml:42:19-48
+		ADDED from C:\Users\fakhr\onspot\onspot\onspot_officer\android\app\src\main\AndroidManifest.xml:42:19-48
 uses-permission#android.permission.INTERNET
-ADDED from C:\Users\fakhr\onspot\onspot\onspot_supervisor\android\app\src\debug\AndroidManifest.xml:6:5-66
+ADDED from C:\Users\fakhr\onspot\onspot\onspot_officer\android\app\src\debug\AndroidManifest.xml:6:5-66
 MERGED from [:firebase_messaging] C:\Users\fakhr\AppData\Local\Pub\Cache\hosted\pub.dev\firebase_messaging-15.1.4\android\build\intermediates\merged_manifest\debug\AndroidManifest.xml:7:5-67
 MERGED from [:firebase_messaging] C:\Users\fakhr\AppData\Local\Pub\Cache\hosted\pub.dev\firebase_messaging-15.1.4\android\build\intermediates\merged_manifest\debug\AndroidManifest.xml:7:5-67
 MERGED from [com.google.android.gms:play-services-measurement-api:22.1.2] C:\Users\fakhr\.gradle\caches\8.9\transforms\5e424a7e7a6e4881923d437f22c4cbae\transformed\jetified-play-services-measurement-api-22.1.2\AndroidManifest.xml:22:5-67
@@ -195,11 +195,11 @@ MERGED from [com.google.android.gms:play-services-measurement-sdk-api:22.1.2] C:
 MERGED from [com.google.android.datatransport:transport-backend-cct:3.1.9] C:\Users\fakhr\.gradle\caches\8.9\transforms\09e4dcf0a71bbbb55fe8ec841b2825ec\transformed\jetified-transport-backend-cct-3.1.9\AndroidManifest.xml:25:5-67
 MERGED from [com.google.android.datatransport:transport-backend-cct:3.1.9] C:\Users\fakhr\.gradle\caches\8.9\transforms\09e4dcf0a71bbbb55fe8ec841b2825ec\transformed\jetified-transport-backend-cct-3.1.9\AndroidManifest.xml:25:5-67
 	android:name
-		ADDED from C:\Users\fakhr\onspot\onspot\onspot_supervisor\android\app\src\debug\AndroidManifest.xml:6:22-64
+		ADDED from C:\Users\fakhr\onspot\onspot\onspot_officer\android\app\src\debug\AndroidManifest.xml:6:22-64
 uses-sdk
-INJECTED from C:\Users\fakhr\onspot\onspot\onspot_supervisor\android\app\src\debug\AndroidManifest.xml reason: use-sdk injection requested
-INJECTED from C:\Users\fakhr\onspot\onspot\onspot_supervisor\android\app\src\debug\AndroidManifest.xml
-INJECTED from C:\Users\fakhr\onspot\onspot\onspot_supervisor\android\app\src\debug\AndroidManifest.xml
+INJECTED from C:\Users\fakhr\onspot\onspot\onspot_officer\android\app\src\debug\AndroidManifest.xml reason: use-sdk injection requested
+INJECTED from C:\Users\fakhr\onspot\onspot\onspot_officer\android\app\src\debug\AndroidManifest.xml
+INJECTED from C:\Users\fakhr\onspot\onspot\onspot_officer\android\app\src\debug\AndroidManifest.xml
 MERGED from [:firebase_messaging] C:\Users\fakhr\AppData\Local\Pub\Cache\hosted\pub.dev\firebase_messaging-15.1.4\android\build\intermediates\merged_manifest\debug\AndroidManifest.xml:5:5-44
 MERGED from [:firebase_messaging] C:\Users\fakhr\AppData\Local\Pub\Cache\hosted\pub.dev\firebase_messaging-15.1.4\android\build\intermediates\merged_manifest\debug\AndroidManifest.xml:5:5-44
 MERGED from [:firebase_core] C:\Users\fakhr\AppData\Local\Pub\Cache\hosted\pub.dev\firebase_core-3.7.0\android\build\intermediates\merged_manifest\debug\AndroidManifest.xml:5:5-44
@@ -363,9 +363,9 @@ MERGED from [androidx.annotation:annotation-experimental:1.4.0] C:\Users\fakhr\.
 	tools:overrideLibrary
 		ADDED from [:flutter_secure_storage] C:\Users\fakhr\AppData\Local\Pub\Cache\hosted\pub.dev\flutter_secure_storage-9.2.2\android\build\intermediates\merged_manifest\debug\AndroidManifest.xml:8:9-50
 	android:targetSdkVersion
-		INJECTED from C:\Users\fakhr\onspot\onspot\onspot_supervisor\android\app\src\debug\AndroidManifest.xml
+		INJECTED from C:\Users\fakhr\onspot\onspot\onspot_officer\android\app\src\debug\AndroidManifest.xml
 	android:minSdkVersion
-		INJECTED from C:\Users\fakhr\onspot\onspot\onspot_supervisor\android\app\src\debug\AndroidManifest.xml
+		INJECTED from C:\Users\fakhr\onspot\onspot\onspot_officer\android\app\src\debug\AndroidManifest.xml
 uses-permission#android.permission.WAKE_LOCK
 ADDED from [:firebase_messaging] C:\Users\fakhr\AppData\Local\Pub\Cache\hosted\pub.dev\firebase_messaging-15.1.4\android\build\intermediates\merged_manifest\debug\AndroidManifest.xml:8:5-68
 MERGED from [com.google.firebase:firebase-messaging:24.0.3] C:\Users\fakhr\.gradle\caches\8.9\transforms\bde468565c9f28fd05366c26855a9a54\transformed\jetified-firebase-messaging-24.0.3\AndroidManifest.xml:24:5-68
@@ -742,7 +742,7 @@ ADDED from [androidx.core:core:1.13.1] C:\Users\fakhr\.gradle\caches\8.9\transfo
 		ADDED from [androidx.core:core:1.13.1] C:\Users\fakhr\.gradle\caches\8.9\transforms\f94475d0ee9d4fd73fbdbfc57d660a71\transformed\core-1.13.1\AndroidManifest.xml:24:9-44
 	android:name
 		ADDED from [androidx.core:core:1.13.1] C:\Users\fakhr\.gradle\caches\8.9\transforms\f94475d0ee9d4fd73fbdbfc57d660a71\transformed\core-1.13.1\AndroidManifest.xml:23:9-81
-permission#com.example.onspot_supervisor.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION
+permission#com.example.onspot_officer.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION
 ADDED from [androidx.core:core:1.13.1] C:\Users\fakhr\.gradle\caches\8.9\transforms\f94475d0ee9d4fd73fbdbfc57d660a71\transformed\core-1.13.1\AndroidManifest.xml:22:5-24:47
 	android:protectionLevel
 		ADDED from [androidx.core:core:1.13.1] C:\Users\fakhr\.gradle\caches\8.9\transforms\f94475d0ee9d4fd73fbdbfc57d660a71\transformed\core-1.13.1\AndroidManifest.xml:24:9-44
@@ -752,7 +752,7 @@ uses-permission#${applicationId}.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION
 ADDED from [androidx.core:core:1.13.1] C:\Users\fakhr\.gradle\caches\8.9\transforms\f94475d0ee9d4fd73fbdbfc57d660a71\transformed\core-1.13.1\AndroidManifest.xml:26:5-97
 	android:name
 		ADDED from [androidx.core:core:1.13.1] C:\Users\fakhr\.gradle\caches\8.9\transforms\f94475d0ee9d4fd73fbdbfc57d660a71\transformed\core-1.13.1\AndroidManifest.xml:26:22-94
-uses-permission#com.example.onspot_supervisor.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION
+uses-permission#com.example.onspot_officer.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION
 ADDED from [androidx.core:core:1.13.1] C:\Users\fakhr\.gradle\caches\8.9\transforms\f94475d0ee9d4fd73fbdbfc57d660a71\transformed\core-1.13.1\AndroidManifest.xml:26:5-97
 	android:name
 		ADDED from [androidx.core:core:1.13.1] C:\Users\fakhr\.gradle\caches\8.9\transforms\f94475d0ee9d4fd73fbdbfc57d660a71\transformed\core-1.13.1\AndroidManifest.xml:26:22-94

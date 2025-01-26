@@ -5,7 +5,6 @@ import 'homescreen.dart';
 import 'complaints.dart';
 import 'history.dart';
 import 'profile.dart';
-import 'search.dart';
 import 'navbar.dart';
 
 class MainNavigator extends ConsumerWidget {
@@ -13,10 +12,10 @@ class MainNavigator extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final currentIndex = ref.watch(currentIndexProvider); // Watch the current index
+    final currentIndex =
+        ref.watch(currentIndexProvider); // Watch the current index
     final List<Widget> pages = [
       const SupervisorHomeScreen(),
-      const SearchPage(),
       const ComplaintPage(),
       const HistoryPage(),
       const SVProfileScreen(),

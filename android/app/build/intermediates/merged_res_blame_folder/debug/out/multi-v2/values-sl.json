@@ -1,7 +1,7 @@
 {
     "logs": [
         {
-            "outputFile": "com.example.onspot_supervisor.app-mergeDebugResources-49:/values-sl/values-sl.xml",
+            "outputFile": "com.example.onspot_officer.app-mergeDebugResources-49:/values-sl/values-sl.xml",
             "map": [
                 {
                     "source": "C:\\Users\\fakhr\\.gradle\\caches\\8.9\\transforms\\f94475d0ee9d4fd73fbdbfc57d660a71\\transformed\\core-1.13.1\\res\\values-sl\\values-sl.xml",

@@ -1,7 +1,7 @@
 {
     "logs": [
         {
-            "outputFile": "com.example.onspot_supervisor.app-mergeDebugResources-49:/values-kn/values-kn.xml",
+            "outputFile": "com.example.onspot_officer.app-mergeDebugResources-49:/values-kn/values-kn.xml",
             "map": [
                 {
                     "source": "C:\\Users\\fakhr\\.gradle\\caches\\8.9\\transforms\\c3a832e05112998ddb0ac0d7ac76a618\\transformed\\jetified-play-services-basement-18.4.0\\res\\values-kn\\values.xml",

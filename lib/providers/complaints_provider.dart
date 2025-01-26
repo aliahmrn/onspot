@@ -20,7 +20,7 @@ final historyProvider = FutureProvider.family<List<Map<String, dynamic>>, Map<St
 
   final ComplaintsService historyService = ComplaintsService();
   return await historyService.fetchAssignedTasksHistory(
-    supervisorId: supervisorId,
+    officerId: supervisorId,
     statusFilter: filters['category'],
     monthFilter: filters['month'],
   );

@@ -1,6 +1,6 @@
 1<?xml version="1.0" encoding="utf-8"?>
 2<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-3    package="com.example.onspot_supervisor"
+3    package="com.example.onspot_officer"
 4    android:versionCode="1"
 5    android:versionName="1.0.0" >
 6
@@ -13,8 +13,8 @@
 13         to allow setting breakpoints, to provide hot reload, etc.
 14    -->
 15    <uses-permission android:name="android.permission.INTERNET" />
-15-->C:\Users\fakhr\onspot\onspot\onspot_supervisor\android\app\src\debug\AndroidManifest.xml:6:5-66
-15-->C:\Users\fakhr\onspot\onspot\onspot_supervisor\android\app\src\debug\AndroidManifest.xml:6:22-64
+15-->C:\Users\fakhr\onspot\onspot\onspot_officer\android\app\src\debug\AndroidManifest.xml:6:5-66
+15-->C:\Users\fakhr\onspot\onspot\onspot_officer\android\app\src\debug\AndroidManifest.xml:6:22-64
 16    <!--
 17     Required to query activities that can process text, see:
 18         https://developer.android.com/training/package-visibility and
@@ -23,16 +23,16 @@
 21         In particular, this is used by the Flutter engine in io.flutter.plugin.text.ProcessTextPlugin.
 22    -->
 23    <queries>
-23-->C:\Users\fakhr\onspot\onspot\onspot_supervisor\android\app\src\main\AndroidManifest.xml:39:5-44:15
+23-->C:\Users\fakhr\onspot\onspot\onspot_officer\android\app\src\main\AndroidManifest.xml:39:5-44:15
 24        <intent>
-24-->C:\Users\fakhr\onspot\onspot\onspot_supervisor\android\app\src\main\AndroidManifest.xml:40:9-43:18
+24-->C:\Users\fakhr\onspot\onspot\onspot_officer\android\app\src\main\AndroidManifest.xml:40:9-43:18
 25            <action android:name="android.intent.action.PROCESS_TEXT" />
-25-->C:\Users\fakhr\onspot\onspot\onspot_supervisor\android\app\src\main\AndroidManifest.xml:41:13-72
-25-->C:\Users\fakhr\onspot\onspot\onspot_supervisor\android\app\src\main\AndroidManifest.xml:41:21-70
+25-->C:\Users\fakhr\onspot\onspot\onspot_officer\android\app\src\main\AndroidManifest.xml:41:13-72
+25-->C:\Users\fakhr\onspot\onspot\onspot_officer\android\app\src\main\AndroidManifest.xml:41:21-70
 26
 27            <data android:mimeType="text/plain" />
-27-->C:\Users\fakhr\onspot\onspot\onspot_supervisor\android\app\src\main\AndroidManifest.xml:42:13-50
-27-->C:\Users\fakhr\onspot\onspot\onspot_supervisor\android\app\src\main\AndroidManifest.xml:42:19-48
+27-->C:\Users\fakhr\onspot\onspot\onspot_officer\android\app\src\main\AndroidManifest.xml:42:13-50
+27-->C:\Users\fakhr\onspot\onspot\onspot_officer\android\app\src\main\AndroidManifest.xml:42:19-48
 28        </intent>
 29    </queries>
 30
@@ -66,12 +66,12 @@
 40
 41    <permission
 41-->[androidx.core:core:1.13.1] C:\Users\fakhr\.gradle\caches\8.9\transforms\f94475d0ee9d4fd73fbdbfc57d660a71\transformed\core-1.13.1\AndroidManifest.xml:22:5-24:47
-42        android:name="com.example.onspot_supervisor.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+42        android:name="com.example.onspot_officer.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
 42-->[androidx.core:core:1.13.1] C:\Users\fakhr\.gradle\caches\8.9\transforms\f94475d0ee9d4fd73fbdbfc57d660a71\transformed\core-1.13.1\AndroidManifest.xml:23:9-81
 43        android:protectionLevel="signature" />
 43-->[androidx.core:core:1.13.1] C:\Users\fakhr\.gradle\caches\8.9\transforms\f94475d0ee9d4fd73fbdbfc57d660a71\transformed\core-1.13.1\AndroidManifest.xml:24:9-44
 44
-45    <uses-permission android:name="com.example.onspot_supervisor.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" />
+45    <uses-permission android:name="com.example.onspot_officer.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" />
 45-->[androidx.core:core:1.13.1] C:\Users\fakhr\.gradle\caches\8.9\transforms\f94475d0ee9d4fd73fbdbfc57d660a71\transformed\core-1.13.1\AndroidManifest.xml:26:5-97
 45-->[androidx.core:core:1.13.1] C:\Users\fakhr\.gradle\caches\8.9\transforms\f94475d0ee9d4fd73fbdbfc57d660a71\transformed\core-1.13.1\AndroidManifest.xml:26:22-94
 46
@@ -82,9 +82,9 @@
 50        android:debuggable="true"
 51        android:extractNativeLibs="true"
 52        android:icon="@mipmap/ic_launcher"
-53        android:label="onspot_supervisor" >
+53        android:label="onspot_officer" >
 54        <activity
-55            android:name="com.example.onspot_supervisor.MainActivity"
+55            android:name="com.example.onspot_officer.MainActivity"
 56            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
 57            android:exported="true"
 58            android:hardwareAccelerated="true"
@@ -229,7 +229,7 @@
 145-->[:firebase_messaging] C:\Users\fakhr\AppData\Local\Pub\Cache\hosted\pub.dev\firebase_messaging-15.1.4\android\build\intermediates\merged_manifest\debug\AndroidManifest.xml:41:9-45:38
 146            android:name="io.flutter.plugins.firebase.messaging.FlutterFirebaseMessagingInitProvider"
 146-->[:firebase_messaging] C:\Users\fakhr\AppData\Local\Pub\Cache\hosted\pub.dev\firebase_messaging-15.1.4\android\build\intermediates\merged_manifest\debug\AndroidManifest.xml:42:13-102
-147            android:authorities="com.example.onspot_supervisor.flutterfirebasemessaginginitprovider"
+147            android:authorities="com.example.onspot_officer.flutterfirebasemessaginginitprovider"
 147-->[:firebase_messaging] C:\Users\fakhr\AppData\Local\Pub\Cache\hosted\pub.dev\firebase_messaging-15.1.4\android\build\intermediates\merged_manifest\debug\AndroidManifest.xml:43:13-88
 148            android:exported="false"
 148-->[:firebase_messaging] C:\Users\fakhr\AppData\Local\Pub\Cache\hosted\pub.dev\firebase_messaging-15.1.4\android\build\intermediates\merged_manifest\debug\AndroidManifest.xml:44:13-37
@@ -239,7 +239,7 @@
 150-->[:image_picker_android] C:\Users\fakhr\AppData\Local\Pub\Cache\hosted\pub.dev\image_picker_android-0.8.12+17\android\build\intermediates\merged_manifest\debug\AndroidManifest.xml:9:9-17:20
 151            android:name="io.flutter.plugins.imagepicker.ImagePickerFileProvider"
 151-->[:image_picker_android] C:\Users\fakhr\AppData\Local\Pub\Cache\hosted\pub.dev\image_picker_android-0.8.12+17\android\build\intermediates\merged_manifest\debug\AndroidManifest.xml:10:13-82
-152            android:authorities="com.example.onspot_supervisor.flutter.image_provider"
+152            android:authorities="com.example.onspot_officer.flutter.image_provider"
 152-->[:image_picker_android] C:\Users\fakhr\AppData\Local\Pub\Cache\hosted\pub.dev\image_picker_android-0.8.12+17\android\build\intermediates\merged_manifest\debug\AndroidManifest.xml:11:13-74
 153            android:exported="false"
 153-->[:image_picker_android] C:\Users\fakhr\AppData\Local\Pub\Cache\hosted\pub.dev\image_picker_android-0.8.12+17\android\build\intermediates\merged_manifest\debug\AndroidManifest.xml:12:13-37
@@ -328,7 +328,7 @@
 201-->[com.google.firebase:firebase-common:21.0.0] C:\Users\fakhr\.gradle\caches\8.9\transforms\7f6b20f6e60fb0c5cb7680add6ecff66\transformed\jetified-firebase-common-21.0.0\AndroidManifest.xml:23:9-28:39
 202            android:name="com.google.firebase.provider.FirebaseInitProvider"
 202-->[com.google.firebase:firebase-common:21.0.0] C:\Users\fakhr\.gradle\caches\8.9\transforms\7f6b20f6e60fb0c5cb7680add6ecff66\transformed\jetified-firebase-common-21.0.0\AndroidManifest.xml:24:13-77
-203            android:authorities="com.example.onspot_supervisor.firebaseinitprovider"
+203            android:authorities="com.example.onspot_officer.firebaseinitprovider"
 203-->[com.google.firebase:firebase-common:21.0.0] C:\Users\fakhr\.gradle\caches\8.9\transforms\7f6b20f6e60fb0c5cb7680add6ecff66\transformed\jetified-firebase-common-21.0.0\AndroidManifest.xml:25:13-72
 204            android:directBootAware="true"
 204-->[com.google.firebase:firebase-common:21.0.0] C:\Users\fakhr\.gradle\caches\8.9\transforms\7f6b20f6e60fb0c5cb7680add6ecff66\transformed\jetified-firebase-common-21.0.0\AndroidManifest.xml:26:13-43
@@ -398,7 +398,7 @@
 239-->[androidx.emoji2:emoji2:1.0.0] C:\Users\fakhr\.gradle\caches\8.9\transforms\2d751f6f8bd2191e86bece774180e5b0\transformed\jetified-emoji2-1.0.0\AndroidManifest.xml:26:9-34:20
 240            android:name="androidx.startup.InitializationProvider"
 240-->[androidx.emoji2:emoji2:1.0.0] C:\Users\fakhr\.gradle\caches\8.9\transforms\2d751f6f8bd2191e86bece774180e5b0\transformed\jetified-emoji2-1.0.0\AndroidManifest.xml:27:13-67
-241            android:authorities="com.example.onspot_supervisor.androidx-startup"
+241            android:authorities="com.example.onspot_officer.androidx-startup"
 241-->[androidx.emoji2:emoji2:1.0.0] C:\Users\fakhr\.gradle\caches\8.9\transforms\2d751f6f8bd2191e86bece774180e5b0\transformed\jetified-emoji2-1.0.0\AndroidManifest.xml:28:13-68
 242            android:exported="false" >
 242-->[androidx.emoji2:emoji2:1.0.0] C:\Users\fakhr\.gradle\caches\8.9\transforms\2d751f6f8bd2191e86bece774180e5b0\transformed\jetified-emoji2-1.0.0\AndroidManifest.xml:29:13-37

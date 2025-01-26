@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:logger/logger.dart';
 
 class ProfileService {
-  final String baseUrl = 'http://192.168.124.145:8000/api';
+  final String baseUrl = 'http://10.0.2.2:8000/api';
   final Logger _logger = Logger();
 
   Future<Map<String, dynamic>> fetchProfile(String token) async {
@@ -28,7 +28,8 @@ class ProfileService {
     }
   }
 
-  Future<void> updateProfile(String token, Map<String, dynamic> updatedData) async {
+  Future<void> updateProfile(
+      String token, Map<String, dynamic> updatedData) async {
     final uri = Uri.parse('$baseUrl/profile');
     final headers = {
       'Authorization': 'Bearer $token',
@@ -52,7 +53,6 @@ class ProfileService {
     }
   }
 
-
   Future<String> uploadProfilePicture(String token, String filePath) async {
     final uri = Uri.parse('$baseUrl/profile/picture');
     final headers = {'Authorization': 'Bearer $token'};
@@ -67,7 +67,8 @@ class ProfileService {
 
       if (response.statusCode == 200) {
         final responseData = jsonDecode(response.body);
-        return responseData['profile_pic']; // Returns the updated profile picture URL
+        return responseData[
+            'profile_pic']; // Returns the updated profile picture URL
       } else {
         throw Exception('Failed to upload profile picture: ${response.body}');
       }
@@ -86,7 +87,8 @@ class ProfileService {
       if (response.statusCode == 200) {
         final responseData = jsonDecode(response.body);
         final profilePic = responseData['profile_pic'];
-        _logger.i('✅ Profile picture deleted successfully. New profilePic: $profilePic');
+        _logger.i(
+            '✅ Profile picture deleted successfully. New profilePic: $profilePic');
         return profilePic; // Return the updated profile picture URL
       } else {
         throw Exception('Failed to delete profile picture: ${response.body}');

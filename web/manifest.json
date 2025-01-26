@@ -1,6 +1,6 @@
 {
-    "name": "onspot_supervisor",
-    "short_name": "onspot_supervisor",
+    "name": "onspot_officer",
+    "short_name": "onspot_officer",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

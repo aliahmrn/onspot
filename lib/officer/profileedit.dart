@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../providers/profileedit_provider.dart';
-import '../supervisor/main_navigator.dart';
+import 'main_navigator.dart';
 import '../widget/profile_picture_widget.dart';
 import '../providers/profile_provider.dart';
 import '../providers/navigation_provider.dart';

@@ -90,12 +90,12 @@ BEGIN
         BLOCK "040904e4"
         BEGIN
             VALUE "CompanyName", "com.example" "\0"
-            VALUE "FileDescription", "onspot_supervisor" "\0"
+            VALUE "FileDescription", "onspot_officer" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "onspot_supervisor" "\0"
+            VALUE "InternalName", "onspot_officer" "\0"
             VALUE "LegalCopyright", "Copyright (C) 2024 com.example. All rights reserved." "\0"
-            VALUE "OriginalFilename", "onspot_supervisor.exe" "\0"
-            VALUE "ProductName", "onspot_supervisor" "\0"
+            VALUE "OriginalFilename", "onspot_officer.exe" "\0"
+            VALUE "ProductName", "onspot_officer" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END

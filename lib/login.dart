@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../service/auth_service.dart';
-import '../supervisor/main_navigator.dart';
+import 'officer/main_navigator.dart';
 import 'register.dart';
 import 'forgot_password.dart';
 import 'package:logger/logger.dart';

@@ -5,23 +5,18 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class ComplaintsService {
   final SupabaseClient _client = Supabase.instance.client;
-  final String baseUrl = 'http://192.168.124.145:8000/api';
+  final String baseUrl = 'http://10.0.2.2:8000/api';
 
+  Future<List<Map<String, dynamic>>> fetchComplaints() async {
+    final response = await _client.from('complaint').select().eq('comp_status',
+        'pending'); // Filters for complaints with comp_status = 'pending'
 
-
-Future<List<Map<String, dynamic>>> fetchComplaints() async {
-  final response = await _client
-      .from('complaint')
-      .select()
-      .eq('comp_status', 'pending'); // Filters for complaints with comp_status = 'pending'
-
-  return List<Map<String, dynamic>>.from(response);
-}
-
+    return List<Map<String, dynamic>>.from(response);
+  }
 
   Future<Map<String, dynamic>> fetchComplaintDetails(String complaintId) async {
     try {
-      final url = Uri.parse('$baseUrl/supervisor/assign-task/$complaintId');
+      final url = Uri.parse('$baseUrl/officer/assign-task/$complaintId');
 
       final prefs = await SharedPreferences.getInstance();
       final bearerToken = prefs.getString('token');
@@ -42,82 +37,90 @@ Future<List<Map<String, dynamic>>> fetchComplaints() async {
         final data = json.decode(response.body);
         return data;
       } else {
-        throw Exception('Failed to fetch complaint details: ${response.statusCode}');
+        throw Exception(
+            'Failed to fetch complaint details: ${response.statusCode}');
       }
     } catch (e) {
       throw Exception('Error fetching complaint details: $e');
     }
   }
 
-Future<List<Map<String, dynamic>>> fetchAssignedTasksHistory({
-  required int supervisorId,
-  String? statusFilter,
-  String? monthFilter,
-}) async {
-  try {
-    print('Fetching tasks for supervisorId: $supervisorId, statusFilter: $statusFilter, monthFilter: $monthFilter');
+  Future<List<Map<String, dynamic>>> fetchAssignedTasksHistory({
+    required int officerId,
+    String? statusFilter,
+    String? monthFilter,
+  }) async {
+    try {
+      print(
+          'Fetching tasks for officerId: $officerId, statusFilter: $statusFilter, monthFilter: $monthFilter');
 
-    // Call the RPC function or query with filters
-    final response = await _client.rpc(
-      'filter_by_month',
-      params: {
-        'supervisor_id': supervisorId,
-        'status_filter': statusFilter,
-        'month_filter': monthFilter,
-      },
-    );
+      // Call the RPC function or query with filters
+      final response = await _client.rpc(
+        'filter_by_month',
+        params: {
+          'officer_id': officerId,
+          'status_filter': statusFilter,
+          'month_filter': monthFilter,
+        },
+      );
 
-    // Log the raw response
-    print('RPC Response: $response');
+      // Log the raw response
+      print('RPC Response: $response');
 
-    // Ensure the response is a List of JSON objects
-    if (response is List<dynamic>) {
-      // Parse the JSON response into a list of maps
-      final List<Map<String, dynamic>> tasks = List<Map<String, dynamic>>.from(
-        response.map((task) => Map<String, dynamic>.from(task)),
-      )..sort((a, b) {
-          // Sort by comp_date in descending order
-          final dateA = DateTime.tryParse(a['assigned_date'] ?? '') ?? DateTime(0);
-          final dateB = DateTime.tryParse(b['assigned_date'] ?? '') ?? DateTime(0);
-          return dateB.compareTo(dateA);
-        });
+      // Ensure the response is a List of JSON objects
+      if (response is List<dynamic>) {
+        // Parse the JSON response into a list of maps
+        final List<Map<String, dynamic>> tasks =
+            List<Map<String, dynamic>>.from(
+          response.map((task) => Map<String, dynamic>.from(task)),
+        )..sort((a, b) {
+                // Sort by comp_date in descending order
+                final dateA =
+                    DateTime.tryParse(a['assigned_date'] ?? '') ?? DateTime(0);
+                final dateB =
+                    DateTime.tryParse(b['assigned_date'] ?? '') ?? DateTime(0);
+                return dateB.compareTo(dateA);
+              });
 
-      print('Raw tasks: $tasks');
+        print('Raw tasks: $tasks');
 
-      // Map tasks to include `complaint_id` and `assigned_date`
-      final List<Map<String, dynamic>> formattedTasks = tasks.map((task) {
-        return {
-          'complaint_id': task['complaint_id'], // Use the correct complaint_id
-          'comp_desc': task['comp_desc'],
-          'comp_date': task['comp_date'],
-          'assigned_date': task['assigned_date'], // Include the assigned_date from complaint_cleaner
-          'no_of_cleaners': task['no_of_cleaners'],
-          'comp_status': task['comp_status'], // Add additional fields as needed
-        };
-      }).toList();
+        // Map tasks to include `complaint_id` and `assigned_date`
+        final List<Map<String, dynamic>> formattedTasks = tasks.map((task) {
+          return {
+            'complaint_id':
+                task['complaint_id'], // Use the correct complaint_id
+            'comp_desc': task['comp_desc'],
+            'comp_date': task['comp_date'],
+            'assigned_date': task[
+                'assigned_date'], // Include the assigned_date from complaint_cleaner
+            'no_of_cleaners': task['no_of_cleaners'],
+            'comp_status':
+                task['comp_status'], // Add additional fields as needed
+          };
+        }).toList();
 
-      // Filter tasks to include only one per unique complaint_id
-      final Set<int> seenComplaintIds = {};
-      final List<Map<String, dynamic>> uniqueTasks = formattedTasks.where((task) {
-        final complaintId = task['complaint_id'] as int?;
-        if (complaintId != null && !seenComplaintIds.contains(complaintId)) {
-          seenComplaintIds.add(complaintId);
-          return true;
-        }
-        return false;
-      }).toList();
+        // Filter tasks to include only one per unique complaint_id
+        final Set<int> seenComplaintIds = {};
+        final List<Map<String, dynamic>> uniqueTasks =
+            formattedTasks.where((task) {
+          final complaintId = task['complaint_id'] as int?;
+          if (complaintId != null && !seenComplaintIds.contains(complaintId)) {
+            seenComplaintIds.add(complaintId);
+            return true;
+          }
+          return false;
+        }).toList();
 
-      print('Filtered unique tasks: $uniqueTasks');
-      return uniqueTasks;
-    } else {
-      throw Exception('Unexpected response type from RPC function');
+        print('Filtered unique tasks: $uniqueTasks');
+        return uniqueTasks;
+      } else {
+        throw Exception('Unexpected response type from RPC function');
+      }
+    } catch (e) {
+      print('Error in fetchAssignedTasksHistory: $e');
+      throw Exception('Error fetching task history: $e');
     }
-  } catch (e) {
-    print('Error in fetchAssignedTasksHistory: $e');
-    throw Exception('Error fetching task history: $e');
   }
-}
-
 
   Future<Map<String, dynamic>> fetchHistoryDetails(String complaintId) async {
     try {
@@ -139,8 +142,10 @@ Future<List<Map<String, dynamic>>> fetchAssignedTasksHistory({
       final complaint = Map<String, dynamic>.from(response);
 
       // Extract cleaner IDs and officer ID
-      final cleanerDetails = complaint['complaint_cleaner'] as List<dynamic>? ?? [];
-      final cleanerIds = cleanerDetails.map((e) => e['cleaner_id'] as int).toList();
+      final cleanerDetails =
+          complaint['complaint_cleaner'] as List<dynamic>? ?? [];
+      final cleanerIds =
+          cleanerDetails.map((e) => e['cleaner_id'] as int).toList();
       final officerId = complaint['officer_id'] as int?;
 
       if (officerId == null || cleanerIds.isEmpty) {
@@ -181,9 +186,12 @@ Future<List<Map<String, dynamic>>> fetchAssignedTasksHistory({
 
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
-        return {for (var user in data) user['id'] as int: user['name'] as String};
+        return {
+          for (var user in data) user['id'] as int: user['name'] as String
+        };
       } else {
-        throw Exception('Failed to fetch user names. Status code: ${response.statusCode}');
+        throw Exception(
+            'Failed to fetch user names. Status code: ${response.statusCode}');
       }
     } catch (e) {
       print('Error fetching user names: $e');
@@ -191,34 +199,33 @@ Future<List<Map<String, dynamic>>> fetchAssignedTasksHistory({
     }
   }
 
-
   Future<Map<String, dynamic>?> fetchLatestComplaint() async {
-  try {
-    print('Fetching the latest complaint...');
-    final response = await _client
-        .from('complaint')
-        .select()
-        .eq('comp_status', 'pending') // Filter by `comp_status = 'pending'`
-        .order('created_at', ascending: false) // Order by creation date (newest first)
-        .limit(1)
-        .maybeSingle(); // Fetch the latest complaint or return null if none exist
+    try {
+      print('Fetching the latest complaint...');
+      final response = await _client
+          .from('complaint')
+          .select()
+          .eq('comp_status', 'pending') // Filter by `comp_status = 'pending'`
+          .order('created_at',
+              ascending: false) // Order by creation date (newest first)
+          .limit(1)
+          .maybeSingle(); // Fetch the latest complaint or return null if none exist
 
-    print('Query response: $response'); // Log the response
+      print('Query response: $response'); // Log the response
 
-    if (response == null) {
-      print('No pending complaints found.');
-      return null;
+      if (response == null) {
+        print('No pending complaints found.');
+        return null;
+      }
+
+      return Map<String, dynamic>.from(response); // Convert response to Map
+    } catch (e) {
+      print('Error in fetchLatestComplaint: $e');
+      throw Exception('Error fetching latest complaint: $e');
     }
-
-    return Map<String, dynamic>.from(response); // Convert response to Map
-  } catch (e) {
-    print('Error in fetchLatestComplaint: $e');
-    throw Exception('Error fetching latest complaint: $e');
   }
-  }
-  
 
- Future<Map<String, dynamic>> assignTask({
+  Future<Map<String, dynamic>> assignTask({
     required String complaintId,
     required List<int> cleanerIds,
     required int noOfCleaners,
@@ -241,7 +248,8 @@ Future<List<Map<String, dynamic>>> fetchAssignedTasksHistory({
       }
 
       // Step 3: Make the HTTP request
-      final url = Uri.parse('$baseUrl/supervisor/assign-task/$complaintId/assign');
+      final url =
+          Uri.parse('$baseUrl/officer/assign-task/$complaintId/assign');
       final response = await http.post(
         url,
         headers: {
@@ -268,4 +276,3 @@ Future<List<Map<String, dynamic>>> fetchAssignedTasksHistory({
     }
   }
 }
-

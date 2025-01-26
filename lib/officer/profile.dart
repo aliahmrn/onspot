@@ -4,7 +4,7 @@ import '../providers/profile_provider.dart';
 import '../widget/profile_picture_widget.dart';
 import '../service/auth_service.dart';
 import 'profileedit.dart';
-import '../supervisor/main_navigator.dart';
+import 'main_navigator.dart';
 import '../providers/navigation_provider.dart';
 
 class SVProfileScreen extends ConsumerWidget {

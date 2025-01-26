@@ -1,7 +1,7 @@
 {
     "logs": [
         {
-            "outputFile": "com.example.onspot_supervisor.app-merged_res-51:/values-en-rAU_values-en-rAU.arsc.flat",
+            "outputFile": "com.example.onspot_officer.app-merged_res-51:/values-en-rAU_values-en-rAU.arsc.flat",
             "map": [
                 {
                     "source": "C:\\Users\\fakhr\\.gradle\\caches\\8.9\\transforms\\f94475d0ee9d4fd73fbdbfc57d660a71\\transformed\\core-1.13.1\\res\\values-en-rAU\\values-en-rAU.xml",
@@ -40,7 +40,7 @@
             ]
         },
         {
-            "outputFile": "com.example.onspot_supervisor.app-merged_res-51:/values-v24_values-v24.arsc.flat",
+            "outputFile": "com.example.onspot_officer.app-merged_res-51:/values-v24_values-v24.arsc.flat",
             "map": [
                 {
                     "source": "C:\\Users\\fakhr\\.gradle\\caches\\8.9\\transforms\\c59c0d8adede3cb2b202b2069b11af8a\\transformed\\media-1.1.0\\res\\values-v24\\values-v24.xml",
@@ -72,7 +72,7 @@
             ]
         },
         {
-            "outputFile": "com.example.onspot_supervisor.app-merged_res-51:/values-sw_values-sw.arsc.flat",
+            "outputFile": "com.example.onspot_officer.app-merged_res-51:/values-sw_values-sw.arsc.flat",
             "map": [
                 {
                     "source": "C:\\Users\\fakhr\\.gradle\\caches\\8.9\\transforms\\f94475d0ee9d4fd73fbdbfc57d660a71\\transformed\\core-1.13.1\\res\\values-sw\\values-sw.xml",
@@ -145,7 +145,7 @@
             ]
         },
         {
-            "outputFile": "com.example.onspot_supervisor.app-merged_res-51:/values-ta_values-ta.arsc.flat",
+            "outputFile": "com.example.onspot_officer.app-merged_res-51:/values-ta_values-ta.arsc.flat",
             "map": [
                 {
                     "source": "C:\\Users\\fakhr\\.gradle\\caches\\8.9\\transforms\\f94475d0ee9d4fd73fbdbfc57d660a71\\transformed\\core-1.13.1\\res\\values-ta\\values-ta.xml",
@@ -218,7 +218,7 @@
             ]
         },
         {
-            "outputFile": "com.example.onspot_supervisor.app-merged_res-51:/values-cs_values-cs.arsc.flat",
+            "outputFile": "com.example.onspot_officer.app-merged_res-51:/values-cs_values-cs.arsc.flat",
             "map": [
                 {
                     "source": "C:\\Users\\fakhr\\.gradle\\caches\\8.9\\transforms\\5094150c239d69290bdecc05c6b5e878\\transformed\\jetified-play-services-base-18.5.0\\res\\values-cs\\values.xml",
@@ -291,7 +291,7 @@
             ]
         },
         {
-            "outputFile": "com.example.onspot_supervisor.app-merged_res-51:/values-zh-rTW_values-zh-rTW.arsc.flat",
+            "outputFile": "com.example.onspot_officer.app-merged_res-51:/values-zh-rTW_values-zh-rTW.arsc.flat",
             "map": [
                 {
                     "source": "C:\\Users\\fakhr\\.gradle\\caches\\8.9\\transforms\\708e433c5528e64dbc3aadd067098214\\transformed\\appcompat-1.4.0\\res\\values-zh-rTW\\values-zh-rTW.xml",
@@ -364,7 +364,7 @@
             ]
         },
         {
-            "outputFile": "com.example.onspot_supervisor.app-merged_res-51:/values-te_values-te.arsc.flat",
+            "outputFile": "com.example.onspot_officer.app-merged_res-51:/values-te_values-te.arsc.flat",
             "map": [
                 {
                     "source": "C:\\Users\\fakhr\\.gradle\\caches\\8.9\\transforms\\708e433c5528e64dbc3aadd067098214\\transformed\\appcompat-1.4.0\\res\\values-te\\values-te.xml",
@@ -437,7 +437,7 @@
             ]
         },
         {
-            "outputFile": "com.example.onspot_supervisor.app-merged_res-51:/values-v18_values-v18.arsc.flat",
+            "outputFile": "com.example.onspot_officer.app-merged_res-51:/values-v18_values-v18.arsc.flat",
             "map": [
                 {
                     "source": "C:\\Users\\fakhr\\.gradle\\caches\\8.9\\transforms\\708e433c5528e64dbc3aadd067098214\\transformed\\appcompat-1.4.0\\res\\values-v18\\values-v18.xml",
@@ -452,7 +452,7 @@
             ]
         },
         {
-            "outputFile": "com.example.onspot_supervisor.app-merged_res-51:/values-et_values-et.arsc.flat",
+            "outputFile": "com.example.onspot_officer.app-merged_res-51:/values-et_values-et.arsc.flat",
             "map": [
                 {
                     "source": "C:\\Users\\fakhr\\.gradle\\caches\\8.9\\transforms\\f94475d0ee9d4fd73fbdbfc57d660a71\\transformed\\core-1.13.1\\res\\values-et\\values-et.xml",
@@ -525,7 +525,7 @@
             ]
         },
         {
-            "outputFile": "com.example.onspot_supervisor.app-merged_res-51:/values-it_values-it.arsc.flat",
+            "outputFile": "com.example.onspot_officer.app-merged_res-51:/values-it_values-it.arsc.flat",
             "map": [
                 {
                     "source": "C:\\Users\\fakhr\\.gradle\\caches\\8.9\\transforms\\c3a832e05112998ddb0ac0d7ac76a618\\transformed\\jetified-play-services-basement-18.4.0\\res\\values-it\\values.xml",
@@ -598,7 +598,7 @@
             ]
         },
         {
-            "outputFile": "com.example.onspot_supervisor.app-merged_res-51:/values-be_values-be.arsc.flat",
+            "outputFile": "com.example.onspot_officer.app-merged_res-51:/values-be_values-be.arsc.flat",
             "map": [
                 {
                     "source": "C:\\Users\\fakhr\\.gradle\\caches\\8.9\\transforms\\708e433c5528e64dbc3aadd067098214\\transformed\\appcompat-1.4.0\\res\\values-be\\values-be.xml",
@@ -671,7 +671,7 @@
             ]
         },
         {
-            "outputFile": "com.example.onspot_supervisor.app-merged_res-51:/values-ky_values-ky.arsc.flat",
+            "outputFile": "com.example.onspot_officer.app-merged_res-51:/values-ky_values-ky.arsc.flat",
             "map": [
                 {
                     "source": "C:\\Users\\fakhr\\.gradle\\caches\\8.9\\transforms\\f94475d0ee9d4fd73fbdbfc57d660a71\\transformed\\core-1.13.1\\res\\values-ky\\values-ky.xml",
@@ -744,7 +744,7 @@
             ]
         },
         {
-            "outputFile": "com.example.onspot_supervisor.app-merged_res-51:/values-bn_values-bn.arsc.flat",
+            "outputFile": "com.example.onspot_officer.app-merged_res-51:/values-bn_values-bn.arsc.flat",
             "map": [
                 {
                     "source": "C:\\Users\\fakhr\\.gradle\\caches\\8.9\\transforms\\708e433c5528e64dbc3aadd067098214\\transformed\\appcompat-1.4.0\\res\\values-bn\\values-bn.xml",
@@ -817,7 +817,7 @@
             ]
         },
         {
-            "outputFile": "com.example.onspot_supervisor.app-merged_res-51:/values-es-rUS_values-es-rUS.arsc.flat",
+            "outputFile": "com.example.onspot_officer.app-merged_res-51:/values-es-rUS_values-es-rUS.arsc.flat",
             "map": [
                 {
                     "source": "C:\\Users\\fakhr\\.gradle\\caches\\8.9\\transforms\\708e433c5528e64dbc3aadd067098214\\transformed\\appcompat-1.4.0\\res\\values-es-rUS\\values-es-rUS.xml",
@@ -890,7 +890,7 @@
             ]
         },
         {
-            "outputFile": "com.example.onspot_supervisor.app-merged_res-51:/values-hy_values-hy.arsc.flat",
+            "outputFile": "com.example.onspot_officer.app-merged_res-51:/values-hy_values-hy.arsc.flat",
             "map": [
                 {
                     "source": "C:\\Users\\fakhr\\.gradle\\caches\\8.9\\transforms\\5094150c239d69290bdecc05c6b5e878\\transformed\\jetified-play-services-base-18.5.0\\res\\values-hy\\values.xml",
@@ -963,7 +963,7 @@
             ]
         },
         {
-            "outputFile": "com.example.onspot_supervisor.app-merged_res-51:/values-as_values-as.arsc.flat",
+            "outputFile": "com.example.onspot_officer.app-merged_res-51:/values-as_values-as.arsc.flat",
             "map": [
                 {
                     "source": "C:\\Users\\fakhr\\.gradle\\caches\\8.9\\transforms\\f94475d0ee9d4fd73fbdbfc57d660a71\\transformed\\core-1.13.1\\res\\values-as\\values-as.xml",
@@ -1036,7 +1036,7 @@
             ]
         },
         {
-            "outputFile": "com.example.onspot_supervisor.app-merged_res-51:/values-zu_values-zu.arsc.flat",
+            "outputFile": "com.example.onspot_officer.app-merged_res-51:/values-zu_values-zu.arsc.flat",
             "map": [
                 {
                     "source": "C:\\Users\\fakhr\\.gradle\\caches\\8.9\\transforms\\5094150c239d69290bdecc05c6b5e878\\transformed\\jetified-play-services-base-18.5.0\\res\\values-zu\\values.xml",
@@ -1109,7 +1109,7 @@
             ]
         },
         {
-            "outputFile": "com.example.onspot_supervisor.app-merged_res-51:/values-bs_values-bs.arsc.flat",
+            "outputFile": "com.example.onspot_officer.app-merged_res-51:/values-bs_values-bs.arsc.flat",
             "map": [
                 {
                     "source": "C:\\Users\\fakhr\\.gradle\\caches\\8.9\\transforms\\f94475d0ee9d4fd73fbdbfc57d660a71\\transformed\\core-1.13.1\\res\\values-bs\\values-bs.xml",
@@ -1182,7 +1182,7 @@
             ]
         },
         {
-            "outputFile": "com.example.onspot_supervisor.app-merged_res-51:/values-sv_values-sv.arsc.flat",
+            "outputFile": "com.example.onspot_officer.app-merged_res-51:/values-sv_values-sv.arsc.flat",
             "map": [
                 {
                     "source": "C:\\Users\\fakhr\\.gradle\\caches\\8.9\\transforms\\708e433c5528e64dbc3aadd067098214\\transformed\\appcompat-1.4.0\\res\\values-sv\\values-sv.xml",
@@ -1255,7 +1255,7 @@
             ]
         },
         {
-            "outputFile": "com.example.onspot_supervisor.app-merged_res-51:/values-de_values-de.arsc.flat",
+            "outputFile": "com.example.onspot_officer.app-merged_res-51:/values-de_values-de.arsc.flat",
             "map": [
                 {
                     "source": "C:\\Users\\fakhr\\.gradle\\caches\\8.9\\transforms\\f94475d0ee9d4fd73fbdbfc57d660a71\\transformed\\core-1.13.1\\res\\values-de\\values-de.xml",
@@ -1328,7 +1328,7 @@
             ]
         },
         {
-            "outputFile": "com.example.onspot_supervisor.app-merged_res-51:/values-v28_values-v28.arsc.flat",
+            "outputFile": "com.example.onspot_officer.app-merged_res-51:/values-v28_values-v28.arsc.flat",
             "map": [
                 {
                     "source": "C:\\Users\\fakhr\\.gradle\\caches\\8.9\\transforms\\708e433c5528e64dbc3aadd067098214\\transformed\\appcompat-1.4.0\\res\\values-v28\\values-v28.xml",
@@ -1352,7 +1352,7 @@
             ]
         },
         {
-            "outputFile": "com.example.onspot_supervisor.app-merged_res-51:/values-kk_values-kk.arsc.flat",
+            "outputFile": "com.example.onspot_officer.app-merged_res-51:/values-kk_values-kk.arsc.flat",
             "map": [
                 {
                     "source": "C:\\Users\\fakhr\\.gradle\\caches\\8.9\\transforms\\c3a832e05112998ddb0ac0d7ac76a618\\transformed\\jetified-play-services-basement-18.4.0\\res\\values-kk\\values.xml",
@@ -1425,7 +1425,7 @@
             ]
         },
         {
-            "outputFile": "com.example.onspot_supervisor.app-merged_res-51:/values-v21_values-v21.arsc.flat",
+            "outputFile": "com.example.onspot_officer.app-merged_res-51:/values-v21_values-v21.arsc.flat",
             "map": [
                 {
                     "source": "C:\\Users\\fakhr\\.gradle\\caches\\8.9\\transforms\\f94475d0ee9d4fd73fbdbfc57d660a71\\transformed\\core-1.13.1\\res\\values-v21\\values-v21.xml",
@@ -1487,7 +1487,7 @@
             ]
         },
         {
-            "outputFile": "com.example.onspot_supervisor.app-merged_res-51:/values-fa_values-fa.arsc.flat",
+            "outputFile": "com.example.onspot_officer.app-merged_res-51:/values-fa_values-fa.arsc.flat",
             "map": [
                 {
                     "source": "C:\\Users\\fakhr\\.gradle\\caches\\8.9\\transforms\\5094150c239d69290bdecc05c6b5e878\\transformed\\jetified-play-services-base-18.5.0\\res\\values-fa\\values.xml",
@@ -1560,7 +1560,7 @@
             ]
         },
         {
-            "outputFile": "com.example.onspot_supervisor.app-merged_res-51:/values-v25_values-v25.arsc.flat",
+            "outputFile": "com.example.onspot_officer.app-merged_res-51:/values-v25_values-v25.arsc.flat",
             "map": [
                 {
                     "source": "C:\\Users\\fakhr\\.gradle\\caches\\8.9\\transforms\\708e433c5528e64dbc3aadd067098214\\transformed\\appcompat-1.4.0\\res\\values-v25\\values-v25.xml",
@@ -1576,7 +1576,7 @@
             ]
         },
         {
-            "outputFile": "com.example.onspot_supervisor.app-merged_res-51:/values-my_values-my.arsc.flat",
+            "outputFile": "com.example.onspot_officer.app-merged_res-51:/values-my_values-my.arsc.flat",
             "map": [
                 {
                     "source": "C:\\Users\\fakhr\\.gradle\\caches\\8.9\\transforms\\c3a832e05112998ddb0ac0d7ac76a618\\transformed\\jetified-play-services-basement-18.4.0\\res\\values-my\\values.xml",
@@ -1649,7 +1649,7 @@
             ]
         },
         {
-            "outputFile": "com.example.onspot_supervisor.app-merged_res-51:/values-vi_values-vi.arsc.flat",
+            "outputFile": "com.example.onspot_officer.app-merged_res-51:/values-vi_values-vi.arsc.flat",
             "map": [
                 {
                     "source": "C:\\Users\\fakhr\\.gradle\\caches\\8.9\\transforms\\f94475d0ee9d4fd73fbdbfc57d660a71\\transformed\\core-1.13.1\\res\\values-vi\\values-vi.xml",
@@ -1722,7 +1722,7 @@
             ]
         },
         {
-            "outputFile": "com.example.onspot_supervisor.app-merged_res-51:/values-v23_values-v23.arsc.flat",
+            "outputFile": "com.example.onspot_officer.app-merged_res-51:/values-v23_values-v23.arsc.flat",
             "map": [
                 {
                     "source": "C:\\Users\\fakhr\\.gradle\\caches\\8.9\\transforms\\708e433c5528e64dbc3aadd067098214\\transformed\\appcompat-1.4.0\\res\\values-v23\\values-v23.xml",
@@ -1746,7 +1746,7 @@
             ]
         },
         {
-            "outputFile": "com.example.onspot_supervisor.app-merged_res-51:/values-port_values-port.arsc.flat",
+            "outputFile": "com.example.onspot_officer.app-merged_res-51:/values-port_values-port.arsc.flat",
             "map": [
                 {
                     "source": "C:\\Users\\fakhr\\.gradle\\caches\\8.9\\transforms\\708e433c5528e64dbc3aadd067098214\\transformed\\appcompat-1.4.0\\res\\values-port\\values-port.xml",
@@ -1761,7 +1761,7 @@
             ]
         },
         {
-            "outputFile": "com.example.onspot_supervisor.app-merged_res-51:/values-nl_values-nl.arsc.flat",
+            "outputFile": "com.example.onspot_officer.app-merged_res-51:/values-nl_values-nl.arsc.flat",
             "map": [
                 {
                     "source": "C:\\Users\\fakhr\\.gradle\\caches\\8.9\\transforms\\708e433c5528e64dbc3aadd067098214\\transformed\\appcompat-1.4.0\\res\\values-nl\\values-nl.xml",
@@ -1834,7 +1834,7 @@
             ]
         },
         {
-            "outputFile": "com.example.onspot_supervisor.app-merged_res-51:/values-es_values-es.arsc.flat",
+            "outputFile": "com.example.onspot_officer.app-merged_res-51:/values-es_values-es.arsc.flat",
             "map": [
                 {
                     "source": "C:\\Users\\fakhr\\.gradle\\caches\\8.9\\transforms\\c3a832e05112998ddb0ac0d7ac76a618\\transformed\\jetified-play-services-basement-18.4.0\\res\\values-es\\values.xml",
@@ -1907,7 +1907,7 @@
             ]
         },
         {
-            "outputFile": "com.example.onspot_supervisor.app-merged_res-51:/values-tr_values-tr.arsc.flat",
+            "outputFile": "com.example.onspot_officer.app-merged_res-51:/values-tr_values-tr.arsc.flat",
             "map": [
                 {
                     "source": "C:\\Users\\fakhr\\.gradle\\caches\\8.9\\transforms\\708e433c5528e64dbc3aadd067098214\\transformed\\appcompat-1.4.0\\res\\values-tr\\values-tr.xml",
@@ -1980,7 +1980,7 @@
             ]
         },
         {
-            "outputFile": "com.example.onspot_supervisor.app-merged_res-51:/values-land_values-land.arsc.flat",
+            "outputFile": "com.example.onspot_officer.app-merged_res-51:/values-land_values-land.arsc.flat",
             "map": [
                 {
                     "source": "C:\\Users\\fakhr\\.gradle\\caches\\8.9\\transforms\\708e433c5528e64dbc3aadd067098214\\transformed\\appcompat-1.4.0\\res\\values-land\\values-land.xml",
@@ -1995,7 +1995,7 @@
             ]
         },
         {
-            "outputFile": "com.example.onspot_supervisor.app-merged_res-51:/values-uk_values-uk.arsc.flat",
+            "outputFile": "com.example.onspot_officer.app-merged_res-51:/values-uk_values-uk.arsc.flat",
             "map": [
                 {
                     "source": "C:\\Users\\fakhr\\.gradle\\caches\\8.9\\transforms\\c3a832e05112998ddb0ac0d7ac76a618\\transformed\\jetified-play-services-basement-18.4.0\\res\\values-uk\\values.xml",
@@ -2068,7 +2068,7 @@
             ]
         },
         {
-            "outputFile": "com.example.onspot_supervisor.app-merged_res-51:/values-da_values-da.arsc.flat",
+            "outputFile": "com.example.onspot_officer.app-merged_res-51:/values-da_values-da.arsc.flat",
             "map": [
                 {
                     "source": "C:\\Users\\fakhr\\.gradle\\caches\\8.9\\transforms\\c3a832e05112998ddb0ac0d7ac76a618\\transformed\\jetified-play-services-basement-18.4.0\\res\\values-da\\values.xml",
@@ -2141,7 +2141,7 @@
             ]
         },
         {
-            "outputFile": "com.example.onspot_supervisor.app-merged_res-51:/values-zh-rCN_values-zh-rCN.arsc.flat",
+            "outputFile": "com.example.onspot_officer.app-merged_res-51:/values-zh-rCN_values-zh-rCN.arsc.flat",
             "map": [
                 {
                     "source": "C:\\Users\\fakhr\\.gradle\\caches\\8.9\\transforms\\c3a832e05112998ddb0ac0d7ac76a618\\transformed\\jetified-play-services-basement-18.4.0\\res\\values-zh-rCN\\values.xml",
@@ -2214,7 +2214,7 @@
             ]
         },
         {
-            "outputFile": "com.example.onspot_supervisor.app-merged_res-51:/values-ar_values-ar.arsc.flat",
+            "outputFile": "com.example.onspot_officer.app-merged_res-51:/values-ar_values-ar.arsc.flat",
             "map": [
                 {
                     "source": "C:\\Users\\fakhr\\.gradle\\caches\\8.9\\transforms\\f94475d0ee9d4fd73fbdbfc57d660a71\\transformed\\core-1.13.1\\res\\values-ar\\values-ar.xml",
@@ -2287,7 +2287,7 @@
             ]
         },
         {
-            "outputFile": "com.example.onspot_supervisor.app-merged_res-51:/values-sk_values-sk.arsc.flat",
+            "outputFile": "com.example.onspot_officer.app-merged_res-51:/values-sk_values-sk.arsc.flat",
             "map": [
                 {
                     "source": "C:\\Users\\fakhr\\.gradle\\caches\\8.9\\transforms\\c3a832e05112998ddb0ac0d7ac76a618\\transformed\\jetified-play-services-basement-18.4.0\\res\\values-sk\\values.xml",
@@ -2360,7 +2360,7 @@
             ]
         },
         {
-            "outputFile": "com.example.onspot_supervisor.app-merged_res-51:/values-ko_values-ko.arsc.flat",
+            "outputFile": "com.example.onspot_officer.app-merged_res-51:/values-ko_values-ko.arsc.flat",
             "map": [
                 {
                     "source": "C:\\Users\\fakhr\\.gradle\\caches\\8.9\\transforms\\c3a832e05112998ddb0ac0d7ac76a618\\transformed\\jetified-play-services-basement-18.4.0\\res\\values-ko\\values.xml",
@@ -2433,7 +2433,7 @@
             ]
         },
         {
-            "outputFile": "com.example.onspot_supervisor.app-merged_res-51:/values-large-v4_values-large-v4.arsc.flat",
+            "outputFile": "com.example.onspot_officer.app-merged_res-51:/values-large-v4_values-large-v4.arsc.flat",
             "map": [
                 {
                     "source": "C:\\Users\\fakhr\\.gradle\\caches\\8.9\\transforms\\708e433c5528e64dbc3aadd067098214\\transformed\\appcompat-1.4.0\\res\\values-large-v4\\values-large-v4.xml",
@@ -2448,7 +2448,7 @@
             ]
         },
         {
-            "outputFile": "com.example.onspot_supervisor.app-merged_res-51:/values-hu_values-hu.arsc.flat",
+            "outputFile": "com.example.onspot_officer.app-merged_res-51:/values-hu_values-hu.arsc.flat",
             "map": [
                 {
                     "source": "C:\\Users\\fakhr\\.gradle\\caches\\8.9\\transforms\\708e433c5528e64dbc3aadd067098214\\transformed\\appcompat-1.4.0\\res\\values-hu\\values-hu.xml",
@@ -2521,7 +2521,7 @@
             ]
         },
         {
-            "outputFile": "com.example.onspot_supervisor.app-merged_res-51:/values-hdpi-v4_values-hdpi-v4.arsc.flat",
+            "outputFile": "com.example.onspot_officer.app-merged_res-51:/values-hdpi-v4_values-hdpi-v4.arsc.flat",
             "map": [
                 {
                     "source": "C:\\Users\\fakhr\\.gradle\\caches\\8.9\\transforms\\708e433c5528e64dbc3aadd067098214\\transformed\\appcompat-1.4.0\\res\\values-hdpi-v4\\values-hdpi-v4.xml",
@@ -2537,7 +2537,7 @@
             ]
         },
         {
-            "outputFile": "com.example.onspot_supervisor.app-merged_res-51:/values-uz_values-uz.arsc.flat",
+            "outputFile": "com.example.onspot_officer.app-merged_res-51:/values-uz_values-uz.arsc.flat",
             "map": [
                 {
                     "source": "C:\\Users\\fakhr\\.gradle\\caches\\8.9\\transforms\\5094150c239d69290bdecc05c6b5e878\\transformed\\jetified-play-services-base-18.5.0\\res\\values-uz\\values.xml",
@@ -2610,7 +2610,7 @@
             ]
         },
         {
-            "outputFile": "com.example.onspot_supervisor.app-merged_res-51:/values-am_values-am.arsc.flat",
+            "outputFile": "com.example.onspot_officer.app-merged_res-51:/values-am_values-am.arsc.flat",
             "map": [
                 {
                     "source": "C:\\Users\\fakhr\\.gradle\\caches\\8.9\\transforms\\708e433c5528e64dbc3aadd067098214\\transformed\\appcompat-1.4.0\\res\\values-am\\values-am.xml",
@@ -2683,7 +2683,7 @@
             ]
         },
         {
-            "outputFile": "com.example.onspot_supervisor.app-merged_res-51:/values-is_values-is.arsc.flat",
+            "outputFile": "com.example.onspot_officer.app-merged_res-51:/values-is_values-is.arsc.flat",
             "map": [
                 {
                     "source": "C:\\Users\\fakhr\\.gradle\\caches\\8.9\\transforms\\f94475d0ee9d4fd73fbdbfc57d660a71\\transformed\\core-1.13.1\\res\\values-is\\values-is.xml",
@@ -2756,7 +2756,7 @@
             ]
         },
         {
-            "outputFile": "com.example.onspot_supervisor.app-merged_res-51:/values-lv_values-lv.arsc.flat",
+            "outputFile": "com.example.onspot_officer.app-merged_res-51:/values-lv_values-lv.arsc.flat",
             "map": [
                 {
                     "source": "C:\\Users\\fakhr\\.gradle\\caches\\8.9\\transforms\\708e433c5528e64dbc3aadd067098214\\transformed\\appcompat-1.4.0\\res\\values-lv\\values-lv.xml",
@@ -2829,7 +2829,7 @@
             ]
         },
         {
-            "outputFile": "com.example.onspot_supervisor.app-merged_res-51:/values-v22_values-v22.arsc.flat",
+            "outputFile": "com.example.onspot_officer.app-merged_res-51:/values-v22_values-v22.arsc.flat",
             "map": [
                 {
                     "source": "C:\\Users\\fakhr\\.gradle\\caches\\8.9\\transforms\\708e433c5528e64dbc3aadd067098214\\transformed\\appcompat-1.4.0\\res\\values-v22\\values-v22.xml",
@@ -2853,7 +2853,7 @@
             ]
         },
         {
-            "outputFile": "com.example.onspot_supervisor.app-merged_res-51:/values_values.arsc.flat",
+            "outputFile": "com.example.onspot_officer.app-merged_res-51:/values_values.arsc.flat",
             "map": [
                 {
                     "source": "C:\\Users\\fakhr\\.gradle\\caches\\8.9\\transforms\\c1ad9d790cc7278ce6d38e073c70bbc6\\transformed\\lifecycle-runtime-2.7.0\\res\\values\\values.xml",
@@ -2966,7 +2966,7 @@
                     }
                 },
                 {
-                    "source": "C:\\Users\\fakhr\\onspot\\onspot\\onspot_supervisor\\android\\app\\src\\main\\res\\values\\styles.xml",
+                    "source": "C:\\Users\\fakhr\\onspot\\onspot\\onspot_officer\\android\\app\\src\\main\\res\\values\\styles.xml",
                     "from": {
                         "startLines": "3,14",
                         "startColumns": "4,4",
@@ -3089,7 +3089,7 @@
                     }
                 },
                 {
-                    "source": "C:\\Users\\fakhr\\onspot\\onspot\\onspot_supervisor\\android\\app\\build\\generated\\res\\processDebugGoogleServices\\values\\values.xml",
+                    "source": "C:\\Users\\fakhr\\onspot\\onspot\\onspot_officer\\android\\app\\build\\generated\\res\\processDebugGoogleServices\\values\\values.xml",
                     "from": {
                         "startLines": "2,3,4,5,6,7",
                         "startColumns": "4,4,4,4,4,4",
@@ -3144,7 +3144,7 @@
             ]
         },
         {
-            "outputFile": "com.example.onspot_supervisor.app-merged_res-51:/values-ka_values-ka.arsc.flat",
+            "outputFile": "com.example.onspot_officer.app-merged_res-51:/values-ka_values-ka.arsc.flat",
             "map": [
                 {
                     "source": "C:\\Users\\fakhr\\.gradle\\caches\\8.9\\transforms\\f94475d0ee9d4fd73fbdbfc57d660a71\\transformed\\core-1.13.1\\res\\values-ka\\values-ka.xml",
@@ -3217,7 +3217,7 @@
             ]
         },
         {
-            "outputFile": "com.example.onspot_supervisor.app-merged_res-51:/values-in_values-in.arsc.flat",
+            "outputFile": "com.example.onspot_officer.app-merged_res-51:/values-in_values-in.arsc.flat",
             "map": [
                 {
                     "source": "C:\\Users\\fakhr\\.gradle\\caches\\8.9\\transforms\\c3a832e05112998ddb0ac0d7ac76a618\\transformed\\jetified-play-services-basement-18.4.0\\res\\values-in\\values.xml",
@@ -3290,7 +3290,7 @@
             ]
         },
         {
-            "outputFile": "com.example.onspot_supervisor.app-merged_res-51:/values-iw_values-iw.arsc.flat",
+            "outputFile": "com.example.onspot_officer.app-merged_res-51:/values-iw_values-iw.arsc.flat",
             "map": [
                 {
                     "source": "C:\\Users\\fakhr\\.gradle\\caches\\8.9\\transforms\\708e433c5528e64dbc3aadd067098214\\transformed\\appcompat-1.4.0\\res\\values-iw\\values-iw.xml",
@@ -3363,7 +3363,7 @@
             ]
         },
         {
-            "outputFile": "com.example.onspot_supervisor.app-merged_res-51:/values-en-rGB_values-en-rGB.arsc.flat",
+            "outputFile": "com.example.onspot_officer.app-merged_res-51:/values-en-rGB_values-en-rGB.arsc.flat",
             "map": [
                 {
                     "source": "C:\\Users\\fakhr\\.gradle\\caches\\8.9\\transforms\\708e433c5528e64dbc3aadd067098214\\transformed\\appcompat-1.4.0\\res\\values-en-rGB\\values-en-rGB.xml",
@@ -3436,7 +3436,7 @@
             ]
         },
         {
-            "outputFile": "com.example.onspot_supervisor.app-merged_res-51:/values-hi_values-hi.arsc.flat",
+            "outputFile": "com.example.onspot_officer.app-merged_res-51:/values-hi_values-hi.arsc.flat",
             "map": [
                 {
                     "source": "C:\\Users\\fakhr\\.gradle\\caches\\8.9\\transforms\\f94475d0ee9d4fd73fbdbfc57d660a71\\transformed\\core-1.13.1\\res\\values-hi\\values-hi.xml",
@@ -3509,7 +3509,7 @@
             ]
         },
         {
-            "outputFile": "com.example.onspot_supervisor.app-merged_res-51:/values-pt_values-pt.arsc.flat",
+            "outputFile": "com.example.onspot_officer.app-merged_res-51:/values-pt_values-pt.arsc.flat",
             "map": [
                 {
                     "source": "C:\\Users\\fakhr\\.gradle\\caches\\8.9\\transforms\\708e433c5528e64dbc3aadd067098214\\transformed\\appcompat-1.4.0\\res\\values-pt\\values-pt.xml",
@@ -3548,7 +3548,7 @@
             ]
         },
         {
-            "outputFile": "com.example.onspot_supervisor.app-merged_res-51:/values-hr_values-hr.arsc.flat",
+            "outputFile": "com.example.onspot_officer.app-merged_res-51:/values-hr_values-hr.arsc.flat",
             "map": [
                 {
                     "source": "C:\\Users\\fakhr\\.gradle\\caches\\8.9\\transforms\\5094150c239d69290bdecc05c6b5e878\\transformed\\jetified-play-services-base-18.5.0\\res\\values-hr\\values.xml",
@@ -3621,7 +3621,7 @@
             ]
         },
         {
-            "outputFile": "com.example.onspot_supervisor.app-merged_res-51:/values-ms_values-ms.arsc.flat",
+            "outputFile": "com.example.onspot_officer.app-merged_res-51:/values-ms_values-ms.arsc.flat",
             "map": [
                 {
                     "source": "C:\\Users\\fakhr\\.gradle\\caches\\8.9\\transforms\\f94475d0ee9d4fd73fbdbfc57d660a71\\transformed\\core-1.13.1\\res\\values-ms\\values-ms.xml",
@@ -3694,10 +3694,10 @@
             ]
         },
         {
-            "outputFile": "com.example.onspot_supervisor.app-merged_res-51:/values-night-v8_values-night-v8.arsc.flat",
+            "outputFile": "com.example.onspot_officer.app-merged_res-51:/values-night-v8_values-night-v8.arsc.flat",
             "map": [
                 {
-                    "source": "C:\\Users\\fakhr\\onspot\\onspot\\onspot_supervisor\\android\\app\\src\\main\\res\\values-night\\styles.xml",
+                    "source": "C:\\Users\\fakhr\\onspot\\onspot\\onspot_officer\\android\\app\\src\\main\\res\\values-night\\styles.xml",
                     "from": {
                         "startLines": "3,14",
                         "startColumns": "4,4",
@@ -3735,7 +3735,7 @@
             ]
         },
         {
-            "outputFile": "com.example.onspot_supervisor.app-merged_res-51:/values-sl_values-sl.arsc.flat",
+            "outputFile": "com.example.onspot_officer.app-merged_res-51:/values-sl_values-sl.arsc.flat",
             "map": [
                 {
                     "source": "C:\\Users\\fakhr\\.gradle\\caches\\8.9\\transforms\\f94475d0ee9d4fd73fbdbfc57d660a71\\transformed\\core-1.13.1\\res\\values-sl\\values-sl.xml",
@@ -3808,7 +3808,7 @@
             ]
         },
         {
-            "outputFile": "com.example.onspot_supervisor.app-merged_res-51:/values-kn_values-kn.arsc.flat",
+            "outputFile": "com.example.onspot_officer.app-merged_res-51:/values-kn_values-kn.arsc.flat",
             "map": [
                 {
                     "source": "C:\\Users\\fakhr\\.gradle\\caches\\8.9\\transforms\\c3a832e05112998ddb0ac0d7ac76a618\\transformed\\jetified-play-services-basement-18.4.0\\res\\values-kn\\values.xml",
@@ -3881,7 +3881,7 @@
             ]
         },
         {
-            "outputFile": "com.example.onspot_supervisor.app-merged_res-51:/values-fr_values-fr.arsc.flat",
+            "outputFile": "com.example.onspot_officer.app-merged_res-51:/values-fr_values-fr.arsc.flat",
             "map": [
                 {
                     "source": "C:\\Users\\fakhr\\.gradle\\caches\\8.9\\transforms\\c3a832e05112998ddb0ac0d7ac76a618\\transformed\\jetified-play-services-basement-18.4.0\\res\\values-fr\\values.xml",
@@ -3954,7 +3954,7 @@
             ]
         },
         {
-            "outputFile": "com.example.onspot_supervisor.app-merged_res-51:/values-tl_values-tl.arsc.flat",
+            "outputFile": "com.example.onspot_officer.app-merged_res-51:/values-tl_values-tl.arsc.flat",
             "map": [
                 {
                     "source": "C:\\Users\\fakhr\\.gradle\\caches\\8.9\\transforms\\708e433c5528e64dbc3aadd067098214\\transformed\\appcompat-1.4.0\\res\\values-tl\\values-tl.xml",
@@ -4027,7 +4027,7 @@
             ]
         },
         {
-            "outputFile": "com.example.onspot_supervisor.app-merged_res-51:/values-ldltr-v21_values-ldltr-v21.arsc.flat",
+            "outputFile": "com.example.onspot_officer.app-merged_res-51:/values-ldltr-v21_values-ldltr-v21.arsc.flat",
             "map": [
                 {
                     "source": "C:\\Users\\fakhr\\.gradle\\caches\\8.9\\transforms\\708e433c5528e64dbc3aadd067098214\\transformed\\appcompat-1.4.0\\res\\values-ldltr-v21\\values-ldltr-v21.xml",
@@ -4042,7 +4042,7 @@
             ]
         },
         {
-            "outputFile": "com.example.onspot_supervisor.app-merged_res-51:/values-az_values-az.arsc.flat",
+            "outputFile": "com.example.onspot_officer.app-merged_res-51:/values-az_values-az.arsc.flat",
             "map": [
                 {
                     "source": "C:\\Users\\fakhr\\.gradle\\caches\\8.9\\transforms\\f94475d0ee9d4fd73fbdbfc57d660a71\\transformed\\core-1.13.1\\res\\values-az\\values-az.xml",
@@ -4115,7 +4115,7 @@
             ]
         },
         {
-            "outputFile": "com.example.onspot_supervisor.app-merged_res-51:/values-th_values-th.arsc.flat",
+            "outputFile": "com.example.onspot_officer.app-merged_res-51:/values-th_values-th.arsc.flat",
             "map": [
                 {
                     "source": "C:\\Users\\fakhr\\.gradle\\caches\\8.9\\transforms\\708e433c5528e64dbc3aadd067098214\\transformed\\appcompat-1.4.0\\res\\values-th\\values-th.xml",
@@ -4188,7 +4188,7 @@
             ]
         },
         {
-            "outputFile": "com.example.onspot_supervisor.app-merged_res-51:/values-v16_values-v16.arsc.flat",
+            "outputFile": "com.example.onspot_officer.app-merged_res-51:/values-v16_values-v16.arsc.flat",
             "map": [
                 {
                     "source": "C:\\Users\\fakhr\\.gradle\\caches\\8.9\\transforms\\708e433c5528e64dbc3aadd067098214\\transformed\\appcompat-1.4.0\\res\\values-v16\\values-v16.xml",
@@ -4204,7 +4204,7 @@
             ]
         },
         {
-            "outputFile": "com.example.onspot_supervisor.app-merged_res-51:/values-mk_values-mk.arsc.flat",
+            "outputFile": "com.example.onspot_officer.app-merged_res-51:/values-mk_values-mk.arsc.flat",
             "map": [
                 {
                     "source": "C:\\Users\\fakhr\\.gradle\\caches\\8.9\\transforms\\708e433c5528e64dbc3aadd067098214\\transformed\\appcompat-1.4.0\\res\\values-mk\\values-mk.xml",
@@ -4277,7 +4277,7 @@
             ]
         },
         {
-            "outputFile": "com.example.onspot_supervisor.app-merged_res-51:/values-ja_values-ja.arsc.flat",
+            "outputFile": "com.example.onspot_officer.app-merged_res-51:/values-ja_values-ja.arsc.flat",
             "map": [
                 {
                     "source": "C:\\Users\\fakhr\\.gradle\\caches\\8.9\\transforms\\708e433c5528e64dbc3aadd067098214\\transformed\\appcompat-1.4.0\\res\\values-ja\\values-ja.xml",
@@ -4350,7 +4350,7 @@
             ]
         },
         {
-            "outputFile": "com.example.onspot_supervisor.app-merged_res-51:/values-fr-rCA_values-fr-rCA.arsc.flat",
+            "outputFile": "com.example.onspot_officer.app-merged_res-51:/values-fr-rCA_values-fr-rCA.arsc.flat",
             "map": [
                 {
                     "source": "C:\\Users\\fakhr\\.gradle\\caches\\8.9\\transforms\\f94475d0ee9d4fd73fbdbfc57d660a71\\transformed\\core-1.13.1\\res\\values-fr-rCA\\values-fr-rCA.xml",
@@ -4423,7 +4423,7 @@
             ]
         },
         {
-            "outputFile": "com.example.onspot_supervisor.app-merged_res-51:/values-sq_values-sq.arsc.flat",
+            "outputFile": "com.example.onspot_officer.app-merged_res-51:/values-sq_values-sq.arsc.flat",
             "map": [
                 {
                     "source": "C:\\Users\\fakhr\\.gradle\\caches\\8.9\\transforms\\5094150c239d69290bdecc05c6b5e878\\transformed\\jetified-play-services-base-18.5.0\\res\\values-sq\\values.xml",
@@ -4496,7 +4496,7 @@
             ]
         },
         {
-            "outputFile": "com.example.onspot_supervisor.app-merged_res-51:/values-mn_values-mn.arsc.flat",
+            "outputFile": "com.example.onspot_officer.app-merged_res-51:/values-mn_values-mn.arsc.flat",
             "map": [
                 {
                     "source": "C:\\Users\\fakhr\\.gradle\\caches\\8.9\\transforms\\c3a832e05112998ddb0ac0d7ac76a618\\transformed\\jetified-play-services-basement-18.4.0\\res\\values-mn\\values.xml",
@@ -4569,7 +4569,7 @@
             ]
         },
         {
-            "outputFile": "com.example.onspot_supervisor.app-merged_res-51:/values-zh-rHK_values-zh-rHK.arsc.flat",
+            "outputFile": "com.example.onspot_officer.app-merged_res-51:/values-zh-rHK_values-zh-rHK.arsc.flat",
             "map": [
                 {
                     "source": "C:\\Users\\fakhr\\.gradle\\caches\\8.9\\transforms\\c3a832e05112998ddb0ac0d7ac76a618\\transformed\\jetified-play-services-basement-18.4.0\\res\\values-zh-rHK\\values.xml",
@@ -4642,7 +4642,7 @@
             ]
         },
         {
-            "outputFile": "com.example.onspot_supervisor.app-merged_res-51:/values-v26_values-v26.arsc.flat",
+            "outputFile": "com.example.onspot_officer.app-merged_res-51:/values-v26_values-v26.arsc.flat",
             "map": [
                 {
                     "source": "C:\\Users\\fakhr\\.gradle\\caches\\8.9\\transforms\\708e433c5528e64dbc3aadd067098214\\transformed\\appcompat-1.4.0\\res\\values-v26\\values-v26.xml",
@@ -4666,7 +4666,7 @@
             ]
         },
         {
-            "outputFile": "com.example.onspot_supervisor.app-merged_res-51:/values-pt-rPT_values-pt-rPT.arsc.flat",
+            "outputFile": "com.example.onspot_officer.app-merged_res-51:/values-pt-rPT_values-pt-rPT.arsc.flat",
             "map": [
                 {
                     "source": "C:\\Users\\fakhr\\.gradle\\caches\\8.9\\transforms\\708e433c5528e64dbc3aadd067098214\\transformed\\appcompat-1.4.0\\res\\values-pt-rPT\\values-pt-rPT.xml",
@@ -4739,7 +4739,7 @@
             ]
         },
         {
-            "outputFile": "com.example.onspot_supervisor.app-merged_res-51:/values-pl_values-pl.arsc.flat",
+            "outputFile": "com.example.onspot_officer.app-merged_res-51:/values-pl_values-pl.arsc.flat",
             "map": [
                 {
                     "source": "C:\\Users\\fakhr\\.gradle\\caches\\8.9\\transforms\\708e433c5528e64dbc3aadd067098214\\transformed\\appcompat-1.4.0\\res\\values-pl\\values-pl.xml",
@@ -4812,7 +4812,7 @@
             ]
         },
         {
-            "outputFile": "com.example.onspot_supervisor.app-merged_res-51:/values-bg_values-bg.arsc.flat",
+            "outputFile": "com.example.onspot_officer.app-merged_res-51:/values-bg_values-bg.arsc.flat",
             "map": [
                 {
                     "source": "C:\\Users\\fakhr\\.gradle\\caches\\8.9\\transforms\\5094150c239d69290bdecc05c6b5e878\\transformed\\jetified-play-services-base-18.5.0\\res\\values-bg\\values.xml",
@@ -4885,7 +4885,7 @@
             ]
         },
         {
-            "outputFile": "com.example.onspot_supervisor.app-merged_res-51:/values-nb_values-nb.arsc.flat",
+            "outputFile": "com.example.onspot_officer.app-merged_res-51:/values-nb_values-nb.arsc.flat",
             "map": [
                 {
                     "source": "C:\\Users\\fakhr\\.gradle\\caches\\8.9\\transforms\\708e433c5528e64dbc3aadd067098214\\transformed\\appcompat-1.4.0\\res\\values-nb\\values-nb.xml",
@@ -4958,7 +4958,7 @@
             ]
         },
         {
-            "outputFile": "com.example.onspot_supervisor.app-merged_res-51:/values-watch-v21_values-watch-v21.arsc.flat",
+            "outputFile": "com.example.onspot_officer.app-merged_res-51:/values-watch-v21_values-watch-v21.arsc.flat",
             "map": [
                 {
                     "source": "C:\\Users\\fakhr\\.gradle\\caches\\8.9\\transforms\\708e433c5528e64dbc3aadd067098214\\transformed\\appcompat-1.4.0\\res\\values-watch-v21\\values-watch-v21.xml",
@@ -4974,7 +4974,7 @@
             ]
         },
         {
-            "outputFile": "com.example.onspot_supervisor.app-merged_res-51:/values-pa_values-pa.arsc.flat",
+            "outputFile": "com.example.onspot_officer.app-merged_res-51:/values-pa_values-pa.arsc.flat",
             "map": [
                 {
                     "source": "C:\\Users\\fakhr\\.gradle\\caches\\8.9\\transforms\\f94475d0ee9d4fd73fbdbfc57d660a71\\transformed\\core-1.13.1\\res\\values-pa\\values-pa.xml",
@@ -5047,7 +5047,7 @@
             ]
         },
         {
-            "outputFile": "com.example.onspot_supervisor.app-merged_res-51:/values-ne_values-ne.arsc.flat",
+            "outputFile": "com.example.onspot_officer.app-merged_res-51:/values-ne_values-ne.arsc.flat",
             "map": [
                 {
                     "source": "C:\\Users\\fakhr\\.gradle\\caches\\8.9\\transforms\\f94475d0ee9d4fd73fbdbfc57d660a71\\transformed\\core-1.13.1\\res\\values-ne\\values-ne.xml",
@@ -5120,7 +5120,7 @@
             ]
         },
         {
-            "outputFile": "com.example.onspot_supervisor.app-merged_res-51:/values-lt_values-lt.arsc.flat",
+            "outputFile": "com.example.onspot_officer.app-merged_res-51:/values-lt_values-lt.arsc.flat",
             "map": [
                 {
                     "source": "C:\\Users\\fakhr\\.gradle\\caches\\8.9\\transforms\\708e433c5528e64dbc3aadd067098214\\transformed\\appcompat-1.4.0\\res\\values-lt\\values-lt.xml",
@@ -5193,7 +5193,7 @@
             ]
         },
         {
-            "outputFile": "com.example.onspot_supervisor.app-merged_res-51:/values-ro_values-ro.arsc.flat",
+            "outputFile": "com.example.onspot_officer.app-merged_res-51:/values-ro_values-ro.arsc.flat",
             "map": [
                 {
                     "source": "C:\\Users\\fakhr\\.gradle\\caches\\8.9\\transforms\\5094150c239d69290bdecc05c6b5e878\\transformed\\jetified-play-services-base-18.5.0\\res\\values-ro\\values.xml",
@@ -5266,7 +5266,7 @@
             ]
         },
         {
-            "outputFile": "com.example.onspot_supervisor.app-merged_res-51:/values-el_values-el.arsc.flat",
+            "outputFile": "com.example.onspot_officer.app-merged_res-51:/values-el_values-el.arsc.flat",
             "map": [
                 {
                     "source": "C:\\Users\\fakhr\\.gradle\\caches\\8.9\\transforms\\708e433c5528e64dbc3aadd067098214\\transformed\\appcompat-1.4.0\\res\\values-el\\values-el.xml",
@@ -5339,7 +5339,7 @@
             ]
         },
         {
-            "outputFile": "com.example.onspot_supervisor.app-merged_res-51:/values-en-rXC_values-en-rXC.arsc.flat",
+            "outputFile": "com.example.onspot_officer.app-merged_res-51:/values-en-rXC_values-en-rXC.arsc.flat",
             "map": [
                 {
                     "source": "C:\\Users\\fakhr\\.gradle\\caches\\8.9\\transforms\\708e433c5528e64dbc3aadd067098214\\transformed\\appcompat-1.4.0\\res\\values-en-rXC\\values-en-rXC.xml",
@@ -5378,7 +5378,7 @@
             ]
         },
         {
-            "outputFile": "com.example.onspot_supervisor.app-merged_res-51:/values-watch-v20_values-watch-v20.arsc.flat",
+            "outputFile": "com.example.onspot_officer.app-merged_res-51:/values-watch-v20_values-watch-v20.arsc.flat",
             "map": [
                 {
                     "source": "C:\\Users\\fakhr\\.gradle\\caches\\8.9\\transforms\\708e433c5528e64dbc3aadd067098214\\transformed\\appcompat-1.4.0\\res\\values-watch-v20\\values-watch-v20.xml",
@@ -5394,7 +5394,7 @@
             ]
         },
         {
-            "outputFile": "com.example.onspot_supervisor.app-merged_res-51:/values-gl_values-gl.arsc.flat",
+            "outputFile": "com.example.onspot_officer.app-merged_res-51:/values-gl_values-gl.arsc.flat",
             "map": [
                 {
                     "source": "C:\\Users\\fakhr\\.gradle\\caches\\8.9\\transforms\\5094150c239d69290bdecc05c6b5e878\\transformed\\jetified-play-services-base-18.5.0\\res\\values-gl\\values.xml",
@@ -5467,7 +5467,7 @@
             ]
         },
         {
-            "outputFile": "com.example.onspot_supervisor.app-merged_res-51:/values-h720dp-v13_values-h720dp-v13.arsc.flat",
+            "outputFile": "com.example.onspot_officer.app-merged_res-51:/values-h720dp-v13_values-h720dp-v13.arsc.flat",
             "map": [
                 {
                     "source": "C:\\Users\\fakhr\\.gradle\\caches\\8.9\\transforms\\708e433c5528e64dbc3aadd067098214\\transformed\\appcompat-1.4.0\\res\\values-h720dp-v13\\values-h720dp-v13.xml",
@@ -5482,7 +5482,7 @@
             ]
         },
         {
-            "outputFile": "com.example.onspot_supervisor.app-merged_res-51:/values-en-rIN_values-en-rIN.arsc.flat",
+            "outputFile": "com.example.onspot_officer.app-merged_res-51:/values-en-rIN_values-en-rIN.arsc.flat",
             "map": [
                 {
                     "source": "C:\\Users\\fakhr\\.gradle\\caches\\8.9\\transforms\\708e433c5528e64dbc3aadd067098214\\transformed\\appcompat-1.4.0\\res\\values-en-rIN\\values-en-rIN.xml",
@@ -5521,7 +5521,7 @@
             ]
         },
         {
-            "outputFile": "com.example.onspot_supervisor.app-merged_res-51:/values-km_values-km.arsc.flat",
+            "outputFile": "com.example.onspot_officer.app-merged_res-51:/values-km_values-km.arsc.flat",
             "map": [
                 {
                     "source": "C:\\Users\\fakhr\\.gradle\\caches\\8.9\\transforms\\c3a832e05112998ddb0ac0d7ac76a618\\transformed\\jetified-play-services-basement-18.4.0\\res\\values-km\\values.xml",
@@ -5594,7 +5594,7 @@
             ]
         },
         {
-            "outputFile": "com.example.onspot_supervisor.app-merged_res-51:/values-ur_values-ur.arsc.flat",
+            "outputFile": "com.example.onspot_officer.app-merged_res-51:/values-ur_values-ur.arsc.flat",
             "map": [
                 {
                     "source": "C:\\Users\\fakhr\\.gradle\\caches\\8.9\\transforms\\5094150c239d69290bdecc05c6b5e878\\transformed\\jetified-play-services-base-18.5.0\\res\\values-ur\\values.xml",
@@ -5667,7 +5667,7 @@
             ]
         },
         {
-            "outputFile": "com.example.onspot_supervisor.app-merged_res-51:/values-v17_values-v17.arsc.flat",
+            "outputFile": "com.example.onspot_officer.app-merged_res-51:/values-v17_values-v17.arsc.flat",
             "map": [
                 {
                     "source": "C:\\Users\\fakhr\\.gradle\\caches\\8.9\\transforms\\708e433c5528e64dbc3aadd067098214\\transformed\\appcompat-1.4.0\\res\\values-v17\\values-v17.xml",
@@ -5683,7 +5683,7 @@
             ]
         },
         {
-            "outputFile": "com.example.onspot_supervisor.app-merged_res-51:/values-mr_values-mr.arsc.flat",
+            "outputFile": "com.example.onspot_officer.app-merged_res-51:/values-mr_values-mr.arsc.flat",
             "map": [
                 {
                     "source": "C:\\Users\\fakhr\\.gradle\\caches\\8.9\\transforms\\f94475d0ee9d4fd73fbdbfc57d660a71\\transformed\\core-1.13.1\\res\\values-mr\\values-mr.xml",
@@ -5756,7 +5756,7 @@
             ]
         },
         {
-            "outputFile": "com.example.onspot_supervisor.app-merged_res-51:/values-xlarge-v4_values-xlarge-v4.arsc.flat",
+            "outputFile": "com.example.onspot_officer.app-merged_res-51:/values-xlarge-v4_values-xlarge-v4.arsc.flat",
             "map": [
                 {
                     "source": "C:\\Users\\fakhr\\.gradle\\caches\\8.9\\transforms\\708e433c5528e64dbc3aadd067098214\\transformed\\appcompat-1.4.0\\res\\values-xlarge-v4\\values-xlarge-v4.xml",
@@ -5771,7 +5771,7 @@
             ]
         },
         {
-            "outputFile": "com.example.onspot_supervisor.app-merged_res-51:/values-ml_values-ml.arsc.flat",
+            "outputFile": "com.example.onspot_officer.app-merged_res-51:/values-ml_values-ml.arsc.flat",
             "map": [
                 {
                     "source": "C:\\Users\\fakhr\\.gradle\\caches\\8.9\\transforms\\c3a832e05112998ddb0ac0d7ac76a618\\transformed\\jetified-play-services-basement-18.4.0\\res\\values-ml\\values.xml",
@@ -5844,7 +5844,7 @@
             ]
         },
         {
-            "outputFile": "com.example.onspot_supervisor.app-merged_res-51:/values-ru_values-ru.arsc.flat",
+            "outputFile": "com.example.onspot_officer.app-merged_res-51:/values-ru_values-ru.arsc.flat",
             "map": [
                 {
                     "source": "C:\\Users\\fakhr\\.gradle\\caches\\8.9\\transforms\\f94475d0ee9d4fd73fbdbfc57d660a71\\transformed\\core-1.13.1\\res\\values-ru\\values-ru.xml",
@@ -5917,7 +5917,7 @@
             ]
         },
         {
-            "outputFile": "com.example.onspot_supervisor.app-merged_res-51:/values-en-rCA_values-en-rCA.arsc.flat",
+            "outputFile": "com.example.onspot_officer.app-merged_res-51:/values-en-rCA_values-en-rCA.arsc.flat",
             "map": [
                 {
                     "source": "C:\\Users\\fakhr\\.gradle\\caches\\8.9\\transforms\\f94475d0ee9d4fd73fbdbfc57d660a71\\transformed\\core-1.13.1\\res\\values-en-rCA\\values-en-rCA.xml",
@@ -5956,7 +5956,7 @@
             ]
         },
         {
-            "outputFile": "com.example.onspot_supervisor.app-merged_res-51:/values-pt-rBR_values-pt-rBR.arsc.flat",
+            "outputFile": "com.example.onspot_officer.app-merged_res-51:/values-pt-rBR_values-pt-rBR.arsc.flat",
             "map": [
                 {
                     "source": "C:\\Users\\fakhr\\.gradle\\caches\\8.9\\transforms\\5094150c239d69290bdecc05c6b5e878\\transformed\\jetified-play-services-base-18.5.0\\res\\values-pt-rBR\\values.xml",
@@ -6029,7 +6029,7 @@
             ]
         },
         {
-            "outputFile": "com.example.onspot_supervisor.app-merged_res-51:/values-si_values-si.arsc.flat",
+            "outputFile": "com.example.onspot_officer.app-merged_res-51:/values-si_values-si.arsc.flat",
             "map": [
                 {
                     "source": "C:\\Users\\fakhr\\.gradle\\caches\\8.9\\transforms\\5094150c239d69290bdecc05c6b5e878\\transformed\\jetified-play-services-base-18.5.0\\res\\values-si\\values.xml",
@@ -6102,7 +6102,7 @@
             ]
         },
         {
-            "outputFile": "com.example.onspot_supervisor.app-merged_res-51:/values-af_values-af.arsc.flat",
+            "outputFile": "com.example.onspot_officer.app-merged_res-51:/values-af_values-af.arsc.flat",
             "map": [
                 {
                     "source": "C:\\Users\\fakhr\\.gradle\\caches\\8.9\\transforms\\5094150c239d69290bdecc05c6b5e878\\transformed\\jetified-play-services-base-18.5.0\\res\\values-af\\values.xml",
@@ -6175,7 +6175,7 @@
             ]
         },
         {
-            "outputFile": "com.example.onspot_supervisor.app-merged_res-51:/values-sr_values-sr.arsc.flat",
+            "outputFile": "com.example.onspot_officer.app-merged_res-51:/values-sr_values-sr.arsc.flat",
             "map": [
                 {
                     "source": "C:\\Users\\fakhr\\.gradle\\caches\\8.9\\transforms\\c3a832e05112998ddb0ac0d7ac76a618\\transformed\\jetified-play-services-basement-18.4.0\\res\\values-sr\\values.xml",
@@ -6248,7 +6248,7 @@
             ]
         },
         {
-            "outputFile": "com.example.onspot_supervisor.app-merged_res-51:/values-lo_values-lo.arsc.flat",
+            "outputFile": "com.example.onspot_officer.app-merged_res-51:/values-lo_values-lo.arsc.flat",
             "map": [
                 {
                     "source": "C:\\Users\\fakhr\\.gradle\\caches\\8.9\\transforms\\c3a832e05112998ddb0ac0d7ac76a618\\transformed\\jetified-play-services-basement-18.4.0\\res\\values-lo\\values.xml",
@@ -6321,7 +6321,7 @@
             ]
         },
         {
-            "outputFile": "com.example.onspot_supervisor.app-merged_res-51:/values-b+sr+Latn_values-b+sr+Latn.arsc.flat",
+            "outputFile": "com.example.onspot_officer.app-merged_res-51:/values-b+sr+Latn_values-b+sr+Latn.arsc.flat",
             "map": [
                 {
                     "source": "C:\\Users\\fakhr\\.gradle\\caches\\8.9\\transforms\\c3a832e05112998ddb0ac0d7ac76a618\\transformed\\jetified-play-services-basement-18.4.0\\res\\values-b+sr+Latn\\values.xml",
@@ -6394,7 +6394,7 @@
             ]
         },
         {
-            "outputFile": "com.example.onspot_supervisor.app-merged_res-51:/values-or_values-or.arsc.flat",
+            "outputFile": "com.example.onspot_officer.app-merged_res-51:/values-or_values-or.arsc.flat",
             "map": [
                 {
                     "source": "C:\\Users\\fakhr\\.gradle\\caches\\8.9\\transforms\\c3a832e05112998ddb0ac0d7ac76a618\\transformed\\jetified-play-services-basement-18.4.0\\res\\values-or\\values.xml",
@@ -6467,7 +6467,7 @@
             ]
         },
         {
-            "outputFile": "com.example.onspot_supervisor.app-merged_res-51:/values-fi_values-fi.arsc.flat",
+            "outputFile": "com.example.onspot_officer.app-merged_res-51:/values-fi_values-fi.arsc.flat",
             "map": [
                 {
                     "source": "C:\\Users\\fakhr\\.gradle\\caches\\8.9\\transforms\\f94475d0ee9d4fd73fbdbfc57d660a71\\transformed\\core-1.13.1\\res\\values-fi\\values-fi.xml",
@@ -6540,7 +6540,7 @@
             ]
         },
         {
-            "outputFile": "com.example.onspot_supervisor.app-merged_res-51:/values-ca_values-ca.arsc.flat",
+            "outputFile": "com.example.onspot_officer.app-merged_res-51:/values-ca_values-ca.arsc.flat",
             "map": [
                 {
                     "source": "C:\\Users\\fakhr\\.gradle\\caches\\8.9\\transforms\\f94475d0ee9d4fd73fbdbfc57d660a71\\transformed\\core-1.13.1\\res\\values-ca\\values-ca.xml",
@@ -6613,7 +6613,7 @@
             ]
         },
         {
-            "outputFile": "com.example.onspot_supervisor.app-merged_res-51:/values-sw600dp-v13_values-sw600dp-v13.arsc.flat",
+            "outputFile": "com.example.onspot_officer.app-merged_res-51:/values-sw600dp-v13_values-sw600dp-v13.arsc.flat",
             "map": [
                 {
                     "source": "C:\\Users\\fakhr\\.gradle\\caches\\8.9\\transforms\\708e433c5528e64dbc3aadd067098214\\transformed\\appcompat-1.4.0\\res\\values-sw600dp-v13\\values-sw600dp-v13.xml",
@@ -6628,7 +6628,7 @@
             ]
         },
         {
-            "outputFile": "com.example.onspot_supervisor.app-merged_res-51:/values-eu_values-eu.arsc.flat",
+            "outputFile": "com.example.onspot_officer.app-merged_res-51:/values-eu_values-eu.arsc.flat",
             "map": [
                 {
                     "source": "C:\\Users\\fakhr\\.gradle\\caches\\8.9\\transforms\\708e433c5528e64dbc3aadd067098214\\transformed\\appcompat-1.4.0\\res\\values-eu\\values-eu.xml",
@@ -6701,7 +6701,7 @@
             ]
         },
         {
-            "outputFile": "com.example.onspot_supervisor.app-merged_res-51:/values-gu_values-gu.arsc.flat",
+            "outputFile": "com.example.onspot_officer.app-merged_res-51:/values-gu_values-gu.arsc.flat",
             "map": [
                 {
                     "source": "C:\\Users\\fakhr\\.gradle\\caches\\8.9\\transforms\\708e433c5528e64dbc3aadd067098214\\transformed\\appcompat-1.4.0\\res\\values-gu\\values-gu.xml",

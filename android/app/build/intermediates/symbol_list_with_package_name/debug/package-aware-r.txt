@@ -1,4 +1,4 @@
-com.example.onspot_supervisor
+com.example.onspot_officer
 anim abc_fade_in
 anim abc_fade_out
 anim abc_grow_fade_in_from_bottom

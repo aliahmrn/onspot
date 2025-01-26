@@ -3,7 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 final userNameProvider = FutureProvider<String>((ref) async {
   final prefs = await SharedPreferences.getInstance();
-  return prefs.getString('name') ?? 'Supervisor';
+  return prefs.getString('name') ?? 'Officer';
 });
 
 final userProfilePicProvider = FutureProvider<String?>((ref) async {

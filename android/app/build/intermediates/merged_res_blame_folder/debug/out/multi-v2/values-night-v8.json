@@ -1,10 +1,10 @@
 {
     "logs": [
         {
-            "outputFile": "com.example.onspot_supervisor.app-mergeDebugResources-49:/values-night-v8/values-night-v8.xml",
+            "outputFile": "com.example.onspot_officer.app-mergeDebugResources-49:/values-night-v8/values-night-v8.xml",
             "map": [
                 {
-                    "source": "C:\\Users\\fakhr\\onspot\\onspot\\onspot_supervisor\\android\\app\\src\\main\\res\\values-night\\styles.xml",
+                    "source": "C:\\Users\\fakhr\\onspot\\onspot\\onspot_officer\\android\\app\\src\\main\\res\\values-night\\styles.xml",
                     "from": {
                         "startLines": "3,14",
                         "startColumns": "4,4",

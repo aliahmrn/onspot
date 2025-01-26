@@ -7,10 +7,10 @@ import 'package:firebase_messaging/firebase_messaging.dart'; // Firebase Messagi
 import '../utils/device_utils.dart'; // Correctly imported device utility
 
 class AuthService {
-  final String baseUrl = 'http://192.168.124.145:8000/api'; // Your API base URL
+  final String baseUrl = 'http://10.0.2.2:8000/api'; // Your API base URL
   final Logger _logger = Logger(); // Initialize Logger
 
-  // Login function for supervisors
+  // Login function for officer
   Future<void> login(String input, String password) async {
     try {
       final requestBody = jsonEncode({
@@ -36,9 +36,10 @@ class AuthService {
         final String name = data['user']['name'];
         final String phoneNo = data['user']['phone_no'];
 
-        if (role == 'supervisor') {
+        if (role == 'officer') {
           // Save details to shared preferences
-          await saveUserDetails(token, role, svId, email, username, name, phoneNo);
+          await saveUserDetails(
+              token, role, svId, email, username, name, phoneNo);
 
           // Fetch and save FCM token
           _logger.i('Fetching and saving FCM token...');
@@ -48,7 +49,7 @@ class AuthService {
           final prefs = await SharedPreferences.getInstance();
           _logger.i("Saved Token: ${prefs.getString('token')}");
           _logger.i("Saved Role: ${prefs.getString('role')}");
-          _logger.i("Saved Supervisor ID: ${prefs.getString('supervisorId')}");
+          _logger.i("Saved Officer ID: ${prefs.getString('officerId')}");
           _logger.i("Saved Email: ${prefs.getString('email')}");
           _logger.i("Saved Username: ${prefs.getString('username')}");
           _logger.i("Saved Name: ${prefs.getString('name')}");
@@ -64,23 +65,24 @@ class AuthService {
     }
   }
 
-  Future<void> saveUserDetails(String token, String role, String svId, String email, String username, String name, String phoneNo) async {
+  Future<void> saveUserDetails(String token, String role, String svId,
+      String email, String username, String name, String phoneNo) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('token', token);
     await prefs.setString('role', role);
-    await prefs.setString('supervisorId', svId);
+    await prefs.setString('officerId', svId);
     await prefs.setString('email', email);
     await prefs.setString('username', username);
     await prefs.setString('name', name);
     await prefs.setString('phoneNo', phoneNo);
-    _logger.i('Supervisor details saved successfully.');
+    _logger.i('officer details saved successfully.');
   }
 
   Future<void> clearUserDetails() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('token');
     await prefs.remove('role');
-    await prefs.remove('supervisorId');
+    await prefs.remove('officer');
     await prefs.remove('email');
     await prefs.remove('username');
     await prefs.remove('name');
@@ -89,36 +91,37 @@ class AuthService {
   }
 
   // Save FCM token to the backend
-Future<void> saveFcmToken(String authToken, String fcmToken) async {
-  try {
-    final deviceId = await getDeviceId(); // Use device utility
+  Future<void> saveFcmToken(String authToken, String fcmToken) async {
+    try {
+      final deviceId = await getDeviceId(); // Use device utility
 
-    final payload = jsonEncode({
-      'device_token': fcmToken,
-      'device_id': deviceId,
-      'device_type': Platform.isAndroid ? 'android' : 'ios',
-    });
+      final payload = jsonEncode({
+        'device_token': fcmToken,
+        'device_id': deviceId,
+        'device_type': Platform.isAndroid ? 'android' : 'ios',
+      });
 
-    _logger.i('Payload being sent to backend: $payload');
+      _logger.i('Payload being sent to backend: $payload');
 
-    final response = await http.post(
-      Uri.parse('$baseUrl/store-token'),
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $authToken',
-      },
-      body: payload,
-    );
+      final response = await http.post(
+        Uri.parse('$baseUrl/store-token'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $authToken',
+        },
+        body: payload,
+      );
 
-    if (response.statusCode == 200) {
-      _logger.i('FCM token saved successfully.');
-    } else {
-      _logger.w('Failed to save FCM token: ${response.statusCode} - ${response.body}');
+      if (response.statusCode == 200) {
+        _logger.i('FCM token saved successfully.');
+      } else {
+        _logger.w(
+            'Failed to save FCM token: ${response.statusCode} - ${response.body}');
+      }
+    } catch (e) {
+      _logger.e('Error while saving FCM token: $e');
     }
-  } catch (e) {
-    _logger.e('Error while saving FCM token: $e');
   }
-}
 
   // Fetch and save FCM token if needed
   Future<void> saveFcmTokenIfNeeded(String authToken) async {
@@ -166,7 +169,8 @@ Future<void> saveFcmToken(String authToken, String fcmToken) async {
     }
   }
 
-  Future<void> register(String name, String username, String email, String password, String phoneNo) async {
+  Future<void> register(String name, String username, String email,
+      String password, String phoneNo) async {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/flutterregister'),
@@ -181,7 +185,7 @@ Future<void> saveFcmToken(String authToken, String fcmToken) async {
           'password': password,
           'password_confirmation': password,
           'phone_no': phoneNo,
-          'role': 'supervisor',
+          'role': 'officer',
         }),
       );
 
@@ -194,7 +198,8 @@ Future<void> saveFcmToken(String authToken, String fcmToken) async {
         _logger.i('Registration complete. Fetching and saving FCM token...');
         await saveFcmTokenIfNeeded(token);
       } else {
-        _logger.w('Registration failed: ${response.statusCode} - ${response.body}');
+        _logger.w(
+            'Registration failed: ${response.statusCode} - ${response.body}');
         throw Exception('Failed to register user: ${response.body}');
       }
     } catch (e) {
@@ -222,7 +227,8 @@ Future<void> saveFcmToken(String authToken, String fcmToken) async {
     }
   }
 
-  Future<void> resetPassword(String email, String code, String password, String confirmPassword) async {
+  Future<void> resetPassword(String email, String code, String password,
+      String confirmPassword) async {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/reset-password'),
@@ -246,34 +252,33 @@ Future<void> saveFcmToken(String authToken, String fcmToken) async {
     }
   }
 
- Future<void> storeNotificationToken(String deviceToken, String deviceId, String deviceType) async {
-  final prefs = await SharedPreferences.getInstance();
-  final token = prefs.getString('token'); // Retrieve the stored token
+  Future<void> storeNotificationToken(
+      String deviceToken, String deviceId, String deviceType) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('token'); // Retrieve the stored token
 
-  if (token == null) {
-    Logger().e('Error: No token found. User might not be logged in.');
-    return; // Exit the function if no token is found
+    if (token == null) {
+      Logger().e('Error: No token found. User might not be logged in.');
+      return; // Exit the function if no token is found
+    }
+
+    final response = await http.post(
+      Uri.parse('$baseUrl/store-token'), // Fixed URL based on your base URL
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({
+        'device_token': deviceToken,
+        'device_id': deviceId,
+        'device_type': deviceType,
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      _logger.i('Device token saved successfully');
+    } else {
+      _logger.e('Failed to save device token: ${response.body}');
+    }
   }
-
-  final response = await http.post(
-    Uri.parse('$baseUrl/store-token'), // Fixed URL based on your base URL
-    headers: {
-      'Authorization': 'Bearer $token',
-      'Content-Type': 'application/json',
-    },
-    body: jsonEncode({
-      'device_token': deviceToken,
-      'device_id': deviceId,
-      'device_type': deviceType,
-    }),
-  );
-
-  if (response.statusCode == 200) {
-    _logger.i('Device token saved successfully');
-  } else {
-    _logger.e('Failed to save device token: ${response.body}');
-  }
-}
-
-
 }

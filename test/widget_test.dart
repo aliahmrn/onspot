@@ -8,12 +8,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:onspot_supervisor/main.dart';
+import 'package:onspot_officer/main.dart';
 
 void main() {
   testWidgets('Counter increments smoke test', (WidgetTester tester) async {
     // Build our app and trigger a frame.
-    await tester.pumpWidget(const OnspotSupervisorApp());
+    await tester.pumpWidget(const OnspotOfficerApp());
 
     // Verify that our counter starts at 0.
     expect(find.text('0'), findsOneWidget);

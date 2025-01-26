@@ -3,14 +3,14 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/navigation_provider.dart';
 
-
 // Bottom navigation bar widget with Riverpod
 class SupervisorBottomNavBar extends ConsumerWidget {
   const SupervisorBottomNavBar({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final currentIndex = ref.watch(currentIndexProvider); // Observe the current index
+    final currentIndex =
+        ref.watch(currentIndexProvider); // Observe the current index
     final primaryColor = Theme.of(context).primaryColor;
     final secondaryColor = Theme.of(context).colorScheme.secondary;
     final shadowColor = Colors.black.withOpacity(0.15);
@@ -51,7 +51,8 @@ class SupervisorBottomNavBar extends ConsumerWidget {
                 unselectedItemColor: Colors.grey,
                 currentIndex: currentIndex,
                 onTap: (index) {
-                  ref.read(currentIndexProvider.notifier).state = index; // Update index via Riverpod
+                  ref.read(currentIndexProvider.notifier).state =
+                      index; // Update index via Riverpod
                 },
                 type: BottomNavigationBarType.fixed,
                 showSelectedLabels: true,
@@ -71,15 +72,6 @@ class SupervisorBottomNavBar extends ConsumerWidget {
                     icon: _buildIcon(
                       context,
                       currentIndex == 1,
-                      'assets/images/search.svg',
-                      isSvg: true,
-                    ),
-                    label: 'Carian',
-                  ),
-                  BottomNavigationBarItem(
-                    icon: _buildIcon(
-                      context,
-                      currentIndex == 2,
                       'assets/images/plus.svg',
                       isSvg: true,
                     ),
@@ -88,7 +80,7 @@ class SupervisorBottomNavBar extends ConsumerWidget {
                   BottomNavigationBarItem(
                     icon: _buildIcon(
                       context,
-                      currentIndex == 3,
+                      currentIndex == 2,
                       'assets/images/history.svg',
                       isSvg: true,
                     ),
@@ -97,7 +89,7 @@ class SupervisorBottomNavBar extends ConsumerWidget {
                   BottomNavigationBarItem(
                     icon: _buildIcon(
                       context,
-                      currentIndex == 4,
+                      currentIndex == 3,
                       'assets/images/user.svg',
                       isSvg: true,
                     ),
@@ -112,7 +104,8 @@ class SupervisorBottomNavBar extends ConsumerWidget {
     );
   }
 
-  Widget _buildIcon(BuildContext context, bool isSelected, String assetPath, {bool isSvg = false}) {
+  Widget _buildIcon(BuildContext context, bool isSelected, String assetPath,
+      {bool isSvg = false}) {
     final primaryColor = Theme.of(context).primaryColor;
     return ColorFiltered(
       colorFilter: ColorFilter.mode(
