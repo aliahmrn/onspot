@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../service/complaints_service.dart';
+import 'package:logger/logger.dart'; 
 
 // Fetch complaint details
 final complaintDetailsProvider = FutureProvider.family<Map<String, dynamic>, String>((ref, complaintId) async {
@@ -25,6 +26,7 @@ final selectedCleanersProvider = StateProvider<List<String?>>((ref) => []);
 // Task assignment logic
 class AssignTaskNotifier extends StateNotifier<AsyncValue<Map<String, dynamic>>> {
   final ComplaintsService _service;
+  final Logger logger = Logger();
 
   AssignTaskNotifier(this._service) : super(const AsyncValue.data({}));
 
@@ -48,9 +50,9 @@ Future<void> assignTask({
       },
     );
     state = AsyncValue.data(response); // Success
-    print('AssignTaskNotifier: Task assignment successful');
+    logger.i('AssignTaskNotifier: Task assignment successful');
   } catch (e, stackTrace) {
-    print('AssignTaskNotifier: Error occurred - $e');
+    logger.i('AssignTaskNotifier: Error occurred - $e');
     state = AsyncValue.error(e, stackTrace); // Error
   }
 }

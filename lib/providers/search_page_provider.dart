@@ -54,7 +54,7 @@ class CleanersNotifier extends StateNotifier<CleanersState> {
       };
 
       final response = await http.get(Uri.parse('$url?status=$status'), headers: headers);
-
+      logger.i('Fetching cleaners with status: $status');
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
 
@@ -84,21 +84,19 @@ class CleanersNotifier extends StateNotifier<CleanersState> {
   }
 
   void searchCleaners(String query, {String? status = 'all'}) {
-    if (query.isEmpty) {
-      state = CleanersState(
-        cleaners: status == 'all'
-            ? _allCleaners
-            : _allCleaners.where((cleaner) => cleaner['status'] == status).toList(),
-      );
-    } else {
-      state = CleanersState(
-        cleaners: _allCleaners
-            .where((cleaner) =>
-                cleaner['name']!.toLowerCase().contains(query.toLowerCase()) &&
-                (status == 'all' || cleaner['status'] == status))
-            .toList(),
-      );
-    }
+    String apiStatus = status == 'sedia'
+        ? 'available'
+        : status == 'tidak sedia'
+            ? 'unavailable'
+            : 'all';
+
+    state = CleanersState(
+      cleaners: _allCleaners
+          .where((cleaner) =>
+              cleaner['name']!.toLowerCase().contains(query.toLowerCase()) &&
+              (apiStatus == 'all' || cleaner['status'] == apiStatus))
+          .toList(),
+    );
   }
 }
 

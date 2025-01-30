@@ -2,10 +2,12 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:logger/logger.dart'; 
 
 class ComplaintsService {
   final SupabaseClient _client = Supabase.instance.client;
   final String baseUrl = 'http://192.168.124.145:8000/api';
+  final Logger logger = Logger();
 
 
 
@@ -55,7 +57,7 @@ Future<List<Map<String, dynamic>>> fetchAssignedTasksHistory({
   String? monthFilter,
 }) async {
   try {
-    print('Fetching tasks for supervisorId: $supervisorId, statusFilter: $statusFilter, monthFilter: $monthFilter');
+    logger.i('Fetching tasks for supervisorId: $supervisorId, statusFilter: $statusFilter, monthFilter: $monthFilter');
 
     // Call the RPC function or query with filters
     final response = await _client.rpc(
@@ -68,7 +70,7 @@ Future<List<Map<String, dynamic>>> fetchAssignedTasksHistory({
     );
 
     // Log the raw response
-    print('RPC Response: $response');
+    logger.i('RPC Response: $response');
 
     // Ensure the response is a List of JSON objects
     if (response is List<dynamic>) {
@@ -82,7 +84,7 @@ Future<List<Map<String, dynamic>>> fetchAssignedTasksHistory({
           return dateB.compareTo(dateA);
         });
 
-      print('Raw tasks: $tasks');
+      logger.i('Raw tasks: $tasks');
 
       // Map tasks to include `complaint_id` and `assigned_date`
       final List<Map<String, dynamic>> formattedTasks = tasks.map((task) {
@@ -107,13 +109,13 @@ Future<List<Map<String, dynamic>>> fetchAssignedTasksHistory({
         return false;
       }).toList();
 
-      print('Filtered unique tasks: $uniqueTasks');
+      logger.i('Filtered unique tasks: $uniqueTasks');
       return uniqueTasks;
     } else {
       throw Exception('Unexpected response type from RPC function');
     }
   } catch (e) {
-    print('Error in fetchAssignedTasksHistory: $e');
+    logger.i('Error in fetchAssignedTasksHistory: $e');
     throw Exception('Error fetching task history: $e');
   }
 }
@@ -121,7 +123,7 @@ Future<List<Map<String, dynamic>>> fetchAssignedTasksHistory({
 
   Future<Map<String, dynamic>> fetchHistoryDetails(String complaintId) async {
     try {
-      print('Fetching complaint details for complaintId: $complaintId');
+      logger.i('Fetching complaint details for complaintId: $complaintId');
 
       // Step 1: Fetch complaint and complaint_cleaner details
       final response = await _client
@@ -130,7 +132,7 @@ Future<List<Map<String, dynamic>>> fetchAssignedTasksHistory({
           .eq('id', complaintId)
           .maybeSingle();
 
-      print('Complaint response from Supabase: $response');
+      logger.i('Complaint response from Supabase: $response');
 
       if (response == null) {
         throw Exception('Complaint not found');
@@ -162,10 +164,10 @@ Future<List<Map<String, dynamic>>> fetchAssignedTasksHistory({
         };
       }).toList();
 
-      print('Final complaint object: $complaint');
+      logger.i('Final complaint object: $complaint');
       return complaint;
     } catch (e) {
-      print('Error fetching history details: $e');
+      logger.i('Error fetching history details: $e');
       throw Exception('Error fetching history details: $e');
     }
   }
@@ -186,7 +188,7 @@ Future<List<Map<String, dynamic>>> fetchAssignedTasksHistory({
         throw Exception('Failed to fetch user names. Status code: ${response.statusCode}');
       }
     } catch (e) {
-      print('Error fetching user names: $e');
+      logger.i('Error fetching user names: $e');
       throw Exception('Error fetching user names: $e');
     }
   }
@@ -194,7 +196,7 @@ Future<List<Map<String, dynamic>>> fetchAssignedTasksHistory({
 
   Future<Map<String, dynamic>?> fetchLatestComplaint() async {
   try {
-    print('Fetching the latest complaint...');
+    logger.i('Fetching the latest complaint...');
     final response = await _client
         .from('complaint')
         .select()
@@ -203,16 +205,16 @@ Future<List<Map<String, dynamic>>> fetchAssignedTasksHistory({
         .limit(1)
         .maybeSingle(); // Fetch the latest complaint or return null if none exist
 
-    print('Query response: $response'); // Log the response
+    logger.i('Query response: $response'); // Log the response
 
     if (response == null) {
-      print('No pending complaints found.');
+      logger.i('No pending complaints found.');
       return null;
     }
 
     return Map<String, dynamic>.from(response); // Convert response to Map
   } catch (e) {
-    print('Error in fetchLatestComplaint: $e');
+    logger.i('Error in fetchLatestComplaint: $e');
     throw Exception('Error fetching latest complaint: $e');
   }
   }
@@ -263,7 +265,7 @@ Future<List<Map<String, dynamic>>> fetchAssignedTasksHistory({
             'Failed to assign task. Status code: ${response.statusCode}. Error: ${errorBody['message']}');
       }
     } catch (e) {
-      print('Error in assignTask: $e');
+      logger.i('Error in assignTask: $e');
       throw Exception('Error assigning task: $e');
     }
   }

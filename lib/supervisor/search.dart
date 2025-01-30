@@ -88,12 +88,18 @@ class _SearchPageState extends ConsumerState<SearchPage> {
                                 const SizedBox(width: 10),
                                 Expanded(
                                   child: TextField(
-                                    onChanged: (value) {
-                                      // Filter cleaners based on input and status
-                                      ref.read(cleanersProvider.notifier).searchCleaners(
-                                        value,
-                                        status: selectedStatus,
-                                      );
+                                    onChanged: (String? newValue) {
+                                      ref.read(selectedStatusProvider.notifier).state = newValue!;
+
+                                      // Map user-friendly dropdown values to API-compatible values
+                                      String apiStatus = newValue == 'sedia'
+                                          ? 'available'
+                                          : newValue == 'tidak sedia'
+                                              ? 'unavailable'
+                                              : 'all';
+
+                                      // Re-filter cleaners based on the mapped status
+                                      ref.read(cleanersProvider.notifier).fetchCleaners(status: apiStatus);
                                     },
                                     decoration: const InputDecoration(
                                       hintText: 'Cari pembersih',
@@ -175,13 +181,18 @@ class _SearchPageState extends ConsumerState<SearchPage> {
                           child: cleanersState.cleaners.isEmpty
                               ? ListView(
                                   physics: const AlwaysScrollableScrollPhysics(), // Allows pull-to-refresh even if empty
-                                  children: const [
-                                    Center(
+                                  children: [
+                                    const SizedBox(height: 200), // Space above for centering
+                                    const Center(
                                       child: Text(
                                         'Tiada pembersih ditemui.',
-                                        style: TextStyle(color: Colors.grey),
+                                        style: TextStyle(
+                                          color: Colors.grey,
+                                          fontSize: 16, // Adjust font size as needed
+                                        ),
                                       ),
                                     ),
+                                    const SizedBox(height: 200), // Optional space below
                                   ],
                                 )
                               : ListView.builder(

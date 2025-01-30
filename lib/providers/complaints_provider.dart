@@ -9,7 +9,6 @@ final complaintsProvider = FutureProvider<List<Map<String, dynamic>>>((ref) asyn
 
 // Update historyProvider to properly use the category
 final historyProvider = FutureProvider.family<List<Map<String, dynamic>>, Map<String, dynamic>>((ref, filters) async {
-  print('Provider triggered with filters: $filters');
   final prefs = await SharedPreferences.getInstance();
   final supervisorIdStr = prefs.getString('supervisorId');
   final supervisorId = supervisorIdStr != null ? int.tryParse(supervisorIdStr) : null;
