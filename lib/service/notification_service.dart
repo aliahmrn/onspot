@@ -18,7 +18,7 @@ class NotificationService {
   final FlutterLocalNotificationsPlugin _flutterLocalNotificationsPlugin =
       FlutterLocalNotificationsPlugin();
 
-  final String apiBaseUrl = "http://192.168.124.145:8000/api"; // Replace with your backend URL
+  final String apiBaseUrl = "http://192.168.90.145:8000/api"; // Replace with your backend URL
   final Logger _logger = Logger(); // Initialize a logger instance
 
   Future<void> initialize() async {

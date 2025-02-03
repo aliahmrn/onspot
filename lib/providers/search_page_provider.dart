@@ -38,7 +38,7 @@ class CleanersNotifier extends StateNotifier<CleanersState> {
   Future<void> fetchCleaners({String? status = 'all'}) async {
     state = CleanersState(isLoading: true); // Set loading state
 
-    const url = 'http://192.168.124.145:8000/api/supervisor/cleaners';
+    const url = 'http://192.168.90.145:8000/api/supervisor/cleaners';
 
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -106,8 +106,8 @@ final cleanerDetailProvider =
   const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdoZmNwZGRweXdtYXRoa2hta2ZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQzMTk5NTcsImV4cCI6MjA0OTg5NTk1N30.pD09VuhLHIjww0hIbCbltJL9IvFyxZZp0ipfcswUIy0';
   final supabaseClient = SupabaseClient(supabaseUrl, supabaseKey);
 
-  final mysqlUserNamesUrl = 'http://192.168.124.145:8000/api/user-names';
-  final mysqlCleanerDetailsUrl = 'http://192.168.124.145:8000/api/supervisor/cleaner/$cleanerId';
+  final mysqlUserNamesUrl = 'http://192.168.90.145:8000/api/user-names';
+  final mysqlCleanerDetailsUrl = 'http://192.168.90.145:8000/api/supervisor/cleaner/$cleanerId';
 
   try {
     // Step 1: Fetch cleaner details from MySQL

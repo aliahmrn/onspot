@@ -15,19 +15,20 @@ class ComplaintListNotifier extends StateNotifier<List<Map<String, dynamic>>> {
   ComplaintListNotifier() : super([]);
 
   final _complaintsService = ComplaintsService();
+  final Logger logger = Logger();
 
   Future<void> refresh() async {
     try {
-      print('Fetching complaints...');
+      logger.i('Fetching complaints...');
       final complaints = await _complaintsService
           .fetchComplaints()
           .timeout(const Duration(seconds: 10), onTimeout: () {
         throw Exception('Timeout while fetching complaints.');
       });
-      print('Complaints fetched: $complaints');
+      logger.i('Complaints fetched: $complaints');
       state = complaints;
     } catch (e) {
-      print('Error fetching complaints: $e');
+      logger.i('Error fetching complaints: $e');
       state = []; // Ensure the state resets to avoid UI freezes
     }
   }
@@ -35,8 +36,9 @@ class ComplaintListNotifier extends StateNotifier<List<Map<String, dynamic>>> {
 
 class AssignTaskPage extends ConsumerWidget {
   final String complaintId;
+    final Logger logger = Logger();
 
-  const AssignTaskPage({super.key, required this.complaintId});
+  AssignTaskPage({super.key, required this.complaintId});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -95,7 +97,7 @@ ref.listen<AsyncValue<Map<String, dynamic>>>(assignTaskProvider, (previous, next
 });
 
     final complaintDetailsAsync = ref.watch(complaintDetailsProvider(complaintId));
-    print('Fetching complaint details for complaintId: $complaintId');
+    logger.i('Fetching complaint details for complaintId: $complaintId');
     final assignTaskState = ref.watch(assignTaskProvider);
 
     return Scaffold(
@@ -402,7 +404,7 @@ ref.listen<AsyncValue<Map<String, dynamic>>>(assignTaskProvider, (previous, next
             final cleaner = availableCleaners.firstWhere(
               (element) => element['cleaner_name'] == cleanerName,
               orElse: () {
-                print('Cleaner not found for name: $cleanerName');
+                ('Cleaner not found for name: $cleanerName');
                 return {};
               },
             );
@@ -426,7 +428,7 @@ ref.listen<AsyncValue<Map<String, dynamic>>>(assignTaskProvider, (previous, next
         'assigned_by': supervisorId,
       };
 
-      print('Assigning task with body: $body'); // Log the body
+      logger.i('Assigning task with body: $body'); // Log the body
       await ref.read(assignTaskProvider.notifier).assignTask(
         complaintId: complaintId,
         cleanerIds: cleanerIds.map(int.parse).toList(), // Ensure cleaner IDs are integers
@@ -438,7 +440,7 @@ ref.listen<AsyncValue<Map<String, dynamic>>>(assignTaskProvider, (previous, next
       ref.read(selectedNumOfCleanersProvider.notifier).state = null;
       ref.read(selectedCleanersProvider.notifier).state = [];
 
-      print('Task assignment complete'); // Confirm completion
+      logger.i('Task assignment complete'); // Confirm completion
     } catch (e) {
       Logger().e('Error in _assignTask: $e');
       rethrow;

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../providers/complaints_provider.dart';
 import 'history_details.dart';
+import 'package:logger/logger.dart'; 
 
 class HistoryPage extends ConsumerStatefulWidget {
   const HistoryPage({super.key});
@@ -14,6 +15,7 @@ class HistoryPage extends ConsumerStatefulWidget {
 class _HistoryPageState extends ConsumerState<HistoryPage> {
   String selectedCategory = ''; // Default to no filter (all data)
   String selectedMonth = ''; // Default to no month filter
+  final Logger logger = Logger();
 
   @override
   Widget build(BuildContext context) {
@@ -125,7 +127,7 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
                               ? 0
                               : (selectedCategory == 'ongoing' ? 1 : 2),
                           child: SizedBox(
-                            height: screenHeight * 0.05, // Reduce the height of the TabBar
+                            height: screenHeight * 0.05,
                             child: TabBar(
                               onTap: (index) {
                                 String newCategory = '';
@@ -197,23 +199,23 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
                         const SizedBox(height: 10),
                         Expanded(
                           child: Consumer(builder: (context, ref, _) {
-                          print('Rebuilding Consumer widget...');
+                          logger.i('Rebuilding Consumer widget...');
                           final historyAsync = ref.watch(historyProvider(filters));
                             return RefreshIndicator(
                               onRefresh: () async {
                                 try {
-                                  print('Refreshing history with filters: $filters');
+                                  logger.i('Refreshing history with filters: $filters');
                                   final refreshedHistory = await ref.refresh(historyProvider(filters).future);
-                                  print('Refreshed history data: $refreshedHistory');
+                                  logger.i('Refreshed history data: $refreshedHistory');
                                 } catch (e) {
-                                  print('Error refreshing history: $e');
+                                  logger.i('Error refreshing history: $e');
                                 }
                               },
                               child: historyAsync.when(
                                 loading: () => const Center(child: CircularProgressIndicator()),
                                 error: (error, _) => Center(child: Text('Error: $error')),
                                 data: (tasks) {
-                                  print('History data in UI: $tasks'); // Debug log
+                                  logger.i('History data in UI: $tasks'); // Debug log
                                   if (tasks.isEmpty) {
                                     return const Center(
                                       child: Text(
@@ -225,14 +227,14 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
 
                                      // Debug each task
                                       for (var task in tasks) {
-                                        print('Rendering task: $task');
+                                        logger.i('Rendering task: $task');
                                       }
 
                                   return ListView.builder(
                                     itemCount: tasks.length,
                                     itemBuilder: (context, index) {
                                       final task = tasks[index];
-                                      print('Rendering task: $task'); // Debug log
+                                      logger.i('Rendering task: $task'); // Debug log
 
                                       // Access `comp_date` and `comp_desc` directly from the JSON
                                       final assignedDate = task['assigned_date'] ?? 'Tiada Tarikh'; // Extract comp_date
@@ -246,7 +248,7 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
                                           borderRadius: BorderRadius.circular(screenWidth * 0.03),
                                           onTap: () {
                                             final complaintId = task['complaint_id'];
-                                            print('Navigating with complaint ID: ${task['id']}');
+                                            logger.i('Navigating with complaint ID: ${task['id']}');
                                             Navigator.push(
                                               context,
                                               PageRouteBuilder(

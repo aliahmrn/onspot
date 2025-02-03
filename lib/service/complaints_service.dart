@@ -6,7 +6,7 @@ import 'package:logger/logger.dart';
 
 class ComplaintsService {
   final SupabaseClient _client = Supabase.instance.client;
-  final String baseUrl = 'http://192.168.124.145:8000/api';
+  final String baseUrl = 'http://192.168.90.145:8000/api';
   final Logger logger = Logger();
 
 

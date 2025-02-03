@@ -27,6 +27,13 @@ class SupervisorHomeScreen extends ConsumerWidget {
     final supervisorName = ref.watch(userNameProvider);
     final profileData = ref.watch(profileProvider);
 
+    Future<void> _refresh() async {
+    ref.invalidate(complaintsProvider);
+    ref.invalidate(latestComplaintProvider);
+    ref.invalidate(userNameProvider);
+    ref.invalidate(profileProvider);
+   }
+
     return Scaffold(
       backgroundColor: primaryColor,
       appBar: AppBar(
@@ -43,8 +50,10 @@ class SupervisorHomeScreen extends ConsumerWidget {
           ),
         ),
       ),
-      body: Stack(
-        children: [
+      body: RefreshIndicator(
+        onRefresh: _refresh,
+        child: Stack(
+          children: [
           Positioned(
             top: screenHeight * 0.01,
             left: 0,
@@ -59,6 +68,8 @@ class SupervisorHomeScreen extends ConsumerWidget {
                 ),
               ),
               padding: EdgeInsets.all(screenWidth * 0.04),
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -306,8 +317,10 @@ class SupervisorHomeScreen extends ConsumerWidget {
               )
             ),
           ),
+         ),
         ],
       ),
+     ),
     );
   }
 }
