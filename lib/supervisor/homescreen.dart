@@ -181,7 +181,7 @@ class SupervisorHomeScreen extends ConsumerWidget {
                   Divider(color: Colors.grey.withOpacity(0.5)),
 
                   // Complaints Section
-// Latest complaint display implementation
+                  // Latest complaint display implementation
                   complaintsState.when(
                     loading: () => const Center(child: CircularProgressIndicator()),
                     error: (e, _) => Center(
@@ -202,13 +202,30 @@ class SupervisorHomeScreen extends ConsumerWidget {
                         ),
                         data: (complaint) {
                           if (complaint == null) {
-                            return Center(
-                              child: Text(
-                                'Tiada aduan.',
-                                style: TextStyle(
-                                  fontSize: screenWidth * 0.04,
-                                  fontWeight: FontWeight.bold,
-                                  color: onPrimaryColor,
+                            // 🆕 Show "Tiada aduan terkini." inside a complaint card
+                            return Container(
+                              padding: EdgeInsets.all(screenWidth * 0.04),
+                              decoration: BoxDecoration(
+                                color: primaryColor,
+                                borderRadius: BorderRadius.circular(screenWidth * 0.03),
+                                border: Border.all(color: onPrimaryColor.withOpacity(0.2), width: 1),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.grey.withOpacity(0.2),
+                                    spreadRadius: screenWidth * 0.003,
+                                    blurRadius: screenWidth * 0.02,
+                                    offset: Offset(0, screenHeight * 0.003),
+                                  ),
+                                ],
+                              ),
+                              child: Center(
+                                child: Text(
+                                  'Tiada aduan terkini.',
+                                  style: TextStyle(
+                                    fontSize: screenWidth * 0.04,
+                                    fontWeight: FontWeight.bold,
+                                    color: onPrimaryColor,
+                                  ),
                                 ),
                               ),
                             );

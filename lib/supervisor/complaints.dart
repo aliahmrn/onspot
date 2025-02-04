@@ -48,7 +48,7 @@ class ComplaintPage extends ConsumerWidget {
           error: (error, _) => Center(child: Text('Error: $error')),
           data: (complaints) {
             if (complaints.isEmpty) {
-              return const Center(child: Text('Tiada aduan lagi.'));
+              return const Center(child: Text('Tiada aduan terkini.'));
             }
 
             // Sort complaints by date in descending order
