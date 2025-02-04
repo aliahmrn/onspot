@@ -2,21 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../providers/complaints_provider.dart';
-import 'history_details.dart';
+import 'complaintdetails.dart';
 
-class HistoryPage extends ConsumerStatefulWidget {
+final tabIndexProvider = StateProvider<int>((ref) => 0);
+
+class HistoryPage extends ConsumerWidget {
   const HistoryPage({super.key});
 
   @override
-  ConsumerState<HistoryPage> createState() => _HistoryPageState();
-}
-
-class _HistoryPageState extends ConsumerState<HistoryPage> {
-  String selectedCategory = ''; // Default to no filter (all data)
-  String selectedMonth = ''; // Default to no month filter
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
 
@@ -24,10 +18,19 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
     final secondaryColor = Theme.of(context).colorScheme.secondary;
     final onPrimaryColor = Theme.of(context).colorScheme.onPrimary;
 
-    final filters = {
-      'category': selectedCategory.isEmpty ? null : selectedCategory, // Use null if no category selected
-      'month': selectedMonth.isEmpty ? null : selectedMonth,         // Use null if no month selected
-    };
+    final historyFilter = ref.watch(historyFilterProvider.notifier);
+    final filters = ref.watch(historyFilterProvider);
+    final tabIndex = ref.watch(tabIndexProvider); // Watch current tab index
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (filters['category'] == 'completed') {
+        ref.read(tabIndexProvider.notifier).state = 2;
+      } else if (filters['category'] == 'ongoing') {
+        ref.read(tabIndexProvider.notifier).state = 1;
+      } else {
+        ref.read(tabIndexProvider.notifier).state = 0;
+      }
+    });
 
     return Scaffold(
       backgroundColor: primaryColor,
@@ -47,9 +50,10 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
       ),
       body: Column(
         children: [
-          Container(
-            color: primaryColor,
-            padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.04, vertical: screenHeight * 0.02),
+          // Dropdown for Month Selection
+          Padding(
+            padding: EdgeInsets.symmetric(
+                horizontal: screenWidth * 0.04, vertical: screenHeight * 0.02),
             child: Center(
               child: Container(
                 width: screenWidth * 0.6,
@@ -59,45 +63,38 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
                 ),
                 padding: EdgeInsets.symmetric(horizontal: 16.0),
                 child: DropdownButton<String>(
-                  value: selectedMonth.isNotEmpty ? selectedMonth.split('-')[1] : null, // Only use the month part (e.g., "01")
-                  hint: Text(
+                  value: filters['month']?.split('-')[1],
+                  hint: const Text(
                     'Pilih Bulan',
                     style: TextStyle(color: Colors.black),
                   ),
                   items: List.generate(12, (index) {
-                    final monthValue = (index + 1).toString().padLeft(2, '0'); // Ensures "01", "02", etc.
-                    final monthName = DateFormat('MMMM').format(DateTime(0, index + 1));
+                    final monthValue = (index + 1).toString().padLeft(2, '0');
+                    final monthName =
+                        DateFormat('MMMM').format(DateTime(0, index + 1));
                     return DropdownMenuItem(
-                      value: monthValue, // Set value to "01", "02", etc.
+                      value: monthValue,
                       child: Text(
                         monthName,
-                        style: TextStyle(color: Colors.black),
+                        style: const TextStyle(color: Colors.black),
                       ),
                     );
                   }),
                   onChanged: (value) {
                     if (value != null) {
-                      final currentYear = DateTime.now().year; // Dynamically fetch the year
-                      setState(() {
-                        selectedMonth = '$currentYear-$value'; // Store as "YYYY-MM"
-                      });
-
-                      // Invalidate the provider with updated filters
-                      ref.invalidate(historyProvider({
-                        'category': selectedCategory.isEmpty ? null : selectedCategory,
-                        'month': selectedMonth,
-                      }));
+                      final currentYear = DateTime.now().year;
+                      historyFilter.updateMonth('$currentYear-$value');
                     }
                   },
                   isExpanded: true,
                   dropdownColor: Colors.grey[300],
-                  style: TextStyle(color: Colors.black),
-                  underline: SizedBox(),
-                  itemHeight: 50.0, // Set default height
+                  underline: const SizedBox(),
                 ),
               ),
             ),
           ),
+
+          // History List with Filters
           Expanded(
             child: Stack(
               children: [
@@ -119,220 +116,262 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
                     child: Column(
                       children: [
                         const SizedBox(height: 10),
-                        DefaultTabController(
-                          length: 3,
-                          initialIndex: selectedCategory == ''
-                              ? 0
-                              : (selectedCategory == 'ongoing' ? 1 : 2),
-                          child: SizedBox(
-                            height: screenHeight * 0.05, // Reduce the height of the TabBar
-                            child: TabBar(
-                              onTap: (index) {
-                                String newCategory = '';
-                                if (index == 1) {
-                                  newCategory = 'ongoing';
-                                } else if (index == 2) {
-                                  newCategory = 'completed';
-                                }
-
-                                if (newCategory != selectedCategory) {
-                                  setState(() {
-                                    selectedCategory = newCategory;
-                                  });
-                                  // Invalidate the provider with updated filters
-                                  ref.invalidate(historyProvider({
-                                    'category': selectedCategory.isEmpty ? null : selectedCategory,
-                                    'month': selectedMonth.isEmpty ? null : selectedMonth,
-                                  }));
-                                }
-                              },
-                              tabs: [
-                                Tab(
-                                  icon: Icon(
-                                    Icons.list,
-                                    color: selectedCategory == '' ? primaryColor : Colors.grey,
-                                    size: screenWidth * 0.045, // Slightly smaller icon
-                                  ),
-                                  child: Text(
-                                    'Semua',
-                                    style: TextStyle(
-                                      color: selectedCategory == '' ? primaryColor : Colors.grey,
-                                      fontSize: screenWidth * 0.039, // Smaller font size
-                                    ),
-                                  ),
-                                ),
-                                Tab(
-                                  icon: Icon(
-                                    Icons.access_time,
-                                    color: selectedCategory == 'ongoing' ? primaryColor : Colors.grey,
-                                    size: screenWidth * 0.045, // Slightly smaller icon
-                                  ),
-                                  child: Text(
-                                    'Berjalan',
-                                    style: TextStyle(
-                                      color: selectedCategory == 'ongoing' ? primaryColor : Colors.grey,
-                                      fontSize: screenWidth * 0.039, // Smaller font size
-                                    ),
-                                  ),
-                                ),
-                                Tab(
-                                  icon: Icon(
-                                    Icons.check_circle,
-                                    color: selectedCategory == 'completed' ? primaryColor : Colors.grey,
-                                    size: screenWidth * 0.045, // Slightly smaller icon
-                                  ),
-                                  child: Text(
-                                    'Selesai',
-                                    style: TextStyle(
-                                      color: selectedCategory == 'completed' ? primaryColor : Colors.grey,
-                                      fontSize: screenWidth * 0.039, // Smaller font size
-                                    ),
-                                  ),
-                                ),
-                              ],
-                              indicatorColor: primaryColor,
+                        SizedBox(
+                          height: screenHeight * 0.05,
+                          child: TabBar(
+                            controller: TabController(
+                              length: 3,
+                              vsync: Navigator.of(context),
+                              initialIndex: tabIndex, // Sync with StateProvider
                             ),
+                            onTap: (index) {
+                              ref.read(tabIndexProvider.notifier).state =
+                                  index; // Update selected tab
+
+                              // Change filter based on selected tab
+                              if (index == 1) {
+                                historyFilter.updateCategory(
+                                    'ongoing'); // Case 2 (Ongoing)
+                              } else if (index == 2) {
+                                historyFilter.updateCategory(
+                                    'completed'); // Case 3 (Completed)
+                              } else {
+                                historyFilter
+                                    .updateCategory(''); // Case 1 (All)
+                              }
+                            },
+                            tabs: [
+                              Tab(
+                                icon: Icon(
+                                  Icons.list,
+                                  color: tabIndex == 0
+                                      ? primaryColor
+                                      : Colors.grey,
+                                  size: screenWidth * 0.045,
+                                ),
+                                child: Text(
+                                  'Semua',
+                                  style: TextStyle(
+                                    color: tabIndex == 0
+                                        ? primaryColor
+                                        : Colors.grey,
+                                    fontSize: screenWidth * 0.039,
+                                  ),
+                                ),
+                              ),
+                              Tab(
+                                icon: Icon(
+                                  Icons.access_time,
+                                  color: tabIndex == 1
+                                      ? primaryColor
+                                      : Colors.grey,
+                                  size: screenWidth * 0.045,
+                                ),
+                                child: Text(
+                                  'Berjalan',
+                                  style: TextStyle(
+                                    color: tabIndex == 1
+                                        ? primaryColor
+                                        : Colors.grey,
+                                    fontSize: screenWidth * 0.039,
+                                  ),
+                                ),
+                              ),
+                              Tab(
+                                icon: Icon(
+                                  Icons.check_circle,
+                                  color: tabIndex == 2
+                                      ? primaryColor
+                                      : Colors.grey,
+                                  size: screenWidth * 0.045,
+                                ),
+                                child: Text(
+                                  'Selesai',
+                                  style: TextStyle(
+                                    color: tabIndex == 2
+                                        ? primaryColor
+                                        : Colors.grey,
+                                    fontSize: screenWidth * 0.039,
+                                  ),
+                                ),
+                              ),
+                            ],
+                            indicatorColor: primaryColor,
                           ),
                         ),
                         const SizedBox(height: 10),
                         Expanded(
                           child: Consumer(builder: (context, ref, _) {
-                          print('Rebuilding Consumer widget...');
-                          final historyAsync = ref.watch(historyProvider(filters));
+                            final historyAsync = ref.watch(historyProvider);
                             return RefreshIndicator(
                               onRefresh: () async {
-                                try {
-                                  print('Refreshing history with filters: $filters');
-                                  final refreshedHistory = await ref.refresh(historyProvider(filters).future);
-                                  print('Refreshed history data: $refreshedHistory');
-                                } catch (e) {
-                                  print('Error refreshing history: $e');
-                                }
+                                ref.invalidate(
+                                    complaintsProvider); // Manually refreshes provider
                               },
                               child: historyAsync.when(
-                                loading: () => const Center(child: CircularProgressIndicator()),
-                                error: (error, _) => Center(child: Text('Error: $error')),
+                                loading: () => const Center(
+                                    child: CircularProgressIndicator()),
+                                error: (error, _) =>
+                                    Center(child: Text('Error: $error')),
                                 data: (tasks) {
-                                  print('History data in UI: $tasks'); // Debug log
-                                  if (tasks.isEmpty) {
+                                  // ✅ Filter tasks based on selected tab
+                                  final filteredTasks = tasks.where((task) {
+                                    final caseNumber = getComplaintCase(
+                                        task['comp_status'] ?? 'pending');
+
+                                    if (tabIndex == 1) {
+                                      return caseNumber ==
+                                          2; // ✅ Show only Case 2 (Ongoing) in Tab 2
+                                    } else if (tabIndex == 2) {
+                                      return caseNumber ==
+                                          1; // ✅ Show only Case 1 (Completed) in Tab 3
+                                    }
+                                    return true; // ✅ Show all tasks in Tab 1
+                                  }).toList();
+
+                                  if (filteredTasks.isEmpty) {
                                     return const Center(
                                       child: Text(
                                         'Tiada rekod tersedia.',
-                                        style: TextStyle(fontSize: 16, color: Colors.grey),
+                                        style: TextStyle(
+                                            fontSize: 16, color: Colors.grey),
                                       ),
                                     );
                                   }
-
-                                     // Debug each task
-                                      for (var task in tasks) {
-                                        print('Rendering task: $task');
-                                      }
-
                                   return ListView.builder(
-                                    itemCount: tasks.length,
+                                    itemCount: filteredTasks.length,
                                     itemBuilder: (context, index) {
-                                      final task = tasks[index];
-                                      print('Rendering task: $task'); // Debug log
-
-                                      // Access `comp_date` and `comp_desc` directly from the JSON
-                                      final assignedDate = task['assigned_date'] ?? 'Tiada Tarikh'; // Extract comp_date
-                                      final description = task['comp_desc'] ?? 'Tiada Penerangan'; // Extract comp_desc
-                                      final noOfCleaners = task['no_of_cleaners'] ?? '0';
-
+                                      final task = filteredTasks[index];
+                                      final assignedDate =
+                                          task['comp_date'] ?? 'Tiada Tarikh';
+                                      final description = task['comp_desc'] ??
+                                          'Tiada Penerangan';
+                                      final complaintTitle = getComplaintTitle(
+                                          task['comp_status'] ?? 'pending');
+                                      final compLocation =
+                                          task['comp_location'] ??
+                                              'Lokasi Tidak Diketahui';
 
                                       return Padding(
-                                        padding: EdgeInsets.symmetric(vertical: screenHeight * 0.01),
+                                        padding: EdgeInsets.symmetric(
+                                            vertical: screenHeight * 0.01),
                                         child: InkWell(
-                                          borderRadius: BorderRadius.circular(screenWidth * 0.03),
+                                          borderRadius: BorderRadius.circular(
+                                              screenWidth * 0.03),
                                           onTap: () {
-                                            final complaintId = task['complaint_id'];
-                                            print('Navigating with complaint ID: ${task['id']}');
-                                            Navigator.push(
-                                              context,
-                                              PageRouteBuilder(
-                                                pageBuilder: (context, animation, secondaryAnimation) =>
-                                                    TaskDetailsPage(
-                                                    complaintId: complaintId.toString(),
+                                            final complaintId = task['id'];
+
+                                            if (complaintId is int) {
+                                              // Ensure it's an integer before navigating
+                                              Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                  builder: (context) =>
+                                                      ComplaintDetailsPage(
+                                                          complaintId:
+                                                              complaintId),
                                                 ),
-                                                transitionDuration: Duration.zero,
-                                                reverseTransitionDuration: Duration.zero,
-                                              ),
-                                            );
+                                              );
+                                            } else {
+                                              print(
+                                                  'Error: complaintId is null or not an int. Received: $complaintId');
+                                              ScaffoldMessenger.of(context)
+                                                  .showSnackBar(
+                                                SnackBar(
+                                                    content: Text(
+                                                        'Invalid Complaint ID')),
+                                              );
+                                            }
                                           },
                                           child: Container(
                                             decoration: BoxDecoration(
                                               color: primaryColor,
-                                              borderRadius: BorderRadius.circular(screenWidth * 0.03),
+                                              borderRadius:
+                                                  BorderRadius.circular(
+                                                      screenWidth * 0.03),
                                               border: Border.all(
-                                                color: Colors.grey.withOpacity(0.5),
-                                                width: 1.2,
-                                              ),
-                                              boxShadow: [
-                                                BoxShadow(
-                                                  color: Colors.grey.withOpacity(0.3),
-                                                  spreadRadius: screenWidth * 0.003,
-                                                  blurRadius: screenWidth * 0.02,
-                                                  offset: Offset(0, screenHeight * 0.003),
-                                                ),
-                                              ],
+                                                  color: Colors.grey
+                                                      .withOpacity(0.5),
+                                                  width: 1.2),
                                             ),
-                                            padding: EdgeInsets.all(screenWidth * 0.04),
+                                            padding: EdgeInsets.all(
+                                                screenWidth * 0.04),
                                             child: Column(
-                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
                                               children: [
                                                 Row(
                                                   children: [
-                                                    Icon(
-                                                      Icons.access_time,
-                                                      color: onPrimaryColor.withOpacity(0.7),
-                                                      size: screenWidth * 0.05,
-                                                    ),
-                                                    SizedBox(width: screenWidth * 0.02),
+                                                    Icon(Icons.access_time,
+                                                        color: onPrimaryColor
+                                                            .withOpacity(0.7),
+                                                        size:
+                                                            screenWidth * 0.05),
+                                                    SizedBox(
+                                                        width:
+                                                            screenWidth * 0.02),
                                                     Text(
-                                                      'Aduan telah ditugaskan',
+                                                      complaintTitle,
                                                       style: TextStyle(
-                                                        fontSize: screenWidth * 0.045,
-                                                        fontWeight: FontWeight.bold,
-                                                        color: onPrimaryColor,
-                                                      ),
+                                                          fontSize:
+                                                              screenWidth *
+                                                                  0.045,
+                                                          fontWeight:
+                                                              FontWeight.bold,
+                                                          color:
+                                                              onPrimaryColor),
                                                     ),
                                                     const Spacer(),
                                                     Text(
-                                                      assignedDate != 'Tiada Tarikh' 
-                                                          ? DateFormat('dd/MM/yyyy').format(DateTime.parse(assignedDate))
-                                                          : 'Tiada tarikh', // Default text if date is invalid or missing
+                                                      assignedDate !=
+                                                              'Tiada Tarikh'
+                                                          ? DateFormat(
+                                                                  'dd/MM/yyyy')
+                                                              .format(DateTime
+                                                                  .parse(
+                                                                      assignedDate))
+                                                          : 'Tiada tarikh',
                                                       style: TextStyle(
-                                                        fontSize: screenWidth * 0.035,
-                                                        color: onPrimaryColor.withOpacity(0.6),
-                                                      ),
+                                                          fontSize:
+                                                              screenWidth *
+                                                                  0.035,
+                                                          color: onPrimaryColor
+                                                              .withOpacity(
+                                                                  0.6)),
                                                     ),
                                                   ],
                                                 ),
-                                                const Divider(color: Colors.white24),
-                                                SizedBox(height: screenHeight * 0.005),
-
+                                                const Divider(
+                                                    color: Colors.white24),
                                                 Text(
                                                   description,
                                                   style: TextStyle(
-                                                    fontSize: screenWidth * 0.04,
-                                                    color: onPrimaryColor.withOpacity(0.9),
-                                                  ),
+                                                      fontSize:
+                                                          screenWidth * 0.04,
+                                                      color: onPrimaryColor
+                                                          .withOpacity(0.9)),
                                                 ),
-                                                SizedBox(height: screenHeight * 0.005),
-
+                                                const SizedBox(height: 8),
                                                 Row(
                                                   children: [
-                                                    Icon(
-                                                      Icons.people,
-                                                      size: screenWidth * 0.04,
-                                                      color: onPrimaryColor.withOpacity(0.7),
-                                                    ),
-                                                    SizedBox(width: screenWidth * 0.02),
-                                                    Text(
-                                                      '$noOfCleaners pembersih ditugaskan',
-                                                      style: TextStyle(
-                                                        fontSize: screenWidth * 0.035,
-                                                        color: onPrimaryColor.withOpacity(0.7),
+                                                    Icon(Icons.location_on,
+                                                        color: Colors.white70,
+                                                        size: screenWidth *
+                                                            0.045),
+                                                    const SizedBox(width: 5),
+                                                    Expanded(
+                                                      child: Text(
+                                                        compLocation,
+                                                        style: TextStyle(
+                                                            fontSize:
+                                                                screenWidth *
+                                                                    0.035,
+                                                            fontWeight:
+                                                                FontWeight.bold,
+                                                            color:
+                                                                Colors.white70),
+                                                        overflow: TextOverflow
+                                                            .ellipsis,
                                                       ),
                                                     ),
                                                   ],
@@ -360,15 +399,28 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
       ),
     );
   }
+}
 
-  Color getStatusColor(String status) {
-    switch (status.toLowerCase()) {
-      case 'completed':
-        return Colors.green;
-      case 'ongoing':
-        return Colors.blue;
-      default:
-        return Colors.orange;
-    }
+String getComplaintTitle(String status) {
+  switch (status.toLowerCase()) {
+    case 'completed':
+      return 'Aduan selesai';
+    case 'ongoing':
+      return 'Aduan telah ditugaskan';
+    case 'pending':
+    default:
+      return 'Aduan belum ditugaskan';
+  }
+}
+
+int getComplaintCase(String status) {
+  switch (status.toLowerCase()) {
+    case 'completed':
+      return 1; // ✅ Case 1: Completed (Tab 3)
+    case 'ongoing':
+      return 2; // ✅ Case 2: Ongoing (Tab 2)
+    case 'pending':
+    default:
+      return 3; // ✅ Case 3: Pending (Only in Tab 1)
   }
 }

@@ -181,152 +181,134 @@ class SupervisorHomeScreen extends ConsumerWidget {
                         error: (e, _) => Center(
                           child: Text('Ralat memuatkan aduan: $e'),
                         ),
-                        data: (_) {
-                          return latestComplaint.when(
-                            loading: () => const Center(
-                                child: CircularProgressIndicator()),
-                            error: (error, _) => Center(
+                        data: (complaints) {
+                          if (complaints.isEmpty) {
+                            return Center(
                               child: Text(
-                                'Ralat memuatkan aduan terbaru: $error',
+                                'Tiada aduan.',
                                 style: TextStyle(
                                   fontSize: screenWidth * 0.04,
                                   fontWeight: FontWeight.bold,
                                   color: onPrimaryColor,
                                 ),
                               ),
-                            ),
-                            data: (complaint) {
-                              if (complaint == null) {
-                                return Center(
-                                  child: Text(
-                                    'Tiada aduan.',
-                                    style: TextStyle(
-                                      fontSize: screenWidth * 0.04,
-                                      fontWeight: FontWeight.bold,
-                                      color: onPrimaryColor,
-                                    ),
-                                  ),
-                                );
-                              }
+                            );
+                          }
 
-                              // Format complaint time
-                              final timeString =
-                                  complaint['comp_time'] ?? '00:00:00';
-                              final DateTime time =
-                                  DateTime.parse('1970-01-01 $timeString');
-                              final String formattedTime =
-                                  DateFormat('HH:mm').format(time);
+                          // Get the latest complaint (first in the list)
+                          final complaint = complaints.first;
 
-                              return GestureDetector(
-                                onTap: () {
-                                  ref
-                                      .read(currentIndexProvider.notifier)
-                                      .state = 2;
-                                },
-                                child: Container(
-                                  padding: EdgeInsets.all(screenWidth * 0.04),
-                                  decoration: BoxDecoration(
-                                    color: primaryColor,
-                                    borderRadius: BorderRadius.circular(
-                                        screenWidth * 0.03),
-                                    border: Border.all(
-                                        color: onPrimaryColor.withOpacity(0.2),
-                                        width: 1),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.grey.withOpacity(0.2),
-                                        spreadRadius: screenWidth * 0.003,
-                                        blurRadius: screenWidth * 0.02,
-                                        offset: Offset(0, screenHeight * 0.003),
-                                      ),
-                                    ],
-                                  ),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      // Location and Time Row
-                                      Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Row(
-                                            children: [
-                                              const Icon(Icons.location_on,
-                                                  size: 18,
-                                                  color: Colors.white),
-                                              SizedBox(
-                                                  width: screenWidth * 0.02),
-                                              Text(
-                                                complaint['comp_location'] ??
-                                                    'Lokasi tidak disediakan',
-                                                style: TextStyle(
-                                                  fontSize: screenWidth * 0.045,
-                                                  fontWeight: FontWeight.bold,
-                                                  color: onPrimaryColor,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                          Text(
-                                            formattedTime,
-                                            style: TextStyle(
-                                              fontSize: screenWidth * 0.035,
-                                              color: onPrimaryColor
-                                                  .withOpacity(0.7),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      SizedBox(height: screenHeight * 0.01),
-                                      const Divider(
-                                          thickness: 1, color: Colors.white24),
-                                      SizedBox(height: screenHeight * 0.01),
+                          // Format complaint time
+                          final timeString =
+                              complaint['comp_time'] ?? '00:00:00';
+                          final DateTime time =
+                              DateTime.parse('1970-01-01 $timeString');
+                          final String formattedTime =
+                              DateFormat('HH:mm').format(time);
 
-                                      // Complaint Description
-                                      Row(
-                                        children: [
-                                          const Icon(Icons.description,
-                                              size: 18, color: Colors.white),
-                                          SizedBox(width: screenWidth * 0.02),
-                                          Expanded(
-                                            child: Text(
-                                              complaint['comp_desc'] ??
-                                                  'Deskripsi tidak disediakan',
-                                              style: TextStyle(
-                                                fontSize: screenWidth * 0.04,
-                                                color: onPrimaryColor,
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      SizedBox(height: screenHeight * 0.01),
-
-                                      // Complaint Date
-                                      Row(
-                                        children: [
-                                          const Icon(Icons.calendar_today,
-                                              size: 18, color: Colors.white),
-                                          SizedBox(width: screenWidth * 0.02),
-                                          Text(
-                                            DateFormat('dd/MM/yyyy').format(
-                                                DateTime.parse(
-                                                    complaint['comp_date'] ??
-                                                        '1970-01-01')),
-                                            style: TextStyle(
-                                              fontSize: screenWidth * 0.035,
-                                              color: onPrimaryColor
-                                                  .withOpacity(0.7),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              );
+                          return GestureDetector(
+                            onTap: () {
+                              ref.read(currentIndexProvider.notifier).state = 2;
                             },
+                            child: Container(
+                              padding: EdgeInsets.all(screenWidth * 0.04),
+                              decoration: BoxDecoration(
+                                color: primaryColor,
+                                borderRadius:
+                                    BorderRadius.circular(screenWidth * 0.03),
+                                border: Border.all(
+                                    color: onPrimaryColor.withOpacity(0.2),
+                                    width: 1),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.grey.withOpacity(0.2),
+                                    spreadRadius: screenWidth * 0.003,
+                                    blurRadius: screenWidth * 0.02,
+                                    offset: Offset(0, screenHeight * 0.003),
+                                  ),
+                                ],
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  // Location and Time Row
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Row(
+                                        children: [
+                                          const Icon(Icons.location_on,
+                                              size: 18, color: Colors.white),
+                                          SizedBox(width: screenWidth * 0.02),
+                                          Text(
+                                            complaint['comp_location'] ??
+                                                'Lokasi tidak disediakan',
+                                            style: TextStyle(
+                                              fontSize: screenWidth * 0.045,
+                                              fontWeight: FontWeight.bold,
+                                              color: onPrimaryColor,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      Text(
+                                        formattedTime,
+                                        style: TextStyle(
+                                          fontSize: screenWidth * 0.035,
+                                          color:
+                                              onPrimaryColor.withOpacity(0.7),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  SizedBox(height: screenHeight * 0.01),
+                                  const Divider(
+                                      thickness: 1, color: Colors.white24),
+                                  SizedBox(height: screenHeight * 0.01),
+
+                                  // Complaint Description
+                                  Row(
+                                    children: [
+                                      const Icon(Icons.description,
+                                          size: 18, color: Colors.white),
+                                      SizedBox(width: screenWidth * 0.02),
+                                      Expanded(
+                                        child: Text(
+                                          complaint['comp_desc'] ??
+                                              'Deskripsi tidak disediakan',
+                                          style: TextStyle(
+                                            fontSize: screenWidth * 0.04,
+                                            color: onPrimaryColor,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  SizedBox(height: screenHeight * 0.01),
+
+                                  // Complaint Date
+                                  Row(
+                                    children: [
+                                      const Icon(Icons.calendar_today,
+                                          size: 18, color: Colors.white),
+                                      SizedBox(width: screenWidth * 0.02),
+                                      Text(
+                                        DateFormat('dd/MM/yyyy').format(
+                                            DateTime.parse(
+                                                complaint['comp_date'] ??
+                                                    '1970-01-01')),
+                                        style: TextStyle(
+                                          fontSize: screenWidth * 0.035,
+                                          color:
+                                              onPrimaryColor.withOpacity(0.7),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
                           );
                         },
                       ),

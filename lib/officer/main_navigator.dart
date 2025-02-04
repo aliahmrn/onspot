@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/navigation_provider.dart';
 import 'homescreen.dart';
-import 'complaints.dart';
+import 'complaint.dart';
 import 'history.dart';
 import 'profile.dart';
 import 'navbar.dart';
