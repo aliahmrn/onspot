@@ -3,9 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'assign_task.dart';
 import '../providers/complaints_provider.dart';
+import 'package:logger/logger.dart'; 
+
 
 class ComplaintPage extends ConsumerWidget {
   const ComplaintPage({super.key});
+  
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -17,6 +20,8 @@ class ComplaintPage extends ConsumerWidget {
     final primaryColor = Theme.of(context).primaryColor;
     final secondaryColor = Theme.of(context).colorScheme.secondary;
     final onPrimaryColor = Theme.of(context).colorScheme.onPrimary;
+
+    final Logger logger = Logger();
 
     return Scaffold(
       backgroundColor: primaryColor,
@@ -45,18 +50,25 @@ class ComplaintPage extends ConsumerWidget {
         padding: EdgeInsets.all(screenWidth * 0.04),
         child: complaintsAsync.when(
           loading: () => const Center(child: CircularProgressIndicator()),
-          error: (error, _) => Center(child: Text('Error: $error')),
+          error: (error, _) {
+            logger.e('ComplaintPage error: $error');
+            return Center(child: Text('Error: $error'));
+          },
           data: (complaints) {
+            logger.i('Complaints received in UI: $complaints'); // Log UI data
+
             if (complaints.isEmpty) {
               return const Center(child: Text('Tiada aduan terkini.'));
             }
 
-            // Sort complaints by date in descending order
-            complaints.sort((a, b) {
-              DateTime dateA = DateTime.parse(a['comp_date']);
-              DateTime dateB = DateTime.parse(b['comp_date']);
-              return dateB.compareTo(dateA);
-            });
+              // ✅ Convert comp_date to DateTime before sorting
+              complaints.sort((a, b) {
+                DateTime dateA = DateTime.parse(a['comp_date']).toLocal();
+                DateTime dateB = DateTime.parse(b['comp_date']).toLocal();
+                return dateB.compareTo(dateA); // Sort newest first
+              });
+
+              logger.i('Sorted complaints: $complaints');
 
             // Wrap ListView.builder with RefreshIndicator
             return RefreshIndicator(

@@ -81,12 +81,12 @@ Widget _buildTaskDetailsContent(
 ) {
   final formattedDate = taskDetails['comp_date'] != null
       ? DateFormat('dd/MM/yyyy').format(DateTime.parse(taskDetails['comp_date']))
-      : 'No Date';
+      : 'Tiada Tarikh';
 
   final assignedCleaners = taskDetails['assigned_cleaners'] as List<dynamic>? ?? [];
   final formattedAssignedDate = assignedCleaners.isNotEmpty && assignedCleaners[0]['assigned_date'] != null
-      ? DateFormat('dd/MM/yyyy').format(DateTime.parse(assignedCleaners[0]['assigned_date']))
-      : 'No Date';
+      ? DateFormat('dd/MM/yyyy').format(DateTime.tryParse(assignedCleaners[0]['assigned_date']) ?? DateTime(0))
+      : 'Tiada Tarikh';
 
   return Column(
     children: [

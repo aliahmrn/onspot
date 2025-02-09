@@ -1,25 +1,58 @@
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:logger/logger.dart'; 
 
 class ComplaintsService {
-  final SupabaseClient _client = Supabase.instance.client;
-  final String baseUrl = 'http://192.168.184.146:8000/api';
+  final String baseUrl = 'http://192.168.248.145:8000/api';
   final Logger logger = Logger();
 
 
+  Future<List<Map<String, dynamic>>> fetchComplaints() async {
+    try {
+      logger.i('Fetching pending complaints from Laravel...');
 
-Future<List<Map<String, dynamic>>> fetchComplaints() async {
-  final response = await _client
-      .from('complaint')
-      .select()
-      .eq('comp_status', 'pending'); // Filters for complaints with comp_status = 'pending'
+      final prefs = await SharedPreferences.getInstance();
+      final bearerToken = prefs.getString('token');
 
-  return List<Map<String, dynamic>>.from(response);
-}
+      if (bearerToken == null) {
+        throw Exception('Bearer token is missing. Please log in again.');
+      }
 
+      final response = await http.get(
+        Uri.parse('$baseUrl/supervisor/complaints'),
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $bearerToken', // ✅ Add token
+        },
+      );
+
+      logger.i('Raw Response: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> data = jsonDecode(response.body);
+
+        if (!data.containsKey('data')) {
+          logger.e('API response missing "data" key: $data');
+          throw Exception('Invalid API response format');
+        }
+
+        final List<Map<String, dynamic>> complaints = List<Map<String, dynamic>>.from(data['data']);
+        logger.i('Parsed Complaints: $complaints');
+
+        return complaints;
+      } else if (response.statusCode == 401) {
+        logger.e('Unauthorized: Bearer token might be missing or invalid.');
+        throw Exception('Unauthorized: Please log in again.');
+      } else {
+        logger.e('Failed to fetch complaints. Status: ${response.statusCode}, Body: ${response.body}');
+        throw Exception('Failed to fetch complaints');
+      }
+    } catch (e) {
+      logger.e('Error fetching complaints: $e');
+      throw Exception('Error fetching complaints: $e');
+    }
+  }
 
   Future<Map<String, dynamic>> fetchComplaintDetails(String complaintId) async {
     try {
@@ -51,174 +84,103 @@ Future<List<Map<String, dynamic>>> fetchComplaints() async {
     }
   }
 
-Future<List<Map<String, dynamic>>> fetchAssignedTasksHistory({
-  required int supervisorId,
-  String? statusFilter,
-  String? monthFilter,
-}) async {
-  try {
-    logger.i('Fetching tasks for supervisorId: $supervisorId, statusFilter: $statusFilter, monthFilter: $monthFilter');
-
-    // Call the RPC function or query with filters
-    final response = await _client.rpc(
-      'filter_by_month',
-      params: {
-        'supervisor_id': supervisorId,
-        'status_filter': statusFilter,
-        'month_filter': monthFilter,
-      },
-    );
-
-    // Log the raw response
-    logger.i('RPC Response: $response');
-
-    // Ensure the response is a List of JSON objects
-    if (response is List<dynamic>) {
-      // Parse the JSON response into a list of maps
-      final List<Map<String, dynamic>> tasks = List<Map<String, dynamic>>.from(
-        response.map((task) => Map<String, dynamic>.from(task)),
-      )..sort((a, b) {
-          // Sort by comp_date in descending order
-          final dateA = DateTime.tryParse(a['assigned_date'] ?? '') ?? DateTime(0);
-          final dateB = DateTime.tryParse(b['assigned_date'] ?? '') ?? DateTime(0);
-          return dateB.compareTo(dateA);
-        });
-
-      logger.i('Raw tasks: $tasks');
-
-      // Map tasks to include `complaint_id` and `assigned_date`
-      final List<Map<String, dynamic>> formattedTasks = tasks.map((task) {
-        return {
-          'complaint_id': task['complaint_id'], // Use the correct complaint_id
-          'comp_desc': task['comp_desc'],
-          'comp_date': task['comp_date'],
-          'assigned_date': task['assigned_date'], // Include the assigned_date from complaint_cleaner
-          'no_of_cleaners': task['no_of_cleaners'],
-          'comp_status': task['comp_status'], // Add additional fields as needed
-        };
-      }).toList();
-
-      // Filter tasks to include only one per unique complaint_id
-      final Set<int> seenComplaintIds = {};
-      final List<Map<String, dynamic>> uniqueTasks = formattedTasks.where((task) {
-        final complaintId = task['complaint_id'] as int?;
-        if (complaintId != null && !seenComplaintIds.contains(complaintId)) {
-          seenComplaintIds.add(complaintId);
-          return true;
-        }
-        return false;
-      }).toList();
-
-      logger.i('Filtered unique tasks: $uniqueTasks');
-      return uniqueTasks;
-    } else {
-      throw Exception('Unexpected response type from RPC function');
-    }
-  } catch (e) {
-    logger.i('Error in fetchAssignedTasksHistory: $e');
-    throw Exception('Error fetching task history: $e');
-  }
-}
-
-
-  Future<Map<String, dynamic>> fetchHistoryDetails(String complaintId) async {
+  Future<List<Map<String, dynamic>>> fetchAssignedTasksHistory({
+    required String bearerToken, // ✅ Add this parameter
+    String? statusFilter,
+    String? monthFilter,
+  }) async {
     try {
-      logger.i('Fetching complaint details for complaintId: $complaintId');
+      logger.i('Fetching tasks, statusFilter: $statusFilter, monthFilter: $monthFilter');
 
-      // Step 1: Fetch complaint and complaint_cleaner details
-      final response = await _client
-          .from('complaint')
-          .select('*, complaint_cleaner(cleaner_id, assigned_date)')
-          .eq('id', complaintId)
-          .maybeSingle();
+      final url = Uri.parse('$baseUrl/supervisor/history'); // Ensure this matches the backend route
 
-      logger.i('Complaint response from Supabase: $response');
+      final response = await http.get(
+        url,
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $bearerToken', // ✅ Include Bearer token for authentication
+        },
+      );
 
-      if (response == null) {
-        throw Exception('Complaint not found');
+      logger.i('Raw Response: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+        return List<Map<String, dynamic>>.from(data);
+      } else {
+        throw Exception('Failed to fetch task history. Status: ${response.statusCode}');
       }
-
-      final complaint = Map<String, dynamic>.from(response);
-
-      // Extract cleaner IDs and officer ID
-      final cleanerDetails = complaint['complaint_cleaner'] as List<dynamic>? ?? [];
-      final cleanerIds = cleanerDetails.map((e) => e['cleaner_id'] as int).toList();
-      final officerId = complaint['officer_id'] as int?;
-
-      if (officerId == null || cleanerIds.isEmpty) {
-        throw Exception('Invalid officer or cleaner IDs');
-      }
-
-      // Fetch user names
-      final userIds = <int>[officerId, ...cleanerIds];
-      final userNames = await _fetchUserNames(userIds);
-
-      // Add names and details to the complaint object
-      complaint['officer_name'] = userNames[officerId] ?? 'Unknown Officer';
-      complaint['assigned_cleaners'] = cleanerDetails.map((cleaner) {
-        final cleanerId = cleaner['cleaner_id'];
-        return {
-          'cleaner_id': cleanerId,
-          'cleaner_name': userNames[cleanerId] ?? 'Unknown Cleaner',
-          'assigned_date': cleaner['assigned_date'], // Include assigned_date
-        };
-      }).toList();
-
-      logger.i('Final complaint object: $complaint');
-      return complaint;
     } catch (e) {
-      logger.i('Error fetching history details: $e');
+      logger.e('Error fetching task history: $e');
+      throw Exception('Error fetching task history: $e');
+    }
+  }
+  
+  Future<Map<String, dynamic>> fetchHistoryDetails(String complaintId, String bearerToken) async {
+    try {
+      final url = Uri.parse('$baseUrl/supervisor/history/$complaintId');
+      logger.i('Fetching details for complaintId: $complaintId with URL: $url');
+
+      final response = await http.get(
+        url,
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $bearerToken',
+        },
+      );
+
+      logger.i('Raw Response: ${response.body}');
+
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      } else {
+        throw Exception('Failed to fetch history details. Status: ${response.statusCode}');
+      }
+    } catch (e) {
+      logger.e('Error fetching history details: $e');
       throw Exception('Error fetching history details: $e');
     }
   }
 
-  Future<Map<int, String>> _fetchUserNames(List<int> userIds) async {
+  Future<Map<String, dynamic>?> fetchLatestComplaint() async {
     try {
-      final url = Uri.parse('$baseUrl/user-names'); // Laravel API endpoint
-      final response = await http.post(
-        url,
-        headers: {'Content-Type': 'application/json'},
-        body: json.encode({'user_ids': userIds}),
+      logger.i('Fetching the latest complaint...');
+
+      final prefs = await SharedPreferences.getInstance();
+      final bearerToken = prefs.getString('token');
+
+      if (bearerToken == null) {
+        throw Exception('Bearer token is missing. Please log in again.');
+      }
+
+      final response = await http.get(
+        Uri.parse('$baseUrl/complaints/latest'),
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $bearerToken', // ✅ Add Bearer Token
+        },
       );
 
       if (response.statusCode == 200) {
-        final List<dynamic> data = json.decode(response.body);
-        return {for (var user in data) user['id'] as int: user['name'] as String};
+        final Map<String, dynamic> data = jsonDecode(response.body);
+        logger.i('Latest Complaint Fetched: $data');
+
+        return data['data']; // Extract complaint details
+      } else if (response.statusCode == 401) {
+        logger.e('Unauthorized: Bearer token might be missing or invalid.');
+        throw Exception('Unauthorized: Please log in again.');
+      } else if (response.statusCode == 404) {
+        logger.w('No pending complaints found.');
+        return null;
       } else {
-        throw Exception('Failed to fetch user names. Status code: ${response.statusCode}');
+        logger.e('Failed to fetch latest complaint. Status: ${response.statusCode}, Body: ${response.body}');
+        return null;
       }
     } catch (e) {
-      logger.i('Error fetching user names: $e');
-      throw Exception('Error fetching user names: $e');
-    }
-  }
-
-
-  Future<Map<String, dynamic>?> fetchLatestComplaint() async {
-  try {
-    logger.i('Fetching the latest complaint...');
-    final response = await _client
-        .from('complaint')
-        .select()
-        .eq('comp_status', 'pending') // Filter by `comp_status = 'pending'`
-        .order('created_at', ascending: false) // Order by creation date (newest first)
-        .limit(1)
-        .maybeSingle(); // Fetch the latest complaint or return null if none exist
-
-    logger.i('Query response: $response'); // Log the response
-
-    if (response == null) {
-      logger.i('No pending complaints found.');
+      logger.e('Error fetching latest complaint: $e');
       return null;
     }
-
-    return Map<String, dynamic>.from(response); // Convert response to Map
-  } catch (e) {
-    logger.i('Error in fetchLatestComplaint: $e');
-    throw Exception('Error fetching latest complaint: $e');
   }
-  }
-  
 
  Future<Map<String, dynamic>> assignTask({
     required String complaintId,

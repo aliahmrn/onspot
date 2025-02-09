@@ -17,6 +17,21 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
   String selectedMonth = ''; // Default to no month filter
   final Logger logger = Logger();
 
+  String _formatAssignedDate(String? assignedDate) {
+  if (assignedDate == null || assignedDate.isEmpty || assignedDate == 'Tiada Tarikh') {
+    return 'Tiada tarikh';
+  }
+
+  try {
+    logger.i('Parsing assigned_date: $assignedDate'); // Debug log
+    DateTime parsedDate = DateFormat('yyyy-MM-dd').parse(assignedDate);
+    return DateFormat('dd/MM/yyyy').format(parsedDate);
+   } catch (e) {
+    logger.e('Error parsing assigned_date: $e');
+    return 'Tarikh tidak sah'; // Return fallback text if parsing fails
+   }
+ }
+
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
@@ -247,8 +262,8 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
                                         child: InkWell(
                                           borderRadius: BorderRadius.circular(screenWidth * 0.03),
                                           onTap: () {
-                                            final complaintId = task['complaint_id'];
-                                            logger.i('Navigating with complaint ID: ${task['id']}');
+                                            final complaintId = task['id'].toString(); // ✅ Ensure it's 'id', NOT 'complaint_id'
+                                            logger.i('Navigating with complaint ID: $complaintId');
                                             Navigator.push(
                                               context,
                                               PageRouteBuilder(
@@ -300,9 +315,7 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
                                                     ),
                                                     const Spacer(),
                                                     Text(
-                                                      assignedDate != 'Tiada Tarikh' 
-                                                          ? DateFormat('dd/MM/yyyy').format(DateTime.parse(assignedDate))
-                                                          : 'Tiada tarikh', // Default text if date is invalid or missing
+                                                      _formatAssignedDate(assignedDate), // ✅ Use formatted function
                                                       style: TextStyle(
                                                         fontSize: screenWidth * 0.035,
                                                         color: onPrimaryColor.withOpacity(0.6),
