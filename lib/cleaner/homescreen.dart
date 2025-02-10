@@ -52,7 +52,7 @@ class CleanerHomeScreenState extends ConsumerState<CleanerHomeScreen> {
 Future<void> _fetchLatestTask() async {
   try {
     final prefs = await SharedPreferences.getInstance();
-    final cleanerId = prefs.getString('cleanerId'); // Retrieve cleanerId from SharedPreferences
+    final cleanerId = prefs.getString('cleanerId');
 
     if (cleanerId == null) {
       setState(() {
@@ -63,13 +63,18 @@ Future<void> _fetchLatestTask() async {
       return;
     }
 
-    // Fetch the latest task assigned to the cleaner
     final task = await taskService.getLatestTask(int.parse(cleanerId));
-    _logger.i('Fetched latest task: $task');
+
+    final bool isAcknowledged = task?['is_notified'] == 1 || task?['is_notified'] == true;
 
     setState(() {
-      latestTask = task; // Assign the latest task
+      latestTask = task;
       isLoading = false;
+
+      // ✅ Add 'isAcknowledged' flag to latestTask
+      if (latestTask != null) {
+        latestTask!['isAcknowledged'] = isAcknowledged;
+      }
     });
   } catch (e) {
     setState(() {
@@ -93,10 +98,32 @@ Future<void> _checkAttendanceState() async {
   });
 }
 
+Future<void> _refresh() async {
+  try {
+    final prefs = await SharedPreferences.getInstance();
+    final cleanerId = prefs.getString('cleanerId');
+
+    if (cleanerId != null) {
+      await Future.wait<void>([
+        _fetchLatestTask(), 
+        _fetchCleanerName(),
+        ref.refresh(profileProvider.future),
+        ref.read(attendanceProvider.notifier).checkAttendance(int.parse(cleanerId)), // ✅ Refresh cleaner status
+      ]);
+    } else {
+      _logger.e("Cleaner ID is null, cannot refresh data.");
+    }
+  } catch (e) {
+    _logger.e("Error during refresh: $e");
+  }
+}
+
   // Update index to Profile (3)
   void _handleProfileTap(WidgetRef ref) {
     ref.read(currentIndexProvider.notifier).state = 3;
   }
+
+  
 
   @override
   Widget build(BuildContext context) {
@@ -129,6 +156,7 @@ Future<void> _checkAttendanceState() async {
             backgroundColor: primaryColor,
             elevation: 0,
             automaticallyImplyLeading: false,
+            toolbarHeight: 70,
             title: Text(
               'Laman Utama',
               style: TextStyle(
@@ -139,26 +167,31 @@ Future<void> _checkAttendanceState() async {
             ),
             centerTitle: true,
           ),
-          body: Stack(
-            children: [
-              Container(color: primaryColor),
-              Positioned(
-                top: screenHeight * 0.01,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: secondaryColor,
-                    borderRadius: BorderRadius.only(
-                      topLeft: Radius.circular(screenWidth * 0.06),
-                      topRight: Radius.circular(screenWidth * 0.06),
+          body: RefreshIndicator(
+            onRefresh: _refresh,
+            child: Stack( // ✅ Wrap everything inside a Stack
+              children: [
+                Container(color: primaryColor), // ✅ Background color
+                Positioned(
+                  top: screenHeight * 0.012,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  child: Container(
+                    constraints: BoxConstraints(
+                      minHeight: screenHeight * 0.8,
                     ),
-                  ),
-                  padding: EdgeInsets.all(screenWidth * 0.04),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
+                    decoration: BoxDecoration(
+                      color: secondaryColor,
+                      borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(screenWidth * 0.06),
+                        topRight: Radius.circular(screenWidth * 0.06),
+                      ),
+                    ),
+                    padding: EdgeInsets.all(screenWidth * 0.04),
+                    child: ListView( // ✅ Replace Column with ListView
+                      physics: const AlwaysScrollableScrollPhysics(), 
+                      children: [
                       // Welcome and Bell Section
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -233,13 +266,15 @@ Future<void> _checkAttendanceState() async {
                       SizedBox(height: screenHeight * 0.01),
 
                         // Cleaner Status Section
-                        Padding(
-                          padding: EdgeInsets.only(left: screenWidth * 0.02), // Slight left padding
-                          child: _buildStatusBadge(
-                            status, // Cleaner status
-                            statusColor, // Color based on the status
-                            Theme.of(context).textTheme, // Use the text theme for consistent styling
-                            screenWidth, // Provide screen width for responsive design
+                        Align(
+                          alignment: Alignment.centerLeft, // ✅ Moves it to the left
+                          child: IntrinsicWidth( // ✅ Keeps it compact
+                            child: _buildStatusBadge(
+                              status, 
+                              statusColor, 
+                              Theme.of(context).textTheme, 
+                              screenWidth,
+                            ),
                           ),
                         ),
                         SizedBox(height: screenHeight * 0.02),
@@ -312,25 +347,32 @@ Future<void> _checkAttendanceState() async {
                       SizedBox(height: screenHeight * 0.01),
 
                       // Task Section
-                      isLoading
-                          ? const Center(child: CircularProgressIndicator())
-                          : error != null
-                              ? Center(child: Text(error!))
-                              : _buildTaskCard(
+                      error != null
+                          ? Center(child: Text(error!))
+                          : latestTask != null && latestTask!.isNotEmpty
+                              ? _buildTaskCard(
                                   context,
                                   ref,
-                                  latestTask?['comp_desc'], // Nullable description
-                                  latestTask?['comp_location'], // Nullable location
-                                  latestTask?['assigned_date'], // Nullable date
+                                  latestTask?['comp_desc'],
+                                  latestTask?['comp_location'],
+                                  latestTask?['assigned_date'],
+                                  latestTask?['isAcknowledged'] ?? false,
                                 )
+                              : Center(
+                                  child: Text(
+                                    'Tiada tugasan terkini.', // ✅ Show message when no task exists
+                                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.normal),
+                                  ),
+                                ),
                     ],
                   ),
                 ),
               ),
             ],
           ),
-        );
-      },
+         ),
+     );
+    },
       loading: () {
         return Scaffold(
           backgroundColor: Colors.white, // White background
@@ -447,7 +489,7 @@ Widget _buildAttendanceCard(
                       context,
                       ref,
                       'present',
-                      'Kehadiran anda telah direkodkan sebagai Hadir..',
+                      'Kehadiran anda telah direkodkan sebagai Hadir.',
                     );
                   },
                   child: _buildAttendanceIcon(Icons.check, Colors.green, secondaryColor, screenWidth),
@@ -536,14 +578,15 @@ Widget _buildTaskCard(
   WidgetRef ref,
   String? title,
   String? subtitle,
-  String? date, 
+  String? date,
+  bool isAcknowledged, // ✅ New parameter to track acknowledgment status
 ) {
   final primaryColor = Theme.of(context).colorScheme.primary;
   final onPrimaryColor = Theme.of(context).colorScheme.onPrimary;
   final screenWidth = MediaQuery.of(context).size.width;
 
   // Default values if no task details are provided
-  final displayTitle = title?.isNotEmpty == true ? title! : 'Tiada tugasan tersedia.';
+  final displayTitle = title?.isNotEmpty == true ? title! : 'Tiada tugasan terkini.';
   final displaySubtitle = subtitle?.isNotEmpty == true ? subtitle! : '';
   final displayDate = date?.isNotEmpty == true ? _formatDate(date!) : '';
 
@@ -551,15 +594,14 @@ Widget _buildTaskCard(
 
   return GestureDetector(
     onTap: () {
-      // Update the index to the Tasks page (1)
-      ref.read(currentIndexProvider.notifier).state = 1;
+      ref.read(currentIndexProvider.notifier).state = 1; // ✅ Navigate to Task Page
     },
     child: SizedBox(
       width: screenWidth, // Ensure the card takes full width
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: primaryColor, // Use primary color for the card background
+          color: primaryColor, // ✅ Use primary color for the card background
           borderRadius: BorderRadius.circular(12),
         ),
         child: isFallback
@@ -577,28 +619,51 @@ Widget _buildTaskCard(
             : Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Title
-                  Text(
-                    displayTitle, // Default title or fallback message
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: onPrimaryColor, // Normal onPrimaryColor for title
-                    ),
+                  // ✅ Title and "Sedang Dijalankan" aligned on the same row
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          displayTitle,
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: onPrimaryColor,
+                          ),
+                        ),
+                      ),
+                      if (isAcknowledged) // ✅ Show "Sedang Dijalankan" if acknowledged
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: Colors.green.withOpacity(0.2), // Light green background
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            "Sedang Dijalankan",
+                            style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.orange, // Green text
+                            ),
+                          ),
+                        ),
+                    ],
                   ),
                   const SizedBox(height: 8),
 
                   if (displaySubtitle.isNotEmpty) ...[
                     // Divider
                     Divider(
-                      color: onPrimaryColor.withOpacity(0.5), // Faint line for separation
+                      color: onPrimaryColor.withOpacity(0.5), // ✅ Faint line for separation
                       thickness: 1,
                     ),
                     const SizedBox(height: 8),
 
                     // Subtitle
                     Text(
-                      displaySubtitle, // Default subtitle or empty
+                      displaySubtitle,
                       style: TextStyle(
                         fontSize: 14,
                         color: onPrimaryColor, // Normal onPrimaryColor for subtitle
@@ -609,7 +674,7 @@ Widget _buildTaskCard(
 
                   // Date
                   Text(
-                    displayDate, // Formatted date or empty
+                    displayDate,
                     style: TextStyle(
                       fontSize: 12,
                       color: onPrimaryColor, // Normal onPrimaryColor for date

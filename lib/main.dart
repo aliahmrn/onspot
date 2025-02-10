@@ -18,7 +18,7 @@ final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterL
 
 /// Define the AttendanceService provider
 final attendanceServiceProvider = FutureProvider<AttendanceService?>((ref) async {
-  final baseUrl = 'http://192.168.124.145:8000/api';
+  final baseUrl = 'http://192.168.248.145:8000/api';
   final authToken = ref.watch(authTokenProvider); // Access the token directly
   final logger = Logger();
 

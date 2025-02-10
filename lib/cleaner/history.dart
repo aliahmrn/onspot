@@ -18,22 +18,26 @@ class CleanerHistoryScreen extends ConsumerStatefulWidget {
 }
 
 class _CleanerHistoryScreenState extends ConsumerState<CleanerHistoryScreen> {
-  @override
-  void initState() {
-    super.initState();
 
-    // Fetch history tasks when the widget is built
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      final prefs = await SharedPreferences.getInstance();
-      final cleanerId = prefs.getString('cleanerId');
+@override
+void initState() {
+  super.initState();
 
-      if (cleanerId != null) {
+  // Fetch history tasks when the widget is built
+  WidgetsBinding.instance.addPostFrameCallback((_) async {
+    final prefs = await SharedPreferences.getInstance();
+    final cleanerId = prefs.getString('cleanerId');
+
+    if (cleanerId != null) {
+      // Check if the widget is still mounted before updating the state
+      if (mounted) {
         ref.read(historyProvider.notifier).fetchHistoryTasks(int.parse(cleanerId));
-      } else {
-        debugPrint('Cleaner ID not found.');
       }
-    });
-  }
+    } else {
+      debugPrint('Cleaner ID not found.');
+    }
+  });
+}
 
   @override
   Widget build(BuildContext context) {
@@ -53,6 +57,7 @@ class _CleanerHistoryScreenState extends ConsumerState<CleanerHistoryScreen> {
         backgroundColor: primaryColor,
         elevation: 0,
         automaticallyImplyLeading: true,
+        toolbarHeight: 70,
         title: Text(
           'Rekod Tugasan',
           style: TextStyle(
@@ -111,16 +116,16 @@ class _CleanerHistoryScreenState extends ConsumerState<CleanerHistoryScreen> {
     }
 
     return RefreshIndicator(
-      onRefresh: () async {
-        final prefs = await SharedPreferences.getInstance();
-        final cleanerId = prefs.getString('cleanerId');
+        onRefresh: () async {
+          final prefs = await SharedPreferences.getInstance();
+          final cleanerId = prefs.getString('cleanerId');
 
-        if (cleanerId != null) {
-          await ref.read(historyProvider.notifier).refreshHistoryTasks(int.parse(cleanerId));
-        } else {
-          debugPrint('Cleaner ID not found.');
-        }
-      },
+          if (cleanerId != null && mounted) {
+            await ref.read(historyProvider.notifier).refreshHistoryTasks(int.parse(cleanerId));
+          } else {
+            debugPrint('Cleaner ID not found or widget is not mounted.');
+          }
+        },
       child: ListView.builder(
         itemCount: tasks.length,
         itemBuilder: (context, index) {
@@ -164,22 +169,33 @@ class _CleanerHistoryScreenState extends ConsumerState<CleanerHistoryScreen> {
     );
   }
 
-  Future<void> _speakTaskDetails(
-    FlutterTts flutterTts,
-    String description,
-    String location,
-    String date,
-  ) async {
-    final String textToSpeak = "Tugas: $description. Lokasi: $location. Tarikh Ditugaskan: $date.";
-    try {
-      await flutterTts.setLanguage("ms-MY");
-      await flutterTts.setSpeechRate(0.3);
-      await flutterTts.awaitSpeakCompletion(true);
-      await flutterTts.speak(textToSpeak);
-    } catch (e) {
-      debugPrint('Error in TTS: $e');
-    }
+Future<void> _speakTaskDetails(
+  FlutterTts flutterTts,
+  String description,
+  String location,
+  String date,
+) async {
+  // Parse the raw date and format it to only include the date (e.g., "14/01/2025")
+  String formattedDate;
+  try {
+    final parsedDate = DateTime.parse(date); // Parse the string into a DateTime object
+    formattedDate = DateFormat('dd/MM/yyyy').format(parsedDate); // Format the date
+  } catch (e) {
+    formattedDate = 'Tarikh tidak sah'; // Fallback if the date parsing fails
   }
+
+  final String textToSpeak =
+      "Tugas: $description. Lokasi: $location. Tarikh Ditugaskan: $formattedDate.";
+  
+  try {
+    await flutterTts.setLanguage("ms-MY");
+    await flutterTts.setSpeechRate(0.3); // Adjust speech rate
+    await flutterTts.awaitSpeakCompletion(true); // Ensure it waits for the speech to complete
+    await flutterTts.speak(textToSpeak); // Speak the task details
+  } catch (e) {
+    debugPrint('Error in TTS: $e');
+  }
+}
 
   Widget _buildTaskCard(
     BuildContext context,

@@ -68,6 +68,7 @@ class TaskDetailsPageState extends State<TaskDetailsPage> {
         backgroundColor: primaryColor,
         elevation: 0,
         automaticallyImplyLeading: false,
+        toolbarHeight: 70,
         centerTitle: true,
         title: Text(
           'Butiran Tugasan',

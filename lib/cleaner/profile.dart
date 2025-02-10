@@ -35,7 +35,7 @@ class CleanerProfileScreen extends ConsumerWidget {
           'Profil',
           style: TextStyle(
             color: onPrimaryColor,
-            fontSize: screenWidth * 0.05, // Responsive font size
+            fontSize: screenWidth * 0.05,
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -47,7 +47,7 @@ class CleanerProfileScreen extends ConsumerWidget {
             'Ralat memuatkan profil: $error',
             style: TextStyle(
               color: Colors.red,
-              fontSize: screenWidth * 0.045, // Responsive font size
+              fontSize: screenWidth * 0.045,
             ),
           ),
         ),
@@ -58,7 +58,7 @@ class CleanerProfileScreen extends ConsumerWidget {
               'Ralat memuatkan status: $error',
               style: TextStyle(
                 color: Colors.red,
-                fontSize: screenWidth * 0.045, // Responsive font size
+                fontSize: screenWidth * 0.045,
               ),
             ),
           ),
@@ -66,7 +66,7 @@ class CleanerProfileScreen extends ConsumerWidget {
             context,
             ref,
             cleanerInfo,
-            attendanceState.status ?? 'Unavailable', // Pass attendance status
+            attendanceState.status ?? 'Unavailable',
             primaryColor,
             secondaryColor,
             onPrimaryColor,
@@ -77,231 +77,163 @@ class CleanerProfileScreen extends ConsumerWidget {
     );
   }
 
-Widget _buildProfileContent(
-  BuildContext context,
-  WidgetRef ref,
-  Map<String, dynamic> cleanerInfo,
-  String attendanceStatus, // Add attendance status parameter
-  Color primaryColor,
-  Color secondaryColor,
-  Color onPrimaryColor,
-  double screenWidth,
-) {
-  // Translate status to "Sedia" or "Tidak Sedia"
-  final translatedStatus = attendanceStatus.toLowerCase() == 'available' ? 'Sedia' : 'Tidak Sedia';
+  Widget _buildProfileContent(
+    BuildContext context,
+    WidgetRef ref,
+    Map<String, dynamic> cleanerInfo,
+    String attendanceStatus,
+    Color primaryColor,
+    Color secondaryColor,
+    Color onPrimaryColor,
+    double screenWidth,
+  ) {
+    final translatedStatus = attendanceStatus.toLowerCase() == 'available' ? 'Sedia' : 'Tidak Sedia';
 
-  return LayoutBuilder(
-    builder: (context, constraints) {
-      return SingleChildScrollView(
-        child: ConstrainedBox(
-          constraints: BoxConstraints(
-            minHeight: constraints.maxHeight,
-          ),
-          child: IntrinsicHeight(
-            child: Stack(
-              children: [
-                Positioned(
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  height: 180,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: primaryColor,
-                      borderRadius: const BorderRadius.only(
-                        bottomLeft: Radius.circular(40),
-                        bottomRight: Radius.circular(40),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return SingleChildScrollView(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: constraints.maxHeight),
+            child: IntrinsicHeight(
+              child: Stack(
+                children: [
+                  Positioned(
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    height: 180,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: primaryColor,
+                        borderRadius: const BorderRadius.only(
+                          bottomLeft: Radius.circular(40),
+                          bottomRight: Radius.circular(40),
+                        ),
                       ),
-                    ),
-                    child: Padding(
-                      padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.05), // Responsive padding
-                      child: Column(
-                        children: [
-                          SizedBox(height: screenWidth * 0.05), // Responsive spacing
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              // Profile Picture and Status Badge
-                              Column(
-                                children: [
-                                  // Profile Picture
-                                  Container(
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: Colors.black.withOpacity(0.1),
-                                          blurRadius: 5,
-                                          offset: const Offset(0, 2),
-                                        ),
-                                      ],
-                                    ),
-                                    child: CircleAvatar(
-                                      radius: screenWidth * 0.12, // Responsive size
-                                      backgroundColor: Colors.transparent, // No white background
-                                      backgroundImage: cleanerInfo['profile_pic'] != null
-                                          ? NetworkImage("${cleanerInfo['profile_pic']}?timestamp=${DateTime.now().millisecondsSinceEpoch}")
-                                          : null,
-                                      child: cleanerInfo['profile_pic'] == null
-                                          ? Icon(Icons.person, size: screenWidth * 0.12, color: Colors.grey[600])
-                                          : null,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 8), // Space between avatar and badge
-                                  // Status Badge
-                                  Container(
-                                    padding: EdgeInsets.symmetric(
-                                      vertical: screenWidth * 0.01,
-                                      horizontal: screenWidth * 0.03,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: translatedStatus == 'Sedia'
-                                          ? Colors.green.withOpacity(0.2)
-                                          : Colors.red.withOpacity(0.2),
-                                      borderRadius: BorderRadius.circular(20),
-                                      border: Border.all(
-                                        color: translatedStatus == 'Sedia' ? Colors.green : Colors.red,
-                                      ),
-                                    ),
-                                    child: Text(
-                                      translatedStatus, // Use translated status
-                                      style: TextStyle(
-                                        fontSize: screenWidth * 0.035, // Responsive font size
-                                        fontWeight: FontWeight.bold,
-                                        color: translatedStatus == 'Sedia' ? Colors.green : Colors.red,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              SizedBox(width: screenWidth * 0.05), // Responsive spacing
-                              // Name, Username, and Building Badge
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  // Building Badge
-                                  if (cleanerInfo['building'] != null && cleanerInfo['building'].isNotEmpty)
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.05),
+                        child: Column(
+                          children: [
+                            SizedBox(height: screenWidth * 0.05),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Column(
+                                  children: [
                                     Container(
                                       decoration: BoxDecoration(
-                                        color: Colors.white,
-                                        borderRadius: BorderRadius.circular(20),
+                                        shape: BoxShape.circle,
                                         boxShadow: [
                                           BoxShadow(
                                             color: Colors.black.withOpacity(0.1),
-                                            blurRadius: 4,
+                                            blurRadius: 5,
                                             offset: const Offset(0, 2),
                                           ),
                                         ],
                                       ),
-                                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                                      child: Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          Icon(
-                                            Icons.location_city,
-                                            size: screenWidth * 0.045, // Responsive size
-                                            color: primaryColor,
-                                          ),
-                                          const SizedBox(width: 6),
-                                          Text(
-                                            cleanerInfo['building'],
-                                            style: TextStyle(
-                                              fontSize: screenWidth * 0.04,
-                                              fontWeight: FontWeight.w600,
-                                              color: primaryColor,
-                                            ),
-                                          ),
-                                        ],
+                                      child: CircleAvatar(
+                                        radius: screenWidth * 0.12,
+                                        backgroundColor: Colors.transparent,
+                                        backgroundImage: cleanerInfo['profile_pic'] != null
+                                            ? NetworkImage("${cleanerInfo['profile_pic']}?timestamp=${DateTime.now().millisecondsSinceEpoch}")
+                                            : null,
+                                        child: cleanerInfo['profile_pic'] == null
+                                            ? Icon(Icons.person, size: screenWidth * 0.12, color: Colors.grey[600])
+                                            : null,
                                       ),
-                                    )
-                                  else
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Container(
+                                      padding: EdgeInsets.symmetric(
+                                        vertical: screenWidth * 0.01,
+                                        horizontal: screenWidth * 0.03,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: translatedStatus == 'Sedia'
+                                            ? Colors.green.withOpacity(0.2)
+                                            : Colors.red.withOpacity(0.2),
+                                        borderRadius: BorderRadius.circular(20),
+                                        border: Border.all(
+                                          color: translatedStatus == 'Sedia' ? Colors.green : Colors.red,
+                                        ),
+                                      ),
+                                      child: Text(
+                                        translatedStatus,
+                                        style: TextStyle(
+                                          fontSize: screenWidth * 0.035,
+                                          fontWeight: FontWeight.bold,
+                                          color: translatedStatus == 'Sedia' ? Colors.green : Colors.red,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                SizedBox(width: screenWidth * 0.05),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
                                     Text(
-                                      'Bangunan tidak ditetapkan',
-                                      style: const TextStyle(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w500,
+                                      cleanerInfo['name'] ?? 'Nama Pembersih',
+                                      style: TextStyle(
+                                        fontSize: screenWidth * 0.045,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                    Text(
+                                      cleanerInfo['username'] ?? 'cleaner.username',
+                                      style: TextStyle(
+                                        fontSize: screenWidth * 0.04,
                                         color: Colors.white70,
                                       ),
                                     ),
-                                  const SizedBox(height: 8),
-                                  // Name
-                                  Text(
-                                    cleanerInfo['name'] ?? 'Nama Pembersih',
-                                    style: TextStyle(
-                                      fontSize: screenWidth * 0.045, // Responsive font size
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                  // Username
-                                  Text(
-                                    cleanerInfo['username'] ?? 'cleaner.username',
-                                    style: TextStyle(
-                                      fontSize: screenWidth * 0.04, // Responsive font size
-                                      color: Colors.white70,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    top: 160,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    child: Container(
+                      padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.04, vertical: screenWidth * 0.05),
+                      decoration: BoxDecoration(
+                        color: secondaryColor,
+                        borderRadius: const BorderRadius.only(
+                          topLeft: Radius.circular(40),
+                          topRight: Radius.circular(40),
+                        ),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          SizedBox(height: screenWidth * 0.1),
+                          _buildTextField(context, 'E-mel', cleanerInfo['email'] ?? '', Icons.email, screenWidth),
+                          SizedBox(height: screenWidth * 0.05),
+                          _buildTextField(context, 'Nombor Telefon', cleanerInfo['phone_no'] ?? '', Icons.phone, screenWidth),
+                          SizedBox(height: screenWidth * 0.08),
+                          _buildButtonSection(context, ref, primaryColor, secondaryColor, screenWidth),
                         ],
                       ),
                     ),
                   ),
-                ),
-                Positioned(
-                  top: 160,
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  child: Container(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: screenWidth * 0.04, // Responsive padding
-                      vertical: screenWidth * 0.05, // Responsive padding
-                    ),
-                    decoration: BoxDecoration(
-                      color: secondaryColor,
-                      borderRadius: const BorderRadius.only(
-                        topLeft: Radius.circular(40),
-                        topRight: Radius.circular(40),
-                      ),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        SizedBox(height: screenWidth * 0.1), // Responsive spacing
-                        _buildTextField(
-                          context,
-                          'E-mel',
-                          cleanerInfo['email'] ?? '',
-                          Icons.email,
-                          screenWidth,
-                        ),
-                        SizedBox(height: screenWidth * 0.05), // Responsive spacing
-                        _buildTextField(
-                          context,
-                          'Nombor Telefon',
-                          cleanerInfo['phone_no'] ?? '',
-                          Icons.phone,
-                          screenWidth,
-                        ),
-                        SizedBox(height: screenWidth * 0.08), // Responsive spacing
-                        _buildButtonSection(context, ref, primaryColor, secondaryColor, screenWidth),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
-        ),
-      );
-    },
-  );
+        );
+      },
+    );
+  }
 }
+
 
 
   Widget _buildTextField(BuildContext context, String label, String value, IconData icon, double screenWidth) {
@@ -478,4 +410,4 @@ Widget _buildProfileContent(
       }
     }
   }
-}
+

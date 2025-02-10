@@ -12,7 +12,7 @@ import '../providers/profile_provider.dart';
 
 
 class AuthService {
-  final String baseUrl = 'http://192.168.124.145:8000/api'; // Your API base URL
+  final String baseUrl = 'http://192.168.248.145:8000/api'; // Your API base URL
   final Logger logger = Logger(); // Initialize Logger
 
   // Login function for cleaners
@@ -25,7 +25,10 @@ class AuthService {
 
       final response = await http.post(
         Uri.parse('$baseUrl/flutterlogin'),
-        headers: {'Content-Type': 'application/json'},
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json', // Required for Laravel API
+        },
         body: requestBody,
       );
 

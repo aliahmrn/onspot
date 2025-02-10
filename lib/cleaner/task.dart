@@ -7,6 +7,8 @@ import 'task_details.dart';
 import '../widget/cleanericons.dart';
 import 'package:logger/logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 
 class CleanerTasksScreen extends ConsumerStatefulWidget {
   final Logger logger = Logger();
@@ -18,8 +20,9 @@ class CleanerTasksScreen extends ConsumerStatefulWidget {
 }
 
 class _CleanerTasksScreenState extends ConsumerState<CleanerTasksScreen> {
-@override
-void initState() {
+  Set<int> acknowledgedTasks = {};
+  @override
+  void initState() {
   super.initState();
 
   // Fetch tasks when the widget is built
@@ -54,6 +57,7 @@ void initState() {
         backgroundColor: primaryColor,
         elevation: 0,
         automaticallyImplyLeading: false,
+        toolbarHeight: 70,
         title: Text(
           'Tugasan',
           style: TextStyle(
@@ -117,7 +121,7 @@ Widget _buildTaskList(
    widget.logger.i('Tasks in _buildTaskList: $tasks'); // Add this log
 
   if (tasks.isEmpty) {
-    return const Center(child: Text('Tiada tugasan tersedia.'));
+    return const Center(child: Text('Tiada tugasan terkini.'));
   }
 
   return RefreshIndicator(
@@ -135,6 +139,11 @@ Widget _buildTaskList(
       itemCount: tasks.length,
       itemBuilder: (context, index) {
         final task = tasks[index];
+        final int complaintId = task['complaint_id'] ?? 0;
+        final bool isAcknowledged = task['is_notified'] == 1 || task['is_notified'] == true;
+
+        widget.logger.i(
+        'Task ID: $complaintId | is_notified Type: ${task['is_notified'].runtimeType} | Value: ${task['is_notified']}');
         widget.logger.i('Building card for task: $task');
 
         return Padding(
@@ -159,13 +168,14 @@ Widget _buildTaskList(
                   const SizedBox(width: 16), // Add spacing between icons
 
                   // Thumbs Up Icon
-                  GestureDetector(
-                    onTap: () {
-                      // Handle the thumbs up action
-                      _handleThumbsUp(task['complaint_id']);
-                    },
-                    child: CleanerIcons.thumbsUpIcon(context),
-                  ),
+                  // ✅ Only show thumbs up if NOT clicked before
+                  if (!isAcknowledged && !acknowledgedTasks.contains(complaintId))
+                    GestureDetector(
+                      onTap: () {
+                        _handleThumbsUp(complaintId);
+                      },
+                      child: CleanerIcons.thumbsUpIcon(context),
+                    ),
                 ],
               ),
               const SizedBox(height: 8),
@@ -177,6 +187,7 @@ Widget _buildTaskList(
                 task['assigned_date'] ?? 'Tiada Tarikh',
                 task['comp_image'],
                 task['complaint_id'],
+                isAcknowledged,
               ),
             ],
           ),
@@ -196,140 +207,167 @@ void _handleThumbsUp(int complaintId) async {
   }
 
   try {
-    // Use the public getter `taskService` to access the TaskService instance
-    await ref.read(taskProvider.notifier).taskService.notifiedTasks(
-          complaintId,
-          int.parse(cleanerId),
-        );
-
-    // Refresh tasks after marking the task as completed
-    await ref.read(taskProvider.notifier).refreshTasks(int.parse(cleanerId));
-
-    // Display "Tugasan disahkan" instead of using SnackBar
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Makluman'),
-          content: const Text('Tugasan disahkan.'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('OK'),
-            ),
-          ],
-        );
+    final response = await http.post(
+      Uri.parse('http://192.168.248.145:8000/api/tasks/acknowledge'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ${prefs.getString('token')}',
       },
+      body: jsonEncode({
+        'complaint_id': complaintId,
+        'cleaner_id': int.parse(cleanerId),
+      }),
     );
+
+    if (response.statusCode == 200) {
+      setState(() {
+        acknowledgedTasks.add(complaintId); // ✅ Update local UI
+      });
+
+      widget.logger.i('Task acknowledged successfully');
+    } else {
+      widget.logger.e('Failed to acknowledge task: ${response.body}');
+    }
   } catch (e) {
-    widget.logger.e('Error completing task: $e');
+    widget.logger.e('Error acknowledging task: $e');
   }
 }
 
-  Future<void> _speakTaskDetails(
-    FlutterTts flutterTts,
-    String description,
-    String location,
-    String date,
-  ) async {
-    final String textToSpeak = "Tugas: $description. Lokasi: $location. Tarikh Ditugaskan: $date.";
-    try {
-      await flutterTts.setLanguage("ms-MY");
-      await flutterTts.setSpeechRate(0.3); // Adjust speech rate
-      await flutterTts.awaitSpeakCompletion(true); // Ensure it waits for the speech to complete
-      await flutterTts.speak(textToSpeak); // Speak the task details
-    } catch (e) {
-      debugPrint('Error in TTS: $e');
-    }
+
+Future<void> _speakTaskDetails(
+  FlutterTts flutterTts,
+  String description,
+  String location,
+  String date,
+) async {
+  // Parse the raw date and format it to only include the date (e.g., "14/01/2025")
+  String formattedDate;
+  try {
+    final parsedDate = DateTime.parse(date); // Parse the string into a DateTime object
+    formattedDate = DateFormat('dd/MM/yyyy').format(parsedDate); // Format the date
+  } catch (e) {
+    formattedDate = 'Tarikh tidak sah'; // Fallback if the date parsing fails
   }
 
-  Widget _buildTaskCard(
-    BuildContext context,
-    WidgetRef ref,
-    String title,
-    String subtitle,
-    String date,
-    String? imageUrl,
-    int complaintId,
-  ) {
-    widget.logger.i('Rendering task card with title: $title, subtitle: $subtitle, date: $date'); 
-    final primaryColor = Theme.of(context).colorScheme.primary;
-    final onPrimaryColor = Theme.of(context).colorScheme.onPrimary;
+  final String textToSpeak =
+      "Tugas: $description. Lokasi: $location. Tarikh Ditugaskan: $formattedDate.";
+  
+  try {
+    await flutterTts.setLanguage("ms-MY");
+    await flutterTts.setSpeechRate(0.3); // Adjust speech rate
+    await flutterTts.awaitSpeakCompletion(true); // Ensure it waits for the speech to complete
+    await flutterTts.speak(textToSpeak); // Speak the task details
+  } catch (e) {
+    debugPrint('Error in TTS: $e');
+  }
+}
 
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: primaryColor,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Title and Subtitle
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
+Widget _buildTaskCard(
+  BuildContext context,
+  WidgetRef ref,
+  String title,
+  String subtitle,
+  String date,
+  String? imageUrl,
+  int complaintId,
+  bool isAcknowledged,
+) {
+  widget.logger.i('Rendering task card with title: $title, subtitle: $subtitle, date: $date'); 
+  final primaryColor = Theme.of(context).colorScheme.primary;
+  final onPrimaryColor = Theme.of(context).colorScheme.onPrimary;
+
+  return Container(
+    padding: const EdgeInsets.all(16),
+    decoration: BoxDecoration(
+      color: primaryColor,
+      borderRadius: BorderRadius.circular(12),
+    ),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // ✅ Title and "Sedang Dijalankan" aligned on the same row
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Expanded(
+              child: Text(
+                title,
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: onPrimaryColor,
+                ),
+              ),
+            ),
+
+            // ✅ Show "Sedang Dijalankan" if the task was acknowledged
+            if (isAcknowledged)
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.orange.withOpacity(0.2), // Light orange background
+                  borderRadius: BorderRadius.circular(8),
+                ),
                 child: Text(
-                  title,
-                  style: TextStyle(
-                    fontSize: 16,
+                  "Sedang Dijalankan",
+                  style: const TextStyle(
+                    fontSize: 14,
                     fontWeight: FontWeight.bold,
-                    color: onPrimaryColor,
+                    color: Colors.orange, // Orange text
                   ),
                 ),
               ),
-            ],
-          ),
-          const SizedBox(height: 8),
+          ],
+        ),
+        const SizedBox(height: 8),
 
-          // Divider
-          Divider(color: onPrimaryColor.withOpacity(0.5), thickness: 1),
-          const SizedBox(height: 8),
+        // Divider
+        Divider(color: onPrimaryColor.withOpacity(0.5), thickness: 1),
+        const SizedBox(height: 8),
 
-          // Location and Assigned Date
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(subtitle, style: TextStyle(fontSize: 14, color: onPrimaryColor)),
-                    const SizedBox(height: 4),
-                    Text(_formatDate(date), style: TextStyle(fontSize: 12, color: onPrimaryColor)),
-                  ],
-                ),
+        // Location and Assigned Date
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(subtitle, style: TextStyle(fontSize: 14, color: onPrimaryColor)),
+                  const SizedBox(height: 4),
+                  Text(_formatDate(date), style: TextStyle(fontSize: 12, color: onPrimaryColor)),
+                ],
               ),
-              GestureDetector(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    PageRouteBuilder(
-                      pageBuilder: (context, animation, secondaryAnimation) => TaskDetailsPage(
-                        complaintId: complaintId,
-                        location: subtitle,
-                        date: date,
-                        imageUrl: imageUrl,
-                        description: title,
-                      ),
-                      transitionDuration: Duration.zero,
-                      reverseTransitionDuration: Duration.zero,
+            ),
+            GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  PageRouteBuilder(
+                    pageBuilder: (context, animation, secondaryAnimation) => TaskDetailsPage(
+                      complaintId: complaintId,
+                      location: subtitle,
+                      date: date,
+                      imageUrl: imageUrl,
+                      description: title,
                     ),
-                  );
-                },
-                child: Icon(
-                  Icons.arrow_forward_ios,
-                  color: onPrimaryColor,
-                  size: 24,
-                ),
+                    transitionDuration: Duration.zero,
+                    reverseTransitionDuration: Duration.zero,
+                  ),
+                );
+              },
+              child: Icon(
+                Icons.arrow_forward_ios,
+                color: onPrimaryColor,
+                size: 24,
               ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
+            ),
+          ],
+        ),
+      ],
+    ),
+  );
+}
 
   String _formatDate(String? rawDate) {
     try {
