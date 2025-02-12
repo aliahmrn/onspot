@@ -214,7 +214,15 @@ ref.listen<AsyncValue<Map<String, dynamic>>>(assignTaskProvider, (previous, next
                             complaintDetails['comp_desc'] ?? 'Tiada Penerangan',
                             screenWidth,
                           ),
-                          SizedBox(height: screenHeight * 0.03),
+                          const Divider(color: Colors.grey, thickness: 0.5),
+
+                          _buildMultilineDetailRow(
+                            Icons.person, // Use person icon for officer name
+                            'Aduan Oleh',
+                            complaintDetails['officer_name'] ?? 'Tidak Diketahui',
+                            screenWidth,
+                          ),
+                          SizedBox(height: screenHeight * 0.02),
 
                           // Number of Cleaners Section
                           _buildCleanersDropdownSection(

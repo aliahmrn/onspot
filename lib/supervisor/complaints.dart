@@ -160,61 +160,101 @@ class ComplaintPage extends ConsumerWidget {
                               color: onPrimaryColor,
                             ),
                           ),
-                          SizedBox(height: screenHeight * 0.01),
-
-                          // Complaint date and Assign button
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              Text(
-                                'Tarikh: ${DateFormat('dd/MM/yyyy').format(DateTime.parse(complaint['comp_date']!))}',
-                                style: TextStyle(
-                                  fontSize: screenWidth * 0.035,
-                                  color: onPrimaryColor.withOpacity(0.7),
-                                ),
-                              ),
-                              ElevatedButton(
-                                onPressed: () async {
-                                  await Navigator.push(
-                                    context,
-                                    PageRouteBuilder(
-                                      pageBuilder: (context, animation, secondaryAnimation) => AssignTaskPage(
-                                        complaintId: complaint['id'].toString(),
+                          SizedBox(height: screenHeight * 0.015),
+                          
+                        // Officer Name & Complaint Date (Aligned with Button)
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text.rich(
+                                  TextSpan(
+                                    text: 'Aduan Oleh: ', // Bold label
+                                    style: TextStyle(
+                                      fontSize: screenWidth * 0.035,
+                                      fontWeight: FontWeight.bold, // 🟢 Bold only the label
+                                      color: onPrimaryColor.withOpacity(0.7),
+                                    ),
+                                    children: [
+                                      TextSpan(
+                                        text: complaint['officer_name'] ?? 'Tidak Diketahui', // Normal weight content
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.normal, // 🔹 Keep content normal
+                                        ),
                                       ),
-                                      transitionDuration: Duration.zero, // No transition animation
-                                      reverseTransitionDuration: Duration.zero, // No reverse transition animation
-                                    ),
-                                  );
-                                  ref.invalidate(complaintsProvider); // Refresh complaints after assigning
-                                },
-                                style: ElevatedButton.styleFrom(
-                                  padding: EdgeInsets.symmetric(
-                                    horizontal: screenWidth * 0.05,
-                                    vertical: screenHeight * 0.01,
+                                    ],
                                   ),
-                                  backgroundColor: onPrimaryColor,
-                                  foregroundColor: primaryColor,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(screenWidth * 0.03),
-                                  ),
-                                  elevation: 4,
-                                  shadowColor: Colors.black.withOpacity(0.2),
                                 ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    const Icon(Icons.assignment, size: 18),
-                                    const SizedBox(width: 5),
-                                    Text(
-                                      'Tugaskan',
-                                      style: TextStyle(fontSize: screenWidth * 0.04),
+                                SizedBox(height: screenHeight * 0.005), // Reduced space
+                                Text.rich(
+                                  TextSpan(
+                                    text: 'Tarikh: ', // Bold label
+                                    style: TextStyle(
+                                      fontSize: screenWidth * 0.035,
+                                      fontWeight: FontWeight.bold, // 🟢 Bold only the label
+                                      color: onPrimaryColor.withOpacity(0.7),
                                     ),
-                                  ],
+                                    children: [
+                                      TextSpan(
+                                        text: DateFormat('dd/MM/yyyy').format(DateTime.parse(complaint['comp_date']!)), // Normal weight content
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.normal, // 🔹 Keep content normal
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
+                              ],
+                            ),
+                            ElevatedButton(
+                              onPressed: () async {
+                                if (complaint['id'] == null) {
+                                  logger.e("Error: Complaint ID is null for complaint: $complaint");
+                                  return; // Prevent navigation if ID is missing
+                                }
+
+                                logger.i("Navigating to AssignTaskPage with complaintId: ${complaint['id']}");
+                                await Navigator.push(
+                                  context,
+                                  PageRouteBuilder(
+                                    pageBuilder: (context, animation, secondaryAnimation) => AssignTaskPage(
+                                      complaintId: complaint['id'].toString(),
+                                    ),
+                                    transitionDuration: Duration.zero, // No transition animation
+                                    reverseTransitionDuration: Duration.zero, // No reverse transition animation
+                                  ),
+                                );
+                                ref.invalidate(complaintsProvider); // Refresh complaints after assigning
+                              },
+                              style: ElevatedButton.styleFrom(
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: screenWidth * 0.05,
+                                  vertical: screenHeight * 0.01,
+                                ),
+                                backgroundColor: onPrimaryColor,
+                                foregroundColor: primaryColor,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(screenWidth * 0.03),
+                                ),
+                                elevation: 4,
+                                shadowColor: Colors.black.withOpacity(0.2),
                               ),
-                            ],
-                          ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(Icons.assignment, size: 18),
+                                  const SizedBox(width: 5),
+                                  Text(
+                                    'Tugaskan',
+                                    style: TextStyle(fontSize: screenWidth * 0.04),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
                         ],
                       ),
                     ),

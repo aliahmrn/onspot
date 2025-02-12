@@ -3,9 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:intl/intl.dart';
 import '../providers/complaints_provider.dart';
-import '../widget/profile_picture_widget.dart'; 
+import '../widget/profile_picture_widget.dart';
 import '../providers/navigation_provider.dart';
-import '../providers/user_provider.dart'; 
+import '../providers/user_provider.dart';
 import '../providers/profile_provider.dart';
 
 class SupervisorHomeScreen extends ConsumerWidget {
@@ -27,12 +27,69 @@ class SupervisorHomeScreen extends ConsumerWidget {
     final supervisorName = ref.watch(userNameProvider);
     final profileData = ref.watch(profileProvider);
 
-    Future<void> _refresh() async {
-    ref.invalidate(complaintsProvider);
-    ref.invalidate(latestComplaintProvider);
-    ref.invalidate(userNameProvider);
-    ref.invalidate(profileProvider);
-   }
+    Future<void> refresh() async {
+      ref.invalidate(complaintsProvider);
+      ref.invalidate(latestComplaintProvider);
+      ref.invalidate(userNameProvider);
+      ref.invalidate(profileProvider);
+    }
+
+    // Helper method to build a row with a label and value
+    Widget buildRow(String emoji, String value, String time, Color textColor) {
+      return Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Row(
+            children: [
+              Text(emoji, style: TextStyle(fontSize: 18)), // Emoji icon
+              SizedBox(width: 8),
+              Text(
+                value,
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: textColor,
+                ),
+              ),
+            ],
+          ),
+          Text(
+            time,
+            style: TextStyle(fontSize: 14, color: textColor.withOpacity(0.7)),
+          ),
+        ],
+      );
+    }
+
+    // Helper method to build a text label and value
+    Widget buildText(String label, String value, Color textColor, {double fontSize = 14}) {
+      return Padding(
+        padding: const EdgeInsets.only(top: 8.0),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+                color: textColor.withOpacity(0.7),
+              ),
+            ),
+            SizedBox(width: 6),
+            Expanded(
+              child: Text(
+                value,
+                style: TextStyle(
+                  fontSize: fontSize, // 🎯 Customizable font size
+                  color: textColor,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
 
     return Scaffold(
       backgroundColor: primaryColor,
@@ -51,58 +108,52 @@ class SupervisorHomeScreen extends ConsumerWidget {
         ),
       ),
       body: RefreshIndicator(
-        onRefresh: _refresh,
+        onRefresh: refresh,
         child: Stack(
           children: [
-          Positioned(
-            top: screenHeight * 0.01,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            child: Container(
-              decoration: BoxDecoration(
-                color: secondaryColor,
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(screenWidth * 0.06),
-                  topRight: Radius.circular(screenWidth * 0.06),
+            Positioned(
+              top: screenHeight * 0.01,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: secondaryColor,
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(screenWidth * 0.06),
+                    topRight: Radius.circular(screenWidth * 0.06),
+                  ),
                 ),
-              ),
-              padding: EdgeInsets.all(screenWidth * 0.04),
-              child: SingleChildScrollView(
-                physics: const AlwaysScrollableScrollPhysics(),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Header Section
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                padding: EdgeInsets.all(screenWidth * 0.04),
+                child: SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Supervisor Name
-                      supervisorName.when(
-                        loading: () => const CircularProgressIndicator(),
-                        error: (error, _) => const Text('Ralat memuatkan data'),
-                        data: (name) => RichText(
-                          text: TextSpan(
-                            text: 'Selamat Datang, ',
-                            style: TextStyle(
-                              fontSize: screenWidth * 0.05,
-                              fontWeight: FontWeight.normal,
-                              color: Colors.black87,
-                            ),
-                            children: [
-                              TextSpan(
-                                text: name,
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
+                      // Header Section
                       Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          // Profile Picture
+                          supervisorName.when(
+                            loading: () => const CircularProgressIndicator(),
+                            error: (error, _) => const Text('Ralat memuatkan data'),
+                            data: (name) => RichText(
+                              text: TextSpan(
+                                text: 'Selamat Datang, ',
+                                style: TextStyle(
+                                  fontSize: screenWidth * 0.05,
+                                  fontWeight: FontWeight.normal,
+                                  color: Colors.black87,
+                                ),
+                                children: [
+                                  TextSpan(
+                                    text: name,
+                                    style: TextStyle(fontWeight: FontWeight.bold),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
                           ProfilePictureWidget(
                             radius: 20,
                             imageUrl: profileData.when(
@@ -116,228 +167,140 @@ class SupervisorHomeScreen extends ConsumerWidget {
                           ),
                         ],
                       ),
-                    ],
-                  ),
-                  SizedBox(height: screenHeight * 0.02),
+                      SizedBox(height: screenHeight * 0.02),
 
-                  // Welcome Icon
-                  Center(
-                    child: SvgPicture.asset(
-                      'assets/images/homeicon.svg',
-                      height: screenHeight * 0.25,
-                    ),
-                  ),
-                  SizedBox(height: screenHeight * 0.02),
-
-                  // Complaints Section Header
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Aduan',
-                        style: TextStyle(
-                          fontSize: screenWidth * 0.05,
-                          fontWeight: FontWeight.bold,
-                          color: onSecondaryColor,
+                      // Welcome Icon
+                      Center(
+                        child: SvgPicture.asset(
+                          'assets/images/homeicon.svg',
+                          height: screenHeight * 0.25,
                         ),
                       ),
-                      GestureDetector(
-                        onTap: () {
-                          ref.read(currentIndexProvider.notifier).state = 2;
-                        },
-                        child: Container(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: screenWidth * 0.03,
-                            vertical: screenHeight * 0.008,
-                          ),
-                          decoration: BoxDecoration(
-                            color: onSecondaryColor.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(screenWidth * 0.02),
-                          ),
-                          child: Row(
-                            children: [
-                              Text(
-                                'Lihat Semua',
-                                style: TextStyle(
-                                  fontSize: screenWidth * 0.035,
-                                  fontWeight: FontWeight.w500,
-                                  color: onSecondaryColor,
-                                ),
-                              ),
-                              Icon(
-                                Icons.arrow_forward_ios,
-                                size: screenWidth * 0.035,
-                                color: onSecondaryColor,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: screenHeight * 0.01),
+                      SizedBox(height: screenHeight * 0.02),
 
-                  // Divider
-                  Divider(color: Colors.grey.withOpacity(0.5)),
-
-                  // Complaints Section
-                  // Latest complaint display implementation
-                  complaintsState.when(
-                    loading: () => const Center(child: CircularProgressIndicator()),
-                    error: (e, _) => Center(
-                      child: Text('Ralat memuatkan aduan: $e'),
-                    ),
-                    data: (_) {
-                      return latestComplaint.when(
-                        loading: () => const Center(child: CircularProgressIndicator()),
-                        error: (error, _) => Center(
-                          child: Text(
-                            'Ralat memuatkan aduan terbaru: $error',
+                      // Complaints Section Header
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Aduan',
                             style: TextStyle(
-                              fontSize: screenWidth * 0.04,
+                              fontSize: screenWidth * 0.05,
                               fontWeight: FontWeight.bold,
-                              color: onPrimaryColor,
+                              color: onSecondaryColor,
                             ),
                           ),
-                        ),
-                        data: (complaint) {
-                          if (complaint == null) {
-                            // 🆕 Show "Tiada aduan terkini." inside a complaint card
-                            return Container(
-                              padding: EdgeInsets.all(screenWidth * 0.04),
-                              decoration: BoxDecoration(
-                                color: primaryColor,
-                                borderRadius: BorderRadius.circular(screenWidth * 0.03),
-                                border: Border.all(color: onPrimaryColor.withOpacity(0.2), width: 1),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.grey.withOpacity(0.2),
-                                    spreadRadius: screenWidth * 0.003,
-                                    blurRadius: screenWidth * 0.02,
-                                    offset: Offset(0, screenHeight * 0.003),
-                                  ),
-                                ],
-                              ),
-                              child: Center(
-                                child: Text(
-                                  'Tiada aduan terkini.',
-                                  style: TextStyle(
-                                    fontSize: screenWidth * 0.04,
-                                    fontWeight: FontWeight.bold,
-                                    color: onPrimaryColor,
-                                  ),
-                                ),
-                              ),
-                            );
-                          }
-
-                          // Format complaint time
-                          final timeString = complaint['comp_time'] ?? '00:00:00';
-                          final DateTime time = DateTime.parse('1970-01-01 $timeString');
-                          final String formattedTime = DateFormat('HH:mm').format(time);
-
-                          return GestureDetector(
+                          GestureDetector(
                             onTap: () {
                               ref.read(currentIndexProvider.notifier).state = 2;
                             },
                             child: Container(
-                              padding: EdgeInsets.all(screenWidth * 0.04),
-                              decoration: BoxDecoration(
-                                color: primaryColor,
-                                borderRadius: BorderRadius.circular(screenWidth * 0.03),
-                                border: Border.all(color: onPrimaryColor.withOpacity(0.2), width: 1),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.grey.withOpacity(0.2),
-                                    spreadRadius: screenWidth * 0.003,
-                                    blurRadius: screenWidth * 0.02,
-                                    offset: Offset(0, screenHeight * 0.003),
-                                  ),
-                                ],
+                              padding: EdgeInsets.symmetric(
+                                horizontal: screenWidth * 0.03,
+                                vertical: screenHeight * 0.008,
                               ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
+                              decoration: BoxDecoration(
+                                color: onSecondaryColor.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(screenWidth * 0.02),
+                              ),
+                              child: Row(
                                 children: [
-                                  // Location and Time Row
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Row(
-                                        children: [
-                                          const Icon(Icons.location_on, size: 18, color: Colors.white),
-                                          SizedBox(width: screenWidth * 0.02),
-                                          Text(
-                                            complaint['comp_location'] ?? 'Lokasi tidak disediakan',
-                                            style: TextStyle(
-                                              fontSize: screenWidth * 0.045,
-                                              fontWeight: FontWeight.bold,
-                                              color: onPrimaryColor,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      Text(
-                                        formattedTime,
-                                        style: TextStyle(
-                                          fontSize: screenWidth * 0.035,
-                                          color: onPrimaryColor.withOpacity(0.7),
-                                        ),
-                                      ),
-                                    ],
+                                  Text(
+                                    'Lihat Semua',
+                                    style: TextStyle(
+                                      fontSize: screenWidth * 0.035,
+                                      fontWeight: FontWeight.w500,
+                                      color: onSecondaryColor,
+                                    ),
                                   ),
-                                  SizedBox(height: screenHeight * 0.01),
-                                  const Divider(thickness: 1, color: Colors.white24),
-                                  SizedBox(height: screenHeight * 0.01),
-
-                                  // Complaint Description
-                                  Row(
-                                    children: [
-                                      const Icon(Icons.description, size: 18, color: Colors.white),
-                                      SizedBox(width: screenWidth * 0.02),
-                                      Expanded(
-                                        child: Text(
-                                          complaint['comp_desc'] ?? 'Deskripsi tidak disediakan',
-                                          style: TextStyle(
-                                            fontSize: screenWidth * 0.04,
-                                            color: onPrimaryColor,
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  SizedBox(height: screenHeight * 0.01),
-
-                                  // Complaint Date
-                                  Row(
-                                    children: [
-                                      const Icon(Icons.calendar_today, size: 18, color: Colors.white),
-                                      SizedBox(width: screenWidth * 0.02),
-                                      Text(
-                                        DateFormat('dd/MM/yyyy')
-                                            .format(DateTime.parse(complaint['comp_date'] ?? '1970-01-01')),
-                                        style: TextStyle(
-                                          fontSize: screenWidth * 0.035,
-                                          color: onPrimaryColor.withOpacity(0.7),
-                                        ),
-                                      ),
-                                    ],
+                                  Icon(
+                                    Icons.arrow_forward_ios,
+                                    size: screenWidth * 0.035,
+                                    color: onSecondaryColor,
                                   ),
                                 ],
                               ),
                             ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: screenHeight * 0.01),
+
+                      // Divider
+                      Divider(color: Colors.grey.withOpacity(0.5)),
+
+                      // Complaints Section
+                      complaintsState.when(
+                        loading: () => const Center(child: CircularProgressIndicator()),
+                        error: (e, _) => Center(child: Text('Ralat memuatkan aduan: $e')),
+                        data: (_) {
+                          return latestComplaint.when(
+                            loading: () => const Center(child: CircularProgressIndicator()),
+                            error: (error, _) => Center(child: Text('Ralat memuatkan aduan terbaru: $error')),
+                            data: (complaint) {
+                              if (complaint == null) {
+                                return Center(
+                                  child: Text(
+                                    'Tiada aduan terkini.',
+                                    style: TextStyle(fontSize: screenWidth * 0.04, fontWeight: FontWeight.w300, color: Colors.black),
+                                  ),
+                                );
+                              }
+
+                              final timeString = complaint['comp_time'] ?? '00:00:00';
+                              final DateTime time = DateTime.parse('1970-01-01 $timeString');
+                              final String formattedTime = DateFormat('HH:mm').format(time);
+
+                              return GestureDetector(
+                                onTap: () {
+                                  ref.read(currentIndexProvider.notifier).state = 2;
+                                },
+                                child: Container(
+                                  padding: EdgeInsets.all(screenWidth * 0.04),
+                                  decoration: BoxDecoration(
+                                    color: primaryColor,
+                                    borderRadius: BorderRadius.circular(screenWidth * 0.03),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.grey.withOpacity(0.2),
+                                        spreadRadius: screenWidth * 0.003,
+                                        blurRadius: screenWidth * 0.02,
+                                        offset: Offset(0, screenHeight * 0.003),
+                                      ),
+                                    ],
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      buildRow('📍', complaint['comp_location'] ?? 'Lokasi tidak disediakan', formattedTime, onPrimaryColor),
+                                      Divider(thickness: 1, color: Colors.white24),
+                                      
+                                      // 🔹 Increase font size for "Deskripsi"
+                                      buildText(
+                                        '',
+                                        complaint['comp_desc'] ?? 'Deskripsi tidak disediakan',
+                                        onPrimaryColor,
+                                        fontSize: 16, // ⬆ Increased size only for comp_desc
+                                      ),
+
+                                      buildText('  Aduan Oleh:', complaint['officer_name'] ?? 'Tidak Diketahui', onPrimaryColor.withOpacity(0.7)),
+                                      buildText('  Tarikh:', DateFormat('dd/MM/yyyy').format(DateTime.parse(complaint['comp_date'] ?? '1970-01-01')), onPrimaryColor.withOpacity(0.7)),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            },
                           );
                         },
-                      );
-                    },
+                      ),
+                    ],
                   ),
-                ]
-              )
+                ),
+              ),
             ),
-          ),
-         ),
-        ],
+          ],
+        ),
       ),
-     ),
     );
   }
 }
